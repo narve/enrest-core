@@ -73,7 +73,7 @@ public class EnrestResourceBuilder<From, To> {
         return new EnrestResource( method, pathPattern, from, to, reqParser, handler, name, ref, queryParams, pathParams, bodyParams );
     }
 
-    public Enrest buildAndRegister() {
+    public EnrestResource buildAndRegister() {
         EnrestResource r = build();
         return enrest.register( r );
     }
@@ -81,6 +81,11 @@ public class EnrestResourceBuilder<From, To> {
 
     public EnrestResourceBuilder<From, To> jsonBodyParam() {
         bodyParams.add( Parameter.builder().name( "body" ).build());
+        return self();
+    }
+
+    public EnrestResourceBuilder<From, To> pathPattern(String s) {
+        pathPattern = s;
         return self();
     }
 }

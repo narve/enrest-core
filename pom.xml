@@ -25,7 +25,7 @@
         <dependency>
             <groupId>com.github.narve</groupId>
             <artifactId>xhtml-serializer</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>3-SNAPSHOT</version>
         </dependency>
 
         <dependency>

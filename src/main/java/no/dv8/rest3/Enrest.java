@@ -36,9 +36,9 @@ public class Enrest {
 
     ;
 
-    public Enrest register(EnrestResource<?, ?> res) {
+    public EnrestResource register(EnrestResource<?, ?> res) {
         resources.add(res);
-        return this;
+        return res;
     }
 
     public List<Element> index() {
@@ -52,8 +52,8 @@ public class Enrest {
     public static List<Element> full(Collection<Element<?>> collect) {
         return asList(new div()
           .add( new ul().add( collect ) )
-          .add( new script().src("../enrest.js") )
           .add( new script().type( "text/javascript").src( "//code.jquery.com/jquery-2.2.0.min.js"))
+          .add( new script().src("../enrest.js") )
         );
     }
 
@@ -87,7 +87,7 @@ public class Enrest {
         }).collect( toList() );
 
 
-        String path = "/rest/" + r.getPath();
+        String path = "/api/" + r.getPath();
         for( Parameter p: pathParams ) {
             path += "/{:" + p.getName() + "}";
         }

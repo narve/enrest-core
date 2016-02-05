@@ -6,12 +6,22 @@ import static java.util.Arrays.asList;
 
 public class Program {
 
-    private ConcertList concerts = new ConcertList(asList(new Concert("Terminator 1", true, 101), new Concert("Terminator 2", false, 102)));
+    ConcertList concerts = initConcerts();
+
+    ConcertList initConcerts() {
+        ConcertList cl = new ConcertList(asList(new Concert("Muse Drone", true, 101), new Concert("Nick Cave", false, 102)));
+        cl.get(0).getPerformers().add( new Performer("Muse", "UK"));
+        cl.get(0).getPerformers().add( new Performer("AHA", "SE"));
+        return cl;
+    }
 
     public ConcertList getConcerts() {
         return concerts;
     }
 
+    public List<Concert> getConcerts2() {
+        return new ArrayList<>( getConcerts() );
+    }
 
     private static Program instance = new Program();
     public static Program getInstance() {

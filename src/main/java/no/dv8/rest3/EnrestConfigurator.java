@@ -16,44 +16,9 @@ import java.util.Map;
 @Slf4j
 public class EnrestConfigurator {
 
-    public static Enrest getEnrest() {
-        Program p = new Program();
-        Enrest r = new Enrest();
-        r.single(String.class, Concert.class)
-          .method("GET")
-          .queryParam("id")
-          .name("Get concert by id - Query")
-          .reqParser(req -> req.getParameterMap().get("id")[0])
-          .handler(p::getConcert)
-          .buildAndRegister();
-
-        r.single(String.class, Concert.class)
-          .method("GET")
-          .pathParam("id")
-          .name("Get concert by id - Path")
-          .reqParser(req -> ((Map<String, String>) req.getAttribute("path-param-map")).get("id"))
-          .handler(p::getConcert)
-          .buildAndRegister();
-
-        r.collection(Void.class, Concert.class)
-          .method("GET")
-          .name("List concerts")
-          .handler((x) -> p.getConcerts())
-          .buildAndRegister();
-
-        r.single(Concert.class, Concert.class)
-          .method("POST")
-          .name("Insert concert")
-          .reqParser(req -> parseJSON(Concert.class, getBodyAsString(req)))
-          .jsonBodyParam()
-          .handler(x -> p.addConcert(x))
-          .buildAndRegister();
-
-        return r;
-    }
 
 
-    static <T> T parseJSON(Class<T> clz, String bodyAsString) {
+    public static <T> T parseJSON(Class<T> clz, String bodyAsString) {
 
         try {
             bodyAsString = URLDecoder.decode(bodyAsString, "utf-8");
@@ -65,7 +30,7 @@ public class EnrestConfigurator {
         return new Gson().fromJson(bodyAsString, clz);
     }
 
-    static String getBodyAsString(ServletRequest req) {
+    public static String getBodyAsString(ServletRequest req) {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(req.getInputStream()));
             String s;
