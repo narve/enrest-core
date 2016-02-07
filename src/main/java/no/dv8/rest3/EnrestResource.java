@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@ToString
 //@Builder
 public class EnrestResource<From, To> {
     @Getter

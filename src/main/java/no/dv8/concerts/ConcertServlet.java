@@ -1,10 +1,18 @@
 package no.dv8.concerts;
 
 import no.dv8.rest2.framework.EnrestServletBase;
+import no.dv8.rest2.framework.Link;
 import no.dv8.rest3.Enrest;
+import no.dv8.rest3.EnrestResource;
+import no.dv8.rest3.Linker;
+import no.dv8.rest3.Parameter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static no.dv8.rest3.EnrestConfigurator.getBodyAsString;
 import static no.dv8.rest3.EnrestConfigurator.parseJSON;
 
@@ -24,6 +32,9 @@ public class ConcertServlet extends EnrestServletBase {
 
 
     public Enrest configure(Enrest r) {
+
+        r.setLinker( getLinker());
+
         Program p = new Program();
         r.single(String.class, Concert.class)
           .method("GET")
@@ -44,6 +55,7 @@ public class ConcertServlet extends EnrestServletBase {
 
         r.collection(Void.class, Concert.class)
           .method("GET")
+          .pathPattern( "concerts")
           .name("List concerts")
           .handler((x) -> p.getConcerts())
           .buildAndRegister();
@@ -63,6 +75,44 @@ public class ConcertServlet extends EnrestServletBase {
           .buildAndRegister();
 
         return r;
+    }
+
+    Linker getLinker() {
+        return new Linker() {
+            @Override
+            public <T> List<Link> linksFrom(EnrestResource res, T t ) {
+
+                if( t instanceof Concert ) {
+                    List<Link> links = new ArrayList<>();
+
+                    List<EnrestResource> targets = getEnrest().getResources().stream()
+                      .filter(r -> r.getTo().equals(t.getClass()))
+                      .collect(toList());
+
+                    for( EnrestResource trg: targets ) {
+                        Link l = new Link();
+                        l.setTarget(trg);
+                        l.setRel( "unknown-rel");
+                        l.getParameters().add(Parameter.builder().name("id").value(((Concert) t).getId()).build());
+                        links.add(l);
+                    }
+
+//                    Link self = new Link();
+//                    self.setRel( "self");
+//                    links.add( self);
+//
+//                    Link performer = new Link();
+//                    performer.setRel( "performer" );
+//                    links.add(performer);
+//                    l.setTarget( );
+
+                    return links;
+                }
+
+
+                return new ArrayList<>();
+            }
+        };
     }
 
 }

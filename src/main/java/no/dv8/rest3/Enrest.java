@@ -9,7 +9,9 @@ import no.dv8.xhtml.generation.support.Element;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -34,7 +36,7 @@ public class Enrest {
         return new EnrestResourceBuilder<From, Collection>(this, from, Collection.class);
     }
 
-    ;
+
 
     public EnrestResource register(EnrestResource<?, ?> res) {
         resources.add(res);
@@ -62,12 +64,22 @@ public class Enrest {
         return new a(r.getName()).href("/resource/" + r.getReference());
     }
 
-    private Element<?> form(EnrestResource r) {
+    private Element<?> resourceLink(EnrestResource r, Parameter ... prefilledParams) {
+        return new a().href( "resource/" + r.getPathParams() );
+    }
+    
+    private Element<?> form(EnrestResource r, Parameter ... prefilledParams) {
 //        return new a(r.getTo().getSimpleName()).href(r.getPath()).rel(relTypeProvider.reltype(r.getTo()));
         List<Parameter> queryParams = r.getQueryParams();
         List<Parameter> pathParams = r.getPathParams();
-        List<Element<?>> qparams = queryParams.stream().map(s -> new input().type("text").name(s.getName()).placeholder(s.getName())).collect(toList());
-        List<Element<?>> pparams = pathParams.stream().map(s -> new input().type("text").placeholder(s.getName())).collect(toList());
+
+        Map<String, Parameter> m = asList( prefilledParams ).stream()
+          .collect( Collectors.toMap( Parameter::getName, Function.identity() ) );
+
+        Function<Parameter, Parameter> replace = x -> m.getOrDefault( x.getName(), x );
+
+        List<Element<?>> qparams = queryParams.stream().map(replace).map(s -> new input().type("text").name(s.getName()).placeholder(s.getName())).collect(toList());
+        List<Element<?>> pparams = pathParams.stream().map(replace).map(s -> new input().type("text").placeholder(s.getName())).collect(toList());
 
         String formId = r.getReference() + "-form";
         String pathSpanId = r.getReference() + "-path";
