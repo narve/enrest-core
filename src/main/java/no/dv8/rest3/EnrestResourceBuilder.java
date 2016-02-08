@@ -1,5 +1,6 @@
 package no.dv8.rest3;
 
+import no.dv8.rest2.framework.Link;
 import no.dv8.rest2.framework.Request;
 
 import javax.servlet.ServletRequest;
@@ -9,20 +10,23 @@ import java.util.function.Function;
 
 public class EnrestResourceBuilder<From, To> {
 
+    boolean single;
     Enrest enrest;
     String pathPattern, method, name, ref;
     Class<From> from;
     Class<To> to;
     Function<ServletRequest, From> reqParser;
-    Function<From, To> handler;
+    Function<From, List<To>> handler;
     List<Parameter> queryParams = new ArrayList<>();
     List<Parameter> pathParams = new ArrayList<>();
     List<Parameter> bodyParams = new ArrayList<>();
+    Function<To, List<Link>> linker = to -> new ArrayList<>();
 
-    public EnrestResourceBuilder(Enrest enrest, Class<From> from, Class<To> to) {
+    public EnrestResourceBuilder(Enrest enrest, boolean single, Class<From> from, Class<To> to) {
         this.enrest = enrest;
         this.from = from;
         this.to = to;
+        this.single = single;
     }
 
     public EnrestResourceBuilder<From, To>  self() {
@@ -44,7 +48,7 @@ public class EnrestResourceBuilder<From, To> {
         return self();
     }
 
-    public EnrestResourceBuilder<From, To> handler(Function<From, To> func) {
+    public EnrestResourceBuilder<From, To> handler(Function<From, List<To>> func) {
         this.handler = func;
         return self();
     }
@@ -64,13 +68,18 @@ public class EnrestResourceBuilder<From, To> {
         return self();
     }
 
+    public EnrestResourceBuilder<From, To> linker(Function<To, List<Link>> linker) {
+        this.linker = linker;
+        return self();
+    }
+
     public EnrestResource build() {
         String uuid = UUID.randomUUID().toString();
         pathPattern = pathPattern == null ? uuid : pathPattern;
         name = name == null ? uuid : name;
         ref = ref == null ? uuid : ref;
 
-        return new EnrestResource( method, pathPattern, from, to, reqParser, handler, name, ref, queryParams, pathParams, bodyParams );
+        return new EnrestResource( single, method, pathPattern, from, to, reqParser, handler, name, ref, queryParams, pathParams, bodyParams, linker );
     }
 
     public EnrestResource buildAndRegister() {
@@ -88,4 +97,5 @@ public class EnrestResourceBuilder<From, To> {
         pathPattern = s;
         return self();
     }
+
 }

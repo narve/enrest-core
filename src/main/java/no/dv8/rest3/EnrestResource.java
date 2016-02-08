@@ -2,6 +2,7 @@ package no.dv8.rest3;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import no.dv8.rest2.framework.Link;
 
 import javax.servlet.ServletRequest;
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.function.Function;
 @ToString
 //@Builder
 public class EnrestResource<From, To> {
+    @Getter
+    boolean single;
     @Getter
     String method;
     @Getter
@@ -26,13 +29,14 @@ public class EnrestResource<From, To> {
     @Getter
     Class<To> to;
     @Getter
-    Function<From, To> handler;
+    Function<From, List<To>> handler;
     @Getter
     Function<ServletRequest, From> reqParser;
 
     List<Parameter> queryParams;
     List<Parameter> pathParams;
     List<Parameter> bodyParams;
+    Function<To, List<Link>> linker;
 
     public List<Parameter> getQueryParams() {
         return queryParams;
@@ -46,7 +50,12 @@ public class EnrestResource<From, To> {
         return bodyParams;
     }
 
-    public EnrestResource(String m, String p, Class<From> f, Class<To> t, Function<ServletRequest, From> rp, Function<From, To> h, String n, String r, List<Parameter> qp, List<Parameter> pp, List<Parameter> bodyParams ) {
+    public Function<To, List<Link>> getLinker() {
+        return linker;
+    }
+
+    public EnrestResource(boolean single, String m, String p, Class<From> f, Class<To> t, Function<ServletRequest, From> rp, Function<From, List<To>> h, String n, String r, List<Parameter> qp, List<Parameter> pp, List<Parameter> bodyParams, Function linker ) {
+        this.single = single;
         Objects.requireNonNull(h, "Required: Handler" );
         Objects.requireNonNull(p, "Required: Path" );
         Objects.requireNonNull(f, "Required: From" );
@@ -66,6 +75,7 @@ public class EnrestResource<From, To> {
         this.queryParams = qp;
         this.pathParams = pp;
         this.bodyParams = bodyParams;
+        this.linker = linker;
     }
 
 }

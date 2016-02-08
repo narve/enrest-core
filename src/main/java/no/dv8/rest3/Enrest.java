@@ -21,19 +21,19 @@ public class Enrest {
 
     List<EnrestResource> resources = new ArrayList<>();
 
-    Linker linker = new Linker() {
-    };
+//    Linker linker = new Linker() {
+//    };
     RelTypeProvider relTypeProvider = new RelTypeProvider() {
     };
 
     public <From, To> EnrestResourceBuilder<From, To> single(Class<From> from, Class<To> to) {
-        return new EnrestResourceBuilder<From, To>(this, from, to);
+        return new EnrestResourceBuilder<From, To>(this, true, from, to);
     }
 
     ;
 
-    public <From, To> EnrestResourceBuilder<From, Collection> collection(Class<From> from, Class<To> to) {
-        return new EnrestResourceBuilder<From, Collection>(this, from, Collection.class);
+    public <From, To> EnrestResourceBuilder<From, To> collection(Class<From> from, Class<To> to) {
+        return new EnrestResourceBuilder<From, To>(this, false, from, to);
     }
 
 
@@ -43,11 +43,7 @@ public class Enrest {
         return res;
     }
 
-    public List<Element> index() {
-        return index(this::form);
-    }
-
-    List<Element> index(Function<EnrestResource, Element> f) {
+    public List<Element> index(Function<EnrestResource, Element> f) {
         return full(list().stream().map(f).map(a -> new li().add(a)).collect(toList()));
     }
 
@@ -60,15 +56,16 @@ public class Enrest {
     }
 
 
-    private a ref(EnrestResource r) {
-        return new a(r.getName()).href("/resource/" + r.getReference());
+//    public a ref(EnrestResource r) {
+//        return new a(r.getName()).href("/resource/" + r.getReference());
+//    }
+
+    public Element<?> resourceLink(EnrestResource r, Parameter ... prefilledParams) {
+//        String href =
+        return new a(r.getName()).href( "_resource/" + r.getReference() );
     }
 
-    private Element<?> resourceLink(EnrestResource r, Parameter ... prefilledParams) {
-        return new a().href( "resource/" + r.getPathParams() );
-    }
-    
-    private Element<?> form(EnrestResource r, Parameter ... prefilledParams) {
+    public Element<?> form(EnrestResource r, Parameter ... prefilledParams) {
 //        return new a(r.getTo().getSimpleName()).href(r.getPath()).rel(relTypeProvider.reltype(r.getTo()));
         List<Parameter> queryParams = r.getQueryParams();
         List<Parameter> pathParams = r.getPathParams();
@@ -110,6 +107,7 @@ public class Enrest {
           .add(
             new fieldset()
               .add(new legend(r.getName()))
+              .add( new div().add( new span("Link to this resource: ").add( resourceLink(r))))
               .add(new div()
                 .add( new label("Base path: " ) )
                 .add( new span( path ).id( basePathSpanId ) )

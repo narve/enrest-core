@@ -5,11 +5,10 @@ import no.dv8.rest3.Enrest;
 import no.dv8.rest3.EnrestResource;
 import no.dv8.rest3.Parameter;
 import no.dv8.xhtml.generation.elements.a;
-import no.dv8.xhtml.generation.elements.h3;
+import no.dv8.xhtml.generation.elements.div;
 import no.dv8.xhtml.generation.elements.li;
 import no.dv8.xhtml.generation.elements.ul;
 import no.dv8.xhtml.generation.support.Element;
-import no.dv8.xhtml.serializer.ElementDecorator;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.ServletException;
@@ -20,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,13 +28,11 @@ import static java.util.Arrays.asList;
 @Slf4j
 public abstract class EnrestServletBase extends HttpServlet {
 
-    public Enrest getEnrest() {
-        return configure(new Enrest());
-    }
-
-    public Enrest configure(Enrest inst) {
-        return inst;
-    }
+    public abstract Enrest getEnrest();
+//
+//    public Enrest configure(Enrest inst) {
+//        return inst;
+//    }
 
     public String getRootPath() {
         return "";
@@ -60,21 +58,33 @@ public abstract class EnrestServletBase extends HttpServlet {
         String ctxPath = req.getServletContext().getContextPath();
         String rootPath = ctxPath + getRootPath();
         String _path = url.substring(rootPath.length() + 1);
-        if (_path.startsWith("/"))
-            _path = _path.substring(1);
+//        if (_path.startsWith("/"))
+//            _path = _path.substring(1);
 
         String path = _path;
 
+        if( path.isEmpty() ) {
+            String newPath = req.getServletPath() + "/";
+            resp.sendRedirect(newPath);
+        }
+
         ServletOutputStream outputStream = resp.getOutputStream();
 
-        if (path.isEmpty()) {
-            for (Element e : getEnrest().index()) {
+        if (path.equals("/")) {
+            for (Element e : getEnrest().index(getEnrest()::form)) {
                 outputStream.print(e.toHTML());
             }
+        } else if( path.startsWith("/_resource")) {
+//            outputStream.print( "resource: " + path );
+            String ref = path.substring( "/_resource/".length() );
+            EnrestResource r = getEnrest().getResources().stream().filter( res -> res.getReference().equals( ref ) ).findFirst().get();
+            Element<?> form = getEnrest().form(r);
+            outputStream.print( form.toHTML() );
         } else {
-            Optional<EnrestResource> first = getEnrest().list().stream().filter(t -> matches(t, path) != null).findFirst();
+            String xp = path.startsWith("/") ? path.substring(1):path;
+            Optional<EnrestResource> first = getEnrest().list().stream().peek( r -> log.info( "Res-name: " + r.getName() )).filter(t -> matches(t, xp) != null).findFirst();
             if (!first.isPresent()) {
-                throw new FileNotFoundException("Don't know how to handle " + path);
+                throw new FileNotFoundException("Don't know how to handle " + xp);
             }
             Map<String, String> pparams = matches(first.get(), path);
             req.setAttribute("path-param-map", pparams);
@@ -83,13 +93,12 @@ public abstract class EnrestServletBase extends HttpServlet {
             handle(r, req, resp);
         }
 
-
         outputStream.close();
     }
 
 
     <From, To> void handle(EnrestResource<From, To> r, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        To res;
+        List<To> res;
         if (r.getFrom().equals(Void.class)) {
             res = r.getHandler().apply(null);
         } else {
@@ -105,17 +114,17 @@ public abstract class EnrestServletBase extends HttpServlet {
         log.info("Res: {}", res);
 
 
-        Collection<To> coll;
-        if (res instanceof Collection) {
-            coll = (Collection<To>) res;
-        } else {
-            coll = asList(res);
-        }
+//        Collection<To> coll;
+//        if (res instanceof Collection) {
+//            coll = (Collection<To>) res;
+//        } else {
+//            coll = asList(res);
+//        }
+//
+//        Map<To, List<Link>> links = new HashMap<>();
+//        coll.forEach(to -> links.put(to, r.getLinker().apply(to), to)));
 
-        Map<To, List<Link>> links = new HashMap<>();
-        coll.forEach(to -> links.put(to, getEnrest().getLinker().linksFrom(r, to)));
-
-        String html = html(res, links);
+        String html = html(r, res);
         resp.getOutputStream().print(html);
     }
 
@@ -151,7 +160,7 @@ public abstract class EnrestServletBase extends HttpServlet {
 //    }
 
 
-    <To> String html(Object obj, Map<To, List<Link>> linkMap) {
+    <From, To> String html(EnrestResource<From, To> resource, List<To> obj) {
         XHTMLSerialize<?> ser = new XHTMLSerialize<>();
 //        ser.typeMap.put(Transition.class, new XHTMLSerializer<Transition>() {
 //            @Override
@@ -166,42 +175,73 @@ public abstract class EnrestServletBase extends HttpServlet {
 //                return new a(obj.toString()).href(obj.url);
 //            }
 //        });
-        ElementDecorator dec = new ElementDecorator() {
-            @Override
-            public <T extends Element> Element<T> decorate(Element<T> element, Object o, int level) {
-                element.addClz(o.getClass().getSimpleName());
-                element.addClz("level" + level);
-
-                if (level != 1)
-                    return element;
-
-//                RestContainer container = getRestContainer();
-//                List<Link> links = getEnrest().getLinker().linksFrom(null, o);
-                List<Link> links = linkMap.get(o);
-                if (!links.isEmpty()) {
-                    element.add(new h3("Links/transitions"));
-                    ul ul = new ul().clz("transitions");
-                    for (Link t : links) {
-                        ul.add(
-                          new li()
-                            .add(
-                              new a(t.toString())
-                                .rel(t.getRel())
-                                .href(t.getTarget() != null ? t.getTarget().getPath() : "unknown target")
-                            ));
-                    }
-                    element.add(ul);
-                }
-                return element;
-            }
-        };
-        ser.decorator = dec;
+//        ElementDecorator dec = new ElementDecorator() {
+//            @Override
+//            public <T extends Element> Element<T> decorate(Element<T> element, Object o, int level) {
+//                element.addClz(o.getClass().getSimpleName());
+//                element.addClz("level" + level);
+//
+//                if (level != 1)
+//                    return element;
+//
+////                RestContainer container = getRestContainer();
+////                List<Link> links = getEnrest().getLinker().linksFrom(null, o);
+//                List<Link> links = linkMap.get(o);
+//                if (!links.isEmpty()) {
+//                    element.add(new h3("Links/transitions"));
+//                    ul ul = new ul().clz("transitions");
+//                    for (Link t : links) {
+//                        ul.add(
+//                          new li()
+//                            .add(
+//                              new a(t.toString())
+//                                .rel(t.getRel())
+//                                .href(t.getTarget() != null ? t.getTarget().getPath() : "unknown target")
+//                            ));
+//                    }
+//                    element.add(ul);
+//                }
+//                return element;
+//            }
+//        };
+//        ser.decorator = dec;
 //        if (true) {
 //            Element<?> element1 = ser.generateElement(asList(new Transition<>()), 1);
 //            return element1.toHTML();
 //        }
-        Element<?> element = ser.generateElement(obj, 2);
-        return Enrest.full(asList(element)).get(0).toHTML();
+
+        div container = new div();
+
+        for( To to: obj ) {
+            container.add( ser.generateElement(to, 2));
+            container.add( html( resource.getLinker().apply(to)));
+        }
+//        obj.forEach( to -> container.add( html(to)));
+//
+//        Element<?> element = ser.generateElement(obj, 2);
+//        List<Element<?>> elements = new ArrayList<>();
+//        elements.add(element);
+//
+//        elements.add(html(links));
+//
+//
+        return Enrest.full(asList(container)).get(0).toHTML();
+    }
+
+    private Element<?> html(List<Link> links) {
+
+        ul ul = new ul().clz("transitions");
+        for (Link t : links) {
+            ul.add(
+              new li()
+                .add(
+                  new a(t.toString())
+                    .rel(t.getRel())
+                    .href(t.getTarget() != null ? t.getTarget().getPath() : "unknown target")
+                ));
+        }
+
+        return ul;
     }
 
 //    private String json(List<Transition> roots) {

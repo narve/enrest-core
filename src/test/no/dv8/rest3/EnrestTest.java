@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
@@ -18,7 +19,7 @@ public class EnrestTest {
         Enrest r = new Enrest();
         r.single(String.class, Concert.class)
           .method( "GET")
-          .handler(p::getConcert)
+          .handler( id -> asList( p.getConcert(id)))
           .buildAndRegister();
 
         r.collection(Void.class, Concert.class)
@@ -27,7 +28,7 @@ public class EnrestTest {
           .buildAndRegister();
 
 
-        System.out.println(r.index().toString());
+        System.out.println(r.index(r::form).toString());
 //        assertThat( r.list().size(), equalTo( 1 ) );
 
     }
