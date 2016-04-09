@@ -9,9 +9,15 @@ public interface CreatorResource<T> {
 
     List<Element<?>> inputs(T t);
 
-    T handle(HttpServletRequest req);
+    T create( T t );
+
+    T update( T t );
+
+    T setProps(T target, HttpServletRequest req);
 
     String getName();
+
+    Class<T> clz();
 
     default boolean isIdempotent() {
         return false;

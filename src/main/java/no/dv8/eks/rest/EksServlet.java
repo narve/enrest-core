@@ -80,7 +80,7 @@ public class EksServlet extends HttpServlet {
         } else if( path.startsWith(pathToCreators+"/")) {
             obj = forms.createForm( path.substring( pathToCreators.length()+1));
         } else if( path.startsWith(pathToCreateResult+"/")) {
-            obj = forms.executeForm( path.substring( pathToCreateResult.length()+1), req);
+            obj = forms.executeCreate( path.substring( pathToCreateResult.length()+1), req);
         } else {
             obj = error404(path);
         }

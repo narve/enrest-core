@@ -20,28 +20,44 @@ public class CreateUser implements CreatorResource<User> {
     @Override
     public List<Element<?>> inputs(User u) {
         return asList(
-          text(Names.user),
-          text(Names.email),
-          text(Names.name),
-          text(Names.website),
-          new input().password().name(Names.password).id(Names.password),
-          new input().file().name(Names.user_image).id(Names.user_image),
-          new textarea().name(Names.description).id(Names.description)
+          text(Names.user).value(u==null?null:u.getUser()),
+          text(Names.email).value(u==null?null:u.getEmail()),
+          text(Names.name).value(u==null?null:u.getName()),
+          text(Names.website).value(u==null?null:u.getWebsite()),
+          new input().password().name(Names.password).id(Names.password).value(u==null?null:u.getPassword()),
+          new input().file().name(Names.user_image).id(Names.user_image).value(u==null?null:u.getUserImage())
+//          new textarea().name(Names.description).id(Names.description)
         );
     }
 
+    @Override
+    public User create(User user) {
+        return Users.instance().add(user);
+    }
 
     @Override
-    public User handle( HttpServletRequest req ) {
-        User u = new User();
+    public User update(User user) {
+        return user;
+    }
+
+    @Override
+    public User setProps(User u, HttpServletRequest req ) {
         u.setName(req.getParameter(Names.name.toString()));
         u.setEmail(req.getParameter(Names.email.toString()));
-        Users.instance().add(u);
+        u.setPassword(req.getParameter(Names.password.toString()));
+        u.setUser(req.getParameter(Names.user.toString()));
+        u.setUserImage(req.getParameter(Names.user_image.toString()));
+        u.setWebsite(req.getParameter(Names.website.toString()));
         return u;
     }
 
     @Override
     public String getName() {
         return Types.user_add.toString();
+    }
+
+    @Override
+    public Class<User> clz() {
+        return User.class;
     }
 }

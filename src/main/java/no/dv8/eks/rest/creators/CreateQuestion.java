@@ -23,9 +23,19 @@ public class CreateQuestion implements CreatorResource<Question> {
           text(Names.answer_text).value( q==null?null:q.getAnswerText())
         );
     }
+
     @Override
-    public Question handle( HttpServletRequest req ) {
-        Question u = new Question();
+    public Question create(Question question) {
+        return Questions.instance().add(question);
+    }
+
+    @Override
+    public Question update(Question question) {
+        return question;
+    }
+
+    @Override
+    public Question setProps(Question u, HttpServletRequest req ) {
         u.setQuestionText(req.getParameter(Names.question_text.toString()));
         u.setAnswerText(req.getParameter(Names.answer_text.toString()));
         Questions.instance().add(u);
@@ -36,4 +46,11 @@ public class CreateQuestion implements CreatorResource<Question> {
     public String getName() {
         return Types.question_add.toString();
     }
+
+    @Override
+    public Class<Question> clz() {
+        return Question.class;
+    }
+
+
 }

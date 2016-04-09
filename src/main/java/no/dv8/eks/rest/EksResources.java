@@ -3,7 +3,7 @@ package no.dv8.eks.rest;
 import no.dv8.eks.controllers.Controller;
 import no.dv8.eks.controllers.Questions;
 import no.dv8.eks.controllers.Users;
-import no.dv8.eks.rest.editors.EditQuestion;
+import no.dv8.enrest.creators.CreatorResource;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
@@ -77,7 +77,12 @@ public class EksResources {
     }
 
     public Element<?> executeUpdate(String substring, HttpServletRequest req) {
-        Object q = new EditQuestion().handle(req);
+        String itemClass = substring.split("/")[0];
+        String itemId = substring.split("/")[1];
+        Object item = getItem(substring);
+        CreatorResource creatorResource = new EksForms().locateByClz(itemClass);
+        Object q = creatorResource.setProps(item, req);
+        creatorResource.update(q);
         return toElement(q);
     }
 }

@@ -82,7 +82,7 @@ public abstract class EnrestServletBase extends HttpServlet {
             String xp = path.startsWith("/") ? path.substring(1) : path;
             Optional<EnrestResource> first = getEnrest().list().stream().peek(r -> log.info("Res-name: " + r.getName())).filter(t -> matches(t, xp) != null).findFirst();
             if (!first.isPresent()) {
-                throw new IllegalStateException("Don't know how to handle " + xp);
+                throw new IllegalStateException("Don't know how to setProps " + xp);
             }
             Map<String, String> pparams = matches(first.get(), path);
             req.setAttribute("path-param-map", pparams);
