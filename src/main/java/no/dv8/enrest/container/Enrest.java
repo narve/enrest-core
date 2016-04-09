@@ -90,7 +90,7 @@ public class Enrest {
         List<Element<?>> qparams = queryParams.stream().map(replace).map(s -> new input().type("text").name(s.getName()).placeholder(s.getName())).collect(toList());
         List<Element<?>> pparams = pathParams.stream().map(replace).map(s -> new input().type("text").placeholder(s.getName())).collect(toList());
 
-        String formId = r.getReference() + "-form";
+        String formId = r.getReference() + "-createForm";
         String pathSpanId = r.getReference() + "-path";
         String basePathSpanId = r.getReference() + "-basepath";
 

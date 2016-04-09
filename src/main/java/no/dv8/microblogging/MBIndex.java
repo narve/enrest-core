@@ -51,8 +51,8 @@ public class MBIndex {
 
     div formLinks() {
         return new div()
-          .id("form-links")
-          .add(new h1("form-links"))
+          .id("createForm-links")
+          .add(new h1("createForm-links"))
 //          .add(relToA(Rels.user_add, "forms/"))
 //          .add(relToA(Rels.message_post, "forms/"))
           ;

@@ -13,7 +13,7 @@ public class EksAlps {
     public Alps eks() {
 
         Descriptor questionsSearch = Descriptor.builder()
-          .doc( new Doc( "Search form for questions" ) )
+          .doc( new Doc( "Search createForm for questions" ) )
           .id( Types.questions_search.toString() )
           .type( "safe" )
           .rt( "contact" )
@@ -51,9 +51,9 @@ public class EksAlps {
           .id( "collection" )
           .type( "safe" )
           .rt( "contact" )
-          .doc( new Doc( "A simple link/form for getting a list of contacts" ) )
+          .doc( new Doc( "A simple link/createForm for getting a list of contacts" ) )
           .build()
-          .add( semantic("nameSearch").withDoc( new Doc( "Input for a search form")));
+          .add( semantic("nameSearch").withDoc( new Doc( "Input for a search createForm")));
 
 
         Alps alps = new Alps();

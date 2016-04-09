@@ -17,9 +17,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static no.dv8.eks.rest.EksQueries.pathToQueries;
+import static no.dv8.eks.rest.EksQueries.pathToQueryResult;
+import static no.dv8.enrest.creators.FormHelper.pathToCreateResult;
+import static no.dv8.enrest.creators.FormHelper.pathToCreators;
+
 @javax.servlet.annotation.WebServlet(urlPatterns = { "/eks", "/eks/*"})
 @Slf4j
 public class EksServlet extends HttpServlet {
+
+    public static String basePath = "/eks/";
+
     @Override
     public void init(ServletConfig config) throws ServletException {
 
@@ -50,12 +58,14 @@ public class EksServlet extends HttpServlet {
             title = "ALPS";
         } else if( path.isEmpty() ) {
             obj = index.index();
-        } else if( path.startsWith("forms/")) {
-            obj = forms.form( path.substring( "forms/".length()));
-        } else if( path.startsWith("form-actions/")) {
-            obj = forms.formAction( path.substring( "form-actions/".length()), req);
-        } else if( path.startsWith("queriesAsList/")) {
-            obj = queries.executeQuery( path.substring( "queriesAsList/".length() ),req );
+        } else if( path.startsWith(pathToQueries + "/")) {
+            obj = queries.searchForm( path.substring( pathToQueries.length()+1));
+        } else if( path.startsWith(pathToQueryResult+"/")) {
+            obj = queries.executeQuery( path.substring( pathToQueryResult.length() +1),req );
+        } else if( path.startsWith(pathToCreators+"/")) {
+            obj = forms.createForm( path.substring( pathToCreators.length()+1));
+        } else if( path.startsWith(pathToCreateResult+"/")) {
+            obj = forms.executeForm( path.substring( pathToCreateResult.length()+1), req);
         } else {
             obj = error404(path);
         }

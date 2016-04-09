@@ -62,8 +62,8 @@ public class MBForms {
           .add(new input().submit().value(rel));
     }
 //
-//    form usersSearchForm() {
-//        return new form()
+//    createForm usersSearchForm() {
+//        return new createForm()
 //          .clz(Types.users_search)
 //          .get()
 //          .add(new legend(Types.users_search.toString()))
@@ -72,8 +72,8 @@ public class MBForms {
 //    }
 //
 //
-//    form messagesSearchForm() {
-//        return new form()
+//    createForm messagesSearchForm() {
+//        return new createForm()
 //          .clz(Types.messages_search)
 //          .get()
 //          .add(new legend(Types.messages_search.toString()))

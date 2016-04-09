@@ -5,11 +5,11 @@ import no.dv8.eks.controllers.Questions;
 import no.dv8.eks.controllers.Users;
 import no.dv8.eks.model.Question;
 import no.dv8.eks.model.User;
+import no.dv8.eks.semantic.Names;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.queries.SimpleQuery;
-import no.dv8.xhtml.generation.elements.li;
-import no.dv8.xhtml.generation.elements.ul;
+import no.dv8.xhtml.generation.elements.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
@@ -17,9 +17,14 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksHTML.relToA;
+import static no.dv8.eks.rest.EksServlet.basePath;
+import static no.dv8.enrest.creators.FormHelper.control;
 
 @Slf4j
 public class EksQueries {
+
+    static final String pathToQueries = "queries";
+    static final String pathToQueryResult = "query-result";
 
     static List<QueryResource> queries = asList(
         new SimpleQuery<User>(Rels.users_search.toString(), s -> Users.instance().search(s)),
@@ -30,7 +35,7 @@ public class EksQueries {
         ul l = new ul();
         queries
           .stream()
-          .map( q -> relToA( q.getRel(), "forms/" ) )
+          .map( q -> relToA( q.getRel(), pathToQueries+"/" ) )
           .map( a -> new li().add(a))
           .forEach( i -> l.add( i ) );
         return l;
@@ -48,6 +53,20 @@ public class EksQueries {
 
     li listItem(Object u) {
         return new li().add( u.toString() );
+    }
+
+
+    public form searchForm(Object rel) {
+        return new form()
+          .clz(rel)
+          .get()
+          .action( basePath + pathToQueryResult+"/"+rel )
+          .add(
+            new fieldset()
+              .add(new legend(rel.toString()))
+              .add(control( new input().text().name(Names.search).id( Names.search), Names.search))
+              .add(new input().submit().value(rel))
+          );
     }
 
 }
