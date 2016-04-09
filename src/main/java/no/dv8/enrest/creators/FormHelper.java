@@ -28,14 +28,14 @@ public class FormHelper {
           .add( element );
     }
 
-    public static form createForm(Object name, List<Element<?>> inputs ) {
+    public static form createForm(Object name, List<Element<?>> inputs, Object method ) {
         List<div> inputDivs = inputs.stream()
           .map( e -> control(e, e.get("name")))
           .collect( toList() );
 
         return new form()
           .clz(name)
-          .post()
+          .method(method)
           .action( basePath + pathToCreateResult+"/" + name)
           .add(new fieldset()
             .add(new legend(name))

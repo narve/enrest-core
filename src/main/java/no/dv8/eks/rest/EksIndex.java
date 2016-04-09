@@ -1,6 +1,5 @@
 package no.dv8.eks.rest;
 
-import no.dv8.eks.semantic.Rels;
 import no.dv8.xhtml.generation.elements.*;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
@@ -21,8 +20,8 @@ public class EksIndex {
               .add(new EksQueries().queriesAsList())
           ).add(
             new section()
-            .add( new h1( "Modificators" ) )
-            .add(new EksForms().formsAsList())
+            .add( new h1( "Creators" ) )
+            .add(new EksForms().creatorForms())
           );
     }
 

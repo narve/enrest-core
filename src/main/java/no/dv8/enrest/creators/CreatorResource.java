@@ -5,11 +5,15 @@ import no.dv8.xhtml.generation.support.Element;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-public interface CreatorResource {
+public interface CreatorResource<T> {
 
-    List<Element<?>> inputs();
+    List<Element<?>> inputs(T t);
 
-    Element handle(HttpServletRequest req);
+    T handle(HttpServletRequest req);
 
     String getName();
+
+    default boolean isIdempotent() {
+        return false;
+    }
 }

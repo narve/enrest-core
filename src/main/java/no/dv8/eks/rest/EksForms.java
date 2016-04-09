@@ -1,10 +1,10 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
+import no.dv8.eks.model.Question;
 import no.dv8.eks.rest.creators.CreateQuestion;
 import no.dv8.eks.rest.creators.CreateUser;
 import no.dv8.eks.semantic.Names;
-import no.dv8.eks.semantic.Rels;
 import no.dv8.eks.semantic.Types;
 import no.dv8.enrest.creators.CreatorResource;
 import no.dv8.enrest.creators.FormHelper;
@@ -16,6 +16,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksHTML.relToA;
+import static no.dv8.eks.rest.EksServlet.basePath;
 import static no.dv8.enrest.creators.FormHelper.pathToCreators;
 
 @Slf4j
@@ -32,24 +33,41 @@ public class EksForms {
         for (Names n : Names.values()) {
             propList.add(new li().add(n + ": " + req.getParameter(n.toString())));
         }
-        Element createResult = cr.handle(req);
+        Object createResult = cr.handle(req);
+        Element e = new EksResources().toElement(createResult);
         return new div()
           .add(new h1("Named props"))
           .add(propList)
           .add(new h1("The object:"))
-          .add(createResult)
+          .add(e)
           ;
     }
 
     form createForm( String name ) {
-        return FormHelper.createForm(name, locate(name).inputs());
+        return FormHelper.createForm(name, locate(name).inputs(null), "post");
+    }
+    form editForm( String substring ) {
+
+        Object item = new EksResources().getItem(substring);
+
+//        String itemType = substring.split( "/")[0];
+//        String itemId = substring.split( "/")[1];
+        log.info( "Edit form for {}", substring );
+        String name = Types.edit.toString();
+        form f = FormHelper.createForm(Types.edit.toString(), locate(Types.question_add.toString()).inputs(item), "post");
+        f.add( new input().type("text").id("id").name("id").value(((Question)item).getId()));
+
+          f.action( new EksResources().viewUrlForItem(item));
+        f.add( new label("action: " + f.get("action")));
+        return f;
     }
 
     CreatorResource locate( String name ) {
+        log.info( "Locating CreatorResource for {}", name );
         return creators.stream().filter( cr -> cr.getName().equals( name ) ).findFirst().get();
     }
 
-    public ul formsAsList() {
+    public ul creatorForms() {
         ul list = new ul();
         creators
           .stream()

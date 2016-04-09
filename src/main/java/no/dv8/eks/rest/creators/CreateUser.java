@@ -16,9 +16,9 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static no.dv8.enrest.creators.FormHelper.text;
 
-public class CreateUser implements CreatorResource {
+public class CreateUser implements CreatorResource<User> {
     @Override
-    public List<Element<?>> inputs() {
+    public List<Element<?>> inputs(User u) {
         return asList(
           text(Names.user),
           text(Names.email),
@@ -29,13 +29,15 @@ public class CreateUser implements CreatorResource {
           new textarea().name(Names.description).id(Names.description)
         );
     }
+
+
     @Override
-    public Element handle( HttpServletRequest req ) {
+    public User handle( HttpServletRequest req ) {
         User u = new User();
         u.setName(req.getParameter(Names.name.toString()));
         u.setEmail(req.getParameter(Names.email.toString()));
         Users.instance().add(u);
-        return new p(u.toString());
+        return u;
     }
 
     @Override

@@ -52,7 +52,9 @@ public class EksQueries {
     }
 
     li listItem(Object u) {
-        return new li().add( u.toString() );
+        return new li().add(
+          new a(u.toString()).href( new EksResources().viewUrlForItem(u))
+        );
     }
 
 
