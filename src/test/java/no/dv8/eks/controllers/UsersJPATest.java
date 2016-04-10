@@ -2,11 +2,13 @@ package no.dv8.eks.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.model.User;
+import no.dv8.eks.testutil.GuiceJUnitRunner;
 import no.dv8.eks.testutil.IntegrationTestUtil;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -17,30 +19,22 @@ import static org.junit.Assert.*;
 
 //@RunWith(WeldJUnit4Runner.class)
 @Slf4j
+@RunWith(GuiceJUnitRunner.class)
+//@GuiceJUnitRunner.GuiceModules({ ComponentsTestModule.class, ServicesTestModule.class })
 public class UsersJPATest {
 
     @Inject
     UsersJPA users;
 
-    @After
-    public void tearDown() {
-        log.debug( "Tearing down");
-        IntegrationTestUtil.teardown();
-    }
-
-    @Before
-    public void setup() {
-        IntegrationTestUtil.setup(this);
-        log.info( "Setting up test" );
-    }
-
     @Test
     public void aaaaemptyList() throws Exception {
+        log.info( "aaa" );
         assertThat( users.all(), empty() );
     }
 
     @Test
     public void insertOneAndList() throws Exception {
+        log.info( "one" );
         assertThat( users.all(), empty() );
         User u = new User("1narve sætre", "1narve@dv8.no");
         users.insert(u);
@@ -51,12 +45,14 @@ public class UsersJPATest {
 
     @Test
     public void emptyList2() throws Exception {
+        log.info( "eee" );
         assertThat( users.all(), empty() );
     }
 
 
     @Test
     public void insertTwoAndList() throws Exception {
+        log.info( "two" );
         assertThat( users.all(), empty() );
         User u1 = new User("1narve sætre1", "1narve@dv8.no1");
         users.insert(u1);
@@ -71,6 +67,7 @@ public class UsersJPATest {
 
     @Test
     public void ZZZemptyList2() throws Exception {
+        log.info( "zzz" );
         assertThat( users.all(), empty() );
     }
 
