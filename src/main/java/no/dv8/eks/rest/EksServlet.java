@@ -2,7 +2,6 @@ package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.semantic.EksAlps;
-import no.dv8.microblogging.MBUsers;
 import no.dv8.xhtml.generation.elements.body;
 import no.dv8.xhtml.generation.elements.h1;
 import no.dv8.xhtml.generation.elements.html;
@@ -58,7 +57,6 @@ public class EksServlet extends HttpServlet {
         EksForms forms = new EksForms();
         EksQueries queries = new EksQueries();
         EksResources resources = new EksResources();
-        MBUsers users= new MBUsers ();
 
         String method = req.getMethod();
 

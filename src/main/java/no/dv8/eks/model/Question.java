@@ -2,14 +2,18 @@ package no.dv8.eks.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.Entity;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class Question {
+@Entity
+@EqualsAndHashCode(callSuper = true)
+public class Question extends ModelBase{
 
-    String id, questionText, answerText;
+    String questionText, answerText;
 
     public Question(String q, String a) {
         this.questionText = q;

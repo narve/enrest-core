@@ -1,15 +1,11 @@
 package no.dv8.eks.controllers;
 
 import no.dv8.eks.model.Question;
-import no.dv8.eks.model.User;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
-
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
 
 public class Questions implements Controller<Question>{
 
@@ -31,7 +27,7 @@ public class Questions implements Controller<Question>{
     }
 
     public Question add(Question u ) {
-        u.setId(UUID.randomUUID().toString());
+        u.setId(new Random().nextLong());
         questions.add( u );
         return u;
     }

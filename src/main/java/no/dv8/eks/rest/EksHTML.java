@@ -14,6 +14,8 @@ public class EksHTML {
             new head()
               .set("profile", "http://alps.io/spec/alps-xhtml-profiles/")
               .add(new title(title))
+
+              .add( new script().type( "text/javascript").set( "async", "async" ).src( "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=AM_CHTML") )
               .add(new link().rel("stylesheet").type("text/stylesheet").href("/forms.css"))
             .add( new meta().charset( "UTF-8"))
             .add( new meta().set( "http-equiv", "Content-Type").set( "content", "text/html").charset("utf-8"))

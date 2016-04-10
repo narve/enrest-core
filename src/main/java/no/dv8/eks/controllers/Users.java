@@ -4,10 +4,7 @@ import lombok.ToString;
 import no.dv8.eks.model.User;
 import no.dv8.xhtml.generation.support.Element;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -33,7 +30,7 @@ public class Users implements Controller<User>{
     }
 
     public User add(User u ) {
-        u.setId(UUID.randomUUID().toString());
+        u.setId(new Random().nextLong());
         users.add( u );
         return u;
     }

@@ -26,7 +26,6 @@ public class CreateUser implements CreatorResource<User> {
           text(Names.website).value(u==null?null:u.getWebsite()),
           new input().password().name(Names.password).id(Names.password).value(u==null?null:u.getPassword()),
           new input().file().name(Names.user_image).id(Names.user_image).value(u==null?null:u.getUserImage())
-//          new textarea().name(Names.description).id(Names.description)
         );
     }
 
