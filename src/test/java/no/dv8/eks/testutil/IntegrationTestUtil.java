@@ -12,10 +12,11 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceProviderResolverHolder;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
 
 @Slf4j
 public class IntegrationTestUtil {
@@ -25,15 +26,7 @@ public class IntegrationTestUtil {
 
     public static EntityManager em() {
         if (em == null) {
-            try {
-                em = emf().createEntityManager();
-            } catch (Exception e) {
-                Throwable t = e;
-                while ((t = t.getCause()) != null) {
-                    t.printStackTrace();
-                }
-                throw e;
-            }
+            em = emf().createEntityManager();
         }
         return em;
     }
@@ -51,9 +44,6 @@ public class IntegrationTestUtil {
               Logger logger = (Logger) LoggerFactory.getLogger("org.hibernate");
               logger.setLevel(Level.OFF);
           } );
-
-//            ClockMock.init();
-//            Logging.sleep = false;
         wrapClassLoader();
         em().getTransaction().begin();
         Injector injector = Guice.createInjector(new IntegrationTestModule());
@@ -61,17 +51,17 @@ public class IntegrationTestUtil {
     }
 
     public static void finishEJBMethod() {
-        em().flush();
+//        em().flush();
         em().getTransaction().commit();
 //        TestTransSyncReg.getInstance().afterCompletion(Status.STATUS_COMMITTED);
         em().getTransaction().begin();
     }
 
     public static void teardown() {
-        if (em != null) {
+//        if (em != null) {
             em.close();
             emf.close();
-        }
+//        }
         em = null;
         emf = null;
     }
@@ -92,37 +82,35 @@ public class IntegrationTestUtil {
 //
 //    }
 
-    public static String debug(Response resp) {
-        List<Object> l = new ArrayList<>();
-        l.add(resp.getStatus());
-        l.add(resp.getEntity());
-        for (Iterator<Map.Entry<String, List<Object>>> it = resp.getMetadata().entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, List<Object>> me = it.next();
-            l.add(me.getKey());
-            l.add(me.getValue());
-        }
-        return debug(l);
-    }
-
-    public static String debug(List<Object> oa) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < oa.size(); i++) {
-            sb.append("Object[").append(i).append("]: ").append(oa.get(i) == null ? "NULL" : debugObject(oa.get(i))).append("; ");
-        }
-        return sb.toString();
-    }
-
-    public static String debugObject(Object object) {
-        return object.getClass() + " " + object.toString();
-    }
+//    public static String debug(Response resp) {
+//        List<Object> l = new ArrayList<>();
+//        l.insert(resp.getStatus());
+//        l.insert(resp.getEntity());
+//        for (Iterator<Map.Entry<String, List<Object>>> it = resp.getMetadata().entrySet().iterator(); it.hasNext(); ) {
+//            Map.Entry<String, List<Object>> me = it.next();
+//            l.insert(me.getKey());
+//            l.insert(me.getValue());
+//        }
+//        return debug(l);
+//    }
+//
+//    public static String debug(List<Object> oa) {
+//        StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i < oa.size(); i++) {
+//            sb.append("Object[").append(i).append("]: ").append(oa.get(i) == null ? "NULL" : debugObject(oa.get(i))).append("; ");
+//        }
+//        return sb.toString();
+//    }
+//
+//    public static String debugObject(Object object) {
+//        return object.getClass() + " " + object.toString();
+//    }
 
     public static void wrapClassLoader() {
 
         List<PersistenceProvider> persistenceProviders = PersistenceProviderResolverHolder
                 .getPersistenceProviderResolver()
                 .getPersistenceProviders();
-
-
 //        if( true ) throw new RuntimeException( persistenceProviders.toString() );
 
         ClassLoader current = Thread.currentThread().getContextClassLoader();

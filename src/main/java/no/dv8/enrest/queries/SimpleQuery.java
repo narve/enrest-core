@@ -14,6 +14,7 @@ public class SimpleQuery<T> implements QueryResource {
         this.rel = rel;
         this.func = func;
     }
+
     @Override
     public String getRel() {
         return rel;

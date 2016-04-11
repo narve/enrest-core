@@ -13,7 +13,7 @@ import javax.persistence.Entity;
 @EqualsAndHashCode(callSuper = true)
 public class Question extends ModelBase{
 
-    String questionText, answerText;
+    String title, questionText, answerText;
 
     public Question(String q, String a) {
         this.questionText = q;
@@ -23,6 +23,6 @@ public class Question extends ModelBase{
 
     @Override
     public String toString() {
-        return questionText;
+        return title;
     }
 }

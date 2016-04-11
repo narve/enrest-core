@@ -14,6 +14,8 @@ import javax.persistence.ManyToOne;
 @FieldDefaults( level = AccessLevel.PRIVATE)
 public class Answer extends ModelBase {
 
+    String answer;
+
     @ManyToOne
     Question question;
 

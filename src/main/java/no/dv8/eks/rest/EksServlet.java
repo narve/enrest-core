@@ -1,6 +1,7 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
+import no.dv8.eks.controllers.UsersJPA;
 import no.dv8.eks.semantic.EksAlps;
 import no.dv8.xhtml.generation.elements.body;
 import no.dv8.xhtml.generation.elements.h1;
@@ -8,6 +9,9 @@ import no.dv8.xhtml.generation.elements.html;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -31,13 +35,25 @@ public class EksServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-
     }
 
     @Override
     public ServletConfig getServletConfig() {
         return null;
     }
+
+    @Inject
+    EksResources eksResources = new EksResources();
+
+    @Inject
+    EksQueries queries = new EksQueries();
+
+    @Inject
+    EksForms forms = new EksForms();
+
+
+    @Inject
+    EksIndex index = new EksIndex();
 
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -53,12 +69,30 @@ public class EksServlet extends HttpServlet {
 
         Element<?> obj;
         String title = path;
-        EksIndex index = new EksIndex();
-        EksForms forms = new EksForms();
-        EksQueries queries = new EksQueries();
-        EksResources resources = new EksResources();
 
         String method = req.getMethod();
+
+        if( false ) {
+            try {
+//                org.h2.Driver
+//                Class.forName( "org.h2.Driver" );
+//                Connection connection = DriverManager.getConnection("jdbc:h2:Eks");
+                EntityManager em = Persistence.createEntityManagerFactory("Eks").createEntityManager();
+//                writer.write( "okei! " + connection );
+
+                UsersJPA jpa = new UsersJPA(em);
+
+//                User u = em.find( User.class, 1L);
+//                writer.write( "okei! " + u );
+                writer.write( "okei! " + jpa.all() );
+
+                writer.close();
+//                return;
+            } catch ( Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
 
         if( path.equals( "alps" ) ) {
             obj = new XHTMLSerialize<>().generateElement(new EksAlps().eks(), 100 );
@@ -66,9 +100,9 @@ public class EksServlet extends HttpServlet {
         } else if( path.isEmpty() ) {
             obj = index.index();
         } else if( path.startsWith(pathToResource + "/" ) && method.equalsIgnoreCase("GET")) {
-            obj = resources.itemToElement( path.substring( pathToResource.length()+1));
+            obj = eksResources.itemToElement( path.substring( pathToResource.length()+1));
         } else if( path.startsWith(pathToResource + "/" ) && (method.equalsIgnoreCase("post") || method.equalsIgnoreCase("put"))) {
-            obj = resources.executeUpdate( path.substring( pathToResource.length()+1), req);
+            obj = eksResources.executeUpdate( path.substring( pathToResource.length()+1), req);
         } else if( path.startsWith(editPathToResource + "/")) {
             obj = forms.editForm( path.substring( editPathToResource.length()+1));
         } else if( path.startsWith(pathToQueries + "/")) {

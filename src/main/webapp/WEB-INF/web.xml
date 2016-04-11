@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0">
+
+<!--
+    <filter>
+        <filter-name>CORS</filter-name>
+        <filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CORS</filter-name>
+        <url-pattern>/rest/*</url-pattern>
+    </filter-mapping>-->
+
+<!--
+    
+        
+    <servlet>
+        <servlet-name>jersey</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-value>net.narve.talk.rest;com.wordnik.swagger.jersey.listing</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>jersey</servlet-name>
+        <url-pattern>/rest*</url-pattern>
+    </servlet-mapping>            -->
+
+
+    <!--<servlet>-->
+        <!--<servlet-name>FileUploadServlet</servlet-name>-->
+        <!--<servlet-class>no.dv8.famcal.servlets.FileUploadServlet</servlet-class>-->
+    <!--</servlet>-->
+
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>FileUploadServlet</servlet-name>-->
+        <!--<url-pattern>/fileupload</url-pattern>-->
+    <!--</servlet-mapping>-->
+    
+
+
+
+    <!--<filter>-->
+        <!--<filter-name>ExceptionHandler</filter-name>-->
+        <!--<filter-class>no.dv8.famcal.rest.support.MyExceptionHandler</filter-class>-->
+    <!--</filter>-->
+    <!--<filter-mapping>-->
+        <!--<filter-name>ExceptionHandler</filter-name>-->
+        <!--<url-pattern> /*</url-pattern>-->
+        <!--<dispatcher>REQUEST</dispatcher>-->
+    <!--</filter-mapping>-->
+
+
+    <!--<filter>-->
+        <!--<filter-name>guiceFilter</filter-name>-->
+        <!--<filter-class>com.google.inject.servlet.GuiceFilter-->
+        <!--</filter-class>-->
+    <!--</filter>-->
+    <!--<filter-mapping>-->
+        <!--<filter-name>guiceFilter</filter-name>-->
+        <!--<url-pattern>/*</url-pattern>-->
+    <!--</filter-mapping>-->
+
+
+
+    <!--     Welcome page -->
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        <!--<welcome-file>index.json</welcome-file>-->
+    </welcome-file-list>
+ 
+    <session-config>
+        <session-timeout>600</session-timeout>
+    </session-config>    
+            
+</web-app>

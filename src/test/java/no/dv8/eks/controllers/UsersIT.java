@@ -5,14 +5,10 @@ import no.dv8.eks.model.User;
 import no.dv8.eks.testutil.GuiceJUnitRunner;
 import no.dv8.eks.testutil.IntegrationTestUtil;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.*;
@@ -20,8 +16,7 @@ import static org.junit.Assert.*;
 //@RunWith(WeldJUnit4Runner.class)
 @Slf4j
 @RunWith(GuiceJUnitRunner.class)
-//@GuiceJUnitRunner.GuiceModules({ ComponentsTestModule.class, ServicesTestModule.class })
-public class UsersJPATest {
+public class UsersIT {
 
     @Inject
     UsersJPA users;

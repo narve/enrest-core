@@ -197,18 +197,18 @@ public abstract class EnrestServletBase extends HttpServlet {
 ////                List<Link> links = getEnrest().getLinker().linksFrom(null, o);
 //                List<Link> links = linkMap.get(o);
 //                if (!links.isEmpty()) {
-//                    element.add(new h3("Links/transitions"));
+//                    element.insert(new h3("Links/transitions"));
 //                    ul ul = new ul().clz("transitions");
 //                    for (Link t : links) {
-//                        ul.add(
+//                        ul.insert(
 //                          new li()
-//                            .add(
+//                            .insert(
 //                              new a(t.toString())
 //                                .rel(t.getRel())
 //                                .href(t.getTarget() != null ? t.getTarget().getPath() : "unknown target")
 //                            ));
 //                    }
-//                    element.add(ul);
+//                    element.insert(ul);
 //                }
 //                return element;
 //            }
@@ -225,13 +225,13 @@ public abstract class EnrestServletBase extends HttpServlet {
             container.add(ser.generateElement(to, 2));
             container.add(html(resource.getLinker().apply(to)));
         }
-//        obj.forEach( to -> container.add( html(to)));
+//        obj.forEach( to -> container.insert( html(to)));
 //
 //        Element<?> element = ser.generateElement(obj, 2);
 //        List<Element<?>> elements = new ArrayList<>();
-//        elements.add(element);
+//        elements.insert(element);
 //
-//        elements.add(html(links));
+//        elements.insert(html(links));
 //
 //
         return Enrest.full(asList(container)).get(0).toHTML();
@@ -266,7 +266,7 @@ public abstract class EnrestServletBase extends HttpServlet {
 //          .create();
 //
 //        JsonArray ar = new JsonArray();
-//        roots.stream().map(s -> gson.toJsonTree(s)).forEach(ar::add);
+//        roots.stream().map(s -> gson.toJsonTree(s)).forEach(ar::insert);
 //
 //        return gson.toJson(ar);
 //
