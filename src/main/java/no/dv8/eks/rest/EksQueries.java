@@ -22,7 +22,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.eks.rest.EksServlet.basePath;
-import static no.dv8.enrest.creators.FormHelper.control;
+import static no.dv8.enrest.mutation.FormHelper.control;
 
 @Stateless
 @Slf4j

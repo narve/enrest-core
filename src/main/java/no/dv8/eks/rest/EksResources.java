@@ -1,18 +1,14 @@
 package no.dv8.eks.rest;
 
-import no.dv8.eks.controllers.Questions;
-import no.dv8.eks.controllers.UsersJPA;
 import no.dv8.eks.rest.resources.QuestionResource;
 import no.dv8.eks.rest.resources.UserResource;
-import no.dv8.enrest.creators.CreatorResource;
+import no.dv8.enrest.mutation.Mutator;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -98,9 +94,9 @@ public class EksResources {
         String itemClass = substring.split("/")[0];
         String itemId = substring.split("/")[1];
         Object item = getItem(substring);
-        CreatorResource creatorResource = eksForms.locateByClz(itemClass);
-        Object q = creatorResource.setProps(item, req);
-        creatorResource.update(q);
+        Mutator resourceMutatorResource = eksForms.locateByClz(itemClass);
+        Object q = resourceMutatorResource.setProps(item, req);
+        resourceMutatorResource.update(q);
         return toElement(q);
     }
 }

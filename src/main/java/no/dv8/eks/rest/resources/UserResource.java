@@ -1,44 +1,42 @@
 package no.dv8.eks.rest.resources;
 
 import no.dv8.eks.controllers.UsersJPA;
+import no.dv8.eks.model.Question;
 import no.dv8.eks.model.User;
 import no.dv8.eks.semantic.Names;
+import no.dv8.eks.semantic.Rels;
 import no.dv8.eks.semantic.Types;
-import no.dv8.enrest.creators.CreatorResource;
+import no.dv8.enrest.mutation.Mutator;
+import no.dv8.enrest.mutation.Resource;
+import no.dv8.enrest.queries.QueryResource;
+import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.xhtml.generation.elements.input;
 import no.dv8.xhtml.generation.support.Element;
 
 import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static no.dv8.enrest.creators.FormHelper.text;
+import static no.dv8.enrest.mutation.FormHelper.text;
 
 
 @Stateless
-public class UserResource {
-
-    @PersistenceContext
-    EntityManager em;
+public class UserResource implements Resource<User> {
 
     public UserResource() {
     }
 
-    public UserResource(EntityManager em ) {
-        this.em = em;
-    }
-
-
-    public CreatorResource<User> creator() {
-        return new Creator();
-    }
-
     UsersJPA users() {
-        return new UsersJPA(em);
+        return new UsersJPA();
+    }
+
+    @Override
+    public List<QueryResource> queries() {
+        return asList(
+          new SimpleQuery<User>(Rels.questions_search.toString(), s -> search(s))
+        );
     }
 
     public Collection<User> search(String s) {
@@ -49,7 +47,27 @@ public class UserResource {
         return users().getById(itemId);
     }
 
-    public class Creator implements CreatorResource<User> {
+    @Override
+    public Mutator<User> creator() {
+        return new UserMutator();
+    }
+
+    @Override
+    public Mutator<User> updater() {
+        return new UserMutator();
+    }
+
+    @Override
+    public Class<User> clz() {
+        return User.class;
+    }
+
+    @Override
+    public String getName() {
+        return Types.user_add.toString();
+    }
+
+    public class UserMutator implements Mutator<User> {
 
         @Override
         public List<Element<?>> inputs(User u) {
@@ -85,14 +103,5 @@ public class UserResource {
             return u;
         }
 
-        @Override
-        public String getName() {
-            return Types.user_add.toString();
-        }
-
-        @Override
-        public Class<User> clz() {
-            return User.class;
-        }
     }
 }

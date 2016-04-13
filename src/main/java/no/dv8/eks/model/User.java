@@ -6,12 +6,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
+@XmlRootElement
+@Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class User extends ModelBase {
     String name, email, user, userImage, website, password;

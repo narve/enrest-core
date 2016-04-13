@@ -20,12 +20,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksQueries.pathToQueries;
 import static no.dv8.eks.rest.EksQueries.pathToQueryResult;
 import static no.dv8.eks.rest.EksResources.editPathToResource;
 import static no.dv8.eks.rest.EksResources.pathToResource;
-import static no.dv8.enrest.creators.FormHelper.pathToCreateResult;
-import static no.dv8.enrest.creators.FormHelper.pathToCreators;
+import static no.dv8.enrest.mutation.FormHelper.pathToCreateResult;
+import static no.dv8.enrest.mutation.FormHelper.pathToCreators;
 
 @javax.servlet.annotation.WebServlet(urlPatterns = { "/eks", "/eks/*"})
 @Slf4j
@@ -57,6 +58,13 @@ public class EksServlet extends HttpServlet {
 
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+
+//        asList( req )
+//          .stream()
+//          .map( r -> r.getParameterMap())
+//          .map( )
+
 //        ServletOutputStream o = res.getOutputStream();
         PrintWriter writer = res.getWriter();
         res.setContentType( "text/html");

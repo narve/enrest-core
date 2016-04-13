@@ -6,10 +6,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@Entity
+@XmlRootElement
 @Data
 @NoArgsConstructor
-@Entity
 @EqualsAndHashCode(callSuper = true)
 public class Question extends ModelBase{
 

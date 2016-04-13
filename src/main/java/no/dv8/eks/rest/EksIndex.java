@@ -1,22 +1,26 @@
 package no.dv8.eks.rest;
 
+import no.dv8.enrest.mutation.Resource;
+import no.dv8.eks.rest.resources.UserResource;
 import no.dv8.xhtml.generation.elements.*;
 
 import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.eks.semantic.Rels.*;
 
 @Stateless
 public class EksIndex {
 
-    @Inject
-    EksQueries eksQueries = new EksQueries();
+    public static List<Resource> resources() {
+        return asList(
+          new UserResource()
+        );
+    }
 
-    @Inject
-    EksForms eksForms = new EksForms();
 
     public article index() {
         return
@@ -28,11 +32,11 @@ public class EksIndex {
             ).add(
             new section()
               .add(new h1("Queries"))
-              .add(eksQueries.queriesAsList())
+              .add(new EksQueries().queriesAsList())
           ).add(
             new section()
             .add( new h1( "Creators" ) )
-            .add(eksForms.creatorForms())
+            .add(new EksForms().creatorForms())
           );
     }
 
