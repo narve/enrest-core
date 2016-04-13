@@ -6,7 +6,7 @@ Download and unzip app-server:
     wget http://download.jboss.org/wildfly/10.0.0.Final/wildfly-10.0.0.Final.tar.gz
     tar xvf wildfly*.tar.gz
 
-wildfly-8.0.0.Final/bin/jboss-cli.sh and .../standalone.sh etc will be used. Some useful bash stuff:  
+wildfly-10.0.0.Final/bin/jboss-cli.sh and .../standalone.sh etc will be used. Some useful bash stuff:
     
     export PATH=${PATH}:wildfly-10.0.0.Final/bin
     alias jbcli=./wildfly-10.0.0.Final/bin/jboss-cli.sh
