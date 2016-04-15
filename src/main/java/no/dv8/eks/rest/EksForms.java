@@ -8,7 +8,6 @@ import no.dv8.enrest.mutation.FormHelper;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
-import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletRequest;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
@@ -16,8 +15,13 @@ import static no.dv8.eks.rest.EksIndex.resources;
 import static no.dv8.enrest.mutation.FormHelper.pathToCreators;
 
 @Slf4j
-@Stateless
 public class EksForms {
+
+    final String basePath;
+
+    public EksForms(String basePath) {
+        this.basePath = basePath;
+    }
 
     public Element executeCreate(String name, HttpServletRequest req) {
         Resource r = locateByRel(name);
@@ -29,7 +33,7 @@ public class EksForms {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        Element e = EksResources.toElement(createResult);
+        Element e = new EksResources(basePath).toElement(createResult);
         return new div()
           .add(new h1("The object:"))
           .add(e)
@@ -37,7 +41,7 @@ public class EksForms {
     }
 
     public form createForm(String name) {
-        return FormHelper.createForm(name, locateByRel(name).creator().inputs(null), "post");
+        return FormHelper.createForm(name, locateByRel(name).creator().inputs(null), basePath, "post");
     }
 
     public form editForm(String substring) {
@@ -53,10 +57,10 @@ public class EksForms {
 
         String id = EksResources.itemId(item);
 
-        form f = FormHelper.createForm(Types.edit.toString(), resource.inputs(item), "post");
+        form f = FormHelper.createForm(Types.edit.toString(), resource.inputs(item), basePath, "post");
         f.add(new input().type("text").id("id").name("id").value(id));
 
-        f.action(EksResources.viewUrlForItem(item));
+        f.action(new EksResources(basePath).viewUrlForItem(item));
         f.add(new label("action: " + f.get("action")));
         return f;
     }

@@ -11,22 +11,27 @@ import no.dv8.reflect.SimpleInput;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
-import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.semantic.Rels.*;
 
-@Stateless
 public class EksIndex {
+
+    final String basePath;
+
+    public EksIndex(String basePath) {
+        this.basePath = basePath;
+    }
 
     public static List<Resource> resources() {
         return asList(
-                new UserResource(),
-                new QuestionResource(),
-                articleResource()
+          new UserResource(),
+          new QuestionResource(),
+          articleResource()
         );
     }
 
@@ -45,9 +50,9 @@ public class EksIndex {
                     @Override
                     public List<Element<?>> inputs(Article article) {
                         return new Props().all(clz())
-                                .stream()
-                                .map(new SimpleInput()::apply)
-                                .collect( toList() );
+                          .stream()
+                          .map(new SimpleInput()::apply)
+                          .collect(toList());
                     }
 
                     @Override
@@ -58,11 +63,11 @@ public class EksIndex {
                     @Override
                     public Article setProps(Article target, HttpServletRequest req) {
                         return asList(req)
-                                .stream()
-                                .map( HttpServletRequest::getParameterMap )
-                                .map( new Props()::single )
-                                .map( m -> new Props().setProps(article, m ) )
-                                .findFirst().get();
+                          .stream()
+                          .map(HttpServletRequest::getParameterMap)
+                          .map(new Props()::single)
+                          .map(m -> new Props().setProps(target, m))
+                          .findFirst().get();
                     }
 
                     @Override
@@ -79,39 +84,39 @@ public class EksIndex {
 
             @Override
             public String getName() {
-                return null;
+                return Article.class.getSimpleName();
             }
 
             @Override
             public List<QueryResource> queries() {
-                return null;
+                return Collections.emptyList();
             }
-        }
+        };
     }
 
     public article index() {
         return
-                new article()
-                        .add(
-                                new section()
-                                        .add(new h1("Misc"))
-                                        .add(basicLinksAsList())
-                        ).add(
-                        new section()
-                                .add(new h1("Queries"))
-                                .add(new EksQueries().queriesAsList())
-                ).add(
-                        new section()
-                                .add(new h1("Creators"))
-                                .add(new EksForms().creatorForms())
-                );
+          new article()
+            .add(
+              new section()
+                .add(new h1("Misc"))
+                .add(basicLinksAsList())
+            ).add(
+            new section()
+              .add(new h1("Queries"))
+              .add(new EksQueries(basePath).queriesAsList())
+          ).add(
+            new section()
+              .add(new h1("Creators"))
+              .add(new EksForms(basePath).creatorForms())
+          );
     }
 
     public ul basicLinksAsList() {
         return new ul()
-                .add(new li().add(new a("index").rel(index).href("/eks/")))
-                .add(new li().add(new a("self").rel(self).href("/eks/")))
-                .add(new li().add(new a("profile").rel(profile).href("http://alps.io/spec/alps-xhtml-profiles/")));
+          .add(new li().add(new a("index").rel(index).href(basePath)))
+          .add(new li().add(new a("self").rel(self).href(basePath)))
+          .add(new li().add(new a("profile").rel(profile).href("http://alps.io/spec/alps-xhtml-profiles/")));
     }
 
 }

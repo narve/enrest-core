@@ -6,7 +6,6 @@ import no.dv8.xhtml.generation.support.Element;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static no.dv8.eks.rest.EksServlet.basePath;
 
 public class FormHelper {
 
@@ -28,7 +27,7 @@ public class FormHelper {
           .add( element );
     }
 
-    public static form createForm(Object name, List<Element<?>> inputs, Object method ) {
+    public static form createForm(Object name, List<Element<?>> inputs, String basePath, Object method ) {
         List<div> inputDivs = inputs.stream()
           .map( e -> control(e, e.get("name")))
           .collect( toList() );

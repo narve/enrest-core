@@ -7,31 +7,33 @@ import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 
-import static no.dv8.eks.rest.EksServlet.basePath;
-
-@Stateless
 public class EksResources {
 
-    @Inject
-    EksForms eksForms = new EksForms();
+    final String basePath;
+
+    public EksResources(String basePath) {
+        this.basePath = basePath;
+    }
+
+    EksForms eksForms() {
+        return new EksForms(basePath);
+    }
 
     public static final String pathToResource = "view-resource";
     public static final String editPathToResource = "edit-resource";
 
-    public static String viewUrlForItem(Object o ) {
-        return basePath + pathToResource + "/" + itemClass( o ) + "/" + itemId( o );
+    public String viewUrlForItem(Object o ) {
+        return basePath + "/" + pathToResource + "/" + itemClass( o ) + "/" + itemId( o );
     }
 
-    public static String editUrlForItem(Object o ) {
-        return basePath + editPathToResource + "/" + itemClass( o ) + "/" + itemId( o );
+    public String editUrlForItem(Object o ) {
+        return basePath + "/" + editPathToResource + "/" + itemClass( o ) + "/" + itemId( o );
     }
 
     public static String itemId(Object o) {
@@ -56,7 +58,7 @@ public class EksResources {
         return getItem(itemClass, itemId);
     }
 
-    public static Element<?> toElement(Object item) {
+    public Element<?> toElement(Object item) {
         div d = new div();
         if( true ) {
             d.add(new XHTMLSerialize<>().generateElement(item, 1));
@@ -94,7 +96,7 @@ public class EksResources {
         String itemClass = substring.split("/")[0];
         String itemId = substring.split("/")[1];
         Object item = getItem(substring);
-        Mutator resourceMutatorResource = eksForms.locateByClz(itemClass);
+        Mutator resourceMutatorResource = eksForms().locateByClz(itemClass);
         Object q = resourceMutatorResource.setProps(item, req);
         resourceMutatorResource.update(q);
         return toElement(q);

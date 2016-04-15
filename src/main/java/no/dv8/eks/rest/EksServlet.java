@@ -1,38 +1,33 @@
 package no.dv8.eks.rest;
 
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.controllers.UsersJPA;
-import no.dv8.eks.semantic.EksAlps;
-import no.dv8.xhtml.generation.elements.body;
-import no.dv8.xhtml.generation.elements.h1;
-import no.dv8.xhtml.generation.elements.html;
-import no.dv8.xhtml.generation.support.Element;
-import no.dv8.xhtml.serializer.XHTMLSerialize;
+import no.dv8.dirs.Dirs;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 import static java.util.Arrays.asList;
-import static no.dv8.eks.rest.EksQueries.pathToQueries;
-import static no.dv8.eks.rest.EksQueries.pathToQueryResult;
-import static no.dv8.eks.rest.EksResources.editPathToResource;
-import static no.dv8.eks.rest.EksResources.pathToResource;
-import static no.dv8.enrest.mutation.FormHelper.pathToCreateResult;
-import static no.dv8.enrest.mutation.FormHelper.pathToCreators;
+import static no.dv8.eks.rest.EksServlet.ServletBase;
+import static no.dv8.functions.XBiConsumer.hidex;
 
-@javax.servlet.annotation.WebServlet(urlPatterns = { "/eks", "/eks/*"})
+@javax.servlet.annotation.WebServlet(urlPatterns = {ServletBase + "/*"})
 @Slf4j
 public class EksServlet extends HttpServlet {
 
-    public static String basePath = "/eks/";
+    public static final String ServletBase = "/eks";
+
+    public static String notNull(String in) {
+        return in == null ? "" : in;
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -43,97 +38,37 @@ public class EksServlet extends HttpServlet {
         return null;
     }
 
-    @Inject
-    EksResources eksResources = new EksResources();
-
-    @Inject
-    EksQueries queries = new EksQueries();
-
-    @Inject
-    EksForms forms = new EksForms();
-
-
-    @Inject
-    EksIndex index = new EksIndex();
+    List<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>> consumers() {
+        return asList(
+          new Pair<>(
+            r -> r.getPathInfo().startsWith("/_files"),
+            hidex(new Dirs("/home/narve/", "_files"))
+          ),
+          new Pair<>(
+            r -> r.getPathInfo().startsWith("/api"),
+            hidex(new EksApi(ServletBase + "/api").api())
+          )
+        );
+    }
 
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
+        log.info("PathInfo: {}", req.getPathInfo());
+        log.info("RequestURL: {}", req.getRequestURL());
+        Optional<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>>
+          handler = consumers()
+          .stream()
+          .filter(p -> p.getKey().test(req))
+          .findFirst();
 
-//        asList( req )
-//          .stream()
-//          .map( r -> r.getParameterMap())
-//          .map( )
-
-//        ServletOutputStream o = res.getOutputStream();
-        PrintWriter writer = res.getWriter();
-        res.setContentType( "text/html");
-
-        writer.write( "<!DOCTYPE html>\n");
-
-        String path = req.getPathTranslated() == null ? "" : req.getPathInfo();
-        if( path.startsWith("/")) path = path.substring(1);
-        log.info( "PATH: {}", path );
-
-        Element<?> obj;
-        String title = path;
-
-        String method = req.getMethod();
-
-        if( false ) {
-            try {
-//                org.h2.Driver
-//                Class.forName( "org.h2.Driver" );
-//                Connection connection = DriverManager.getConnection("jdbc:h2:Eks");
-                EntityManager em = Persistence.createEntityManagerFactory("Eks").createEntityManager();
-//                writer.write( "okei! " + connection );
-
-                UsersJPA jpa = new UsersJPA(em);
-
-//                User u = em.find( User.class, 1L);
-//                writer.write( "okei! " + u );
-                writer.write( "okei! " + jpa.all() );
-
-                writer.close();
-//                return;
-            } catch ( Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-
-        if( path.equals( "alps" ) ) {
-            obj = new XHTMLSerialize<>().generateElement(new EksAlps().eks(), 100 );
-            title = "ALPS";
-        } else if( path.isEmpty() ) {
-            obj = index.index();
-        } else if( path.startsWith(pathToResource + "/" ) && method.equalsIgnoreCase("GET")) {
-            obj = eksResources.itemToElement( path.substring( pathToResource.length()+1));
-        } else if( path.startsWith(pathToResource + "/" ) && (method.equalsIgnoreCase("post") || method.equalsIgnoreCase("put"))) {
-            obj = eksResources.executeUpdate( path.substring( pathToResource.length()+1), req);
-        } else if( path.startsWith(editPathToResource + "/")) {
-            obj = forms.editForm( path.substring( editPathToResource.length()+1));
-        } else if( path.startsWith(pathToQueries + "/")) {
-            obj = queries.searchForm( path.substring( pathToQueries.length()+1));
-        } else if( path.startsWith(pathToQueryResult+"/")) {
-            obj = queries.executeQuery( path.substring( pathToQueryResult.length() +1),req );
-        } else if( path.startsWith(pathToCreators+"/")) {
-            obj = forms.createForm( path.substring( pathToCreators.length()+1));
-        } else if( path.startsWith(pathToCreateResult+"/")) {
-            obj = forms.executeCreate( path.substring( pathToCreateResult.length()+1), req);
+        if (handler.isPresent()) {
+            handler.get().getValue().accept(req, res);
+            return;
         } else {
-            obj = error404(path);
+            throw new NullPointerException("No handler for " + req.getPathInfo());
         }
-        res.setCharacterEncoding("utf-8");
-
-        writer.print( EksHTML.complete(obj, title ).toString());
-        writer.close();
     }
-
-    static html error404(String path) {
-        return new html().add( new body().add( new h1( "404: " + path)));
-    }
-
 
     @Override
     public String getServletInfo() {

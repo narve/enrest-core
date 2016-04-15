@@ -29,11 +29,19 @@ public class Props {
         return t;
     }
 
+    public <T> T createAndSetProps( Class<T> t, Map<String,String> values ) {
+        try {
+            return t.newInstance();
+        } catch (IllegalAccessException | InstantiationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Map<String, String> single(Map<String, String[]> stringMap) {
         return stringMap
                 .entrySet()
                 .stream()
-                .collect( Collectors.toMap( Map.Entry::getKey, e -> e[0] ) );
+                .collect( Collectors.toMap( Map.Entry::getKey, e -> e.getValue()[0] ) );
         // return new HashMap<String, String[]>( stringMap )
         //        .replaceAll( (k,v) -> v[0] );
     }
