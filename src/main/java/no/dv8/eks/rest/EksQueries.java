@@ -1,16 +1,10 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.controllers.CRUD;
-import no.dv8.eks.model.Comment;
-import no.dv8.eks.model.Question;
-import no.dv8.eks.model.User;
 import no.dv8.eks.rest.resources.QuestionResource;
 import no.dv8.eks.rest.resources.UserResource;
 import no.dv8.eks.semantic.Names;
-import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.queries.QueryResource;
-import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.xhtml.generation.elements.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.enrest.mutation.FormHelper.control;
 
@@ -31,7 +24,7 @@ public class EksQueries {
     UserResource users = new UserResource();
     QuestionResource questions = new QuestionResource();
     public List<QueryResource> queries() {
-        return EksIndex.resources()
+        return EksApi.resources()
           .stream()
           .map( r -> r.queries() )
           .reduce( new ArrayList<>(), (a,b) -> { a.addAll(b); return a; });

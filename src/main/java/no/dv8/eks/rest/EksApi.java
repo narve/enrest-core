@@ -3,9 +3,18 @@ package no.dv8.eks.rest;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
+import no.dv8.eks.model.Comment;
+import no.dv8.eks.rest.resources.QuestionResource;
+import no.dv8.eks.rest.resources.UserResource;
 import no.dv8.eks.semantic.EksAlps;
+import no.dv8.enrest.mutation.Locator;
+import no.dv8.enrest.mutation.Mutator;
+import no.dv8.enrest.mutation.Resource;
+import no.dv8.enrest.queries.QueryResource;
+import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.functions.XBiConsumer;
 import no.dv8.reflect.Props;
+import no.dv8.reflect.SimpleInput;
 import no.dv8.xhtml.generation.elements.body;
 import no.dv8.xhtml.generation.elements.h1;
 import no.dv8.xhtml.generation.elements.html;
@@ -16,10 +25,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksQueries.pathToQueries;
 import static no.dv8.eks.rest.EksQueries.pathToQueryResult;
 import static no.dv8.eks.rest.EksResources.editPathToResource;
@@ -46,6 +58,78 @@ public class EksApi {
 
     static html error404(String path) {
         return new html().add(new body().add(new h1("404: " + path)));
+    }
+
+    public static List<Resource> resources() {
+        return asList(
+          new UserResource(),
+          new QuestionResource(),
+          basicResource(Article.class),
+          basicResource(Comment.class)
+        );
+    }
+
+    public static <T> Resource<T> basicResource(Class<T> clz ) {
+        return new Resource<T>(){
+            @Override
+            public Class<T> clz() {
+                return clz;
+            }
+
+            @Override
+            public Locator<T> locator() {
+                return s -> CRUD.create(clz).getById(s);
+            }
+
+            @Override
+            public Mutator<T> creator() {
+                return new Mutator<T>() {
+
+                    @Override
+                    public List<Element<?>> inputs(T t) {
+                        return new Props().all(clz())
+                          .stream()
+                          .map( pd -> new SimpleInput<T>().apply(pd, t))
+                          .collect(toList());
+                    }
+
+                    @Override
+                    public T create(T t) {
+                        return CRUD.create(clz).insert(t);
+                    }
+
+                    @Override
+                    public T setProps(T target, HttpServletRequest req) {
+                        return asList(req)
+                          .stream()
+                          .map(HttpServletRequest::getParameterMap)
+                          .map(new Props()::single)
+                          .map(m -> new Props().setProps(target, m))
+                          .findFirst().get();
+                    }
+
+                    @Override
+                    public T update(T t) {
+                        return CRUD.create(clz).update(t);
+                    }
+                };
+            }
+
+            @Override
+            public Mutator<T> updater() {
+                return creator();
+            }
+
+            @Override
+            public String getName() {
+                return clz.getSimpleName();
+            }
+
+            @Override
+            public List<QueryResource> queries() {
+                return asList( new SimpleQuery<T>(clz.getSimpleName()+"Collection", s -> CRUD.create(clz).all() ));
+            }
+        };
     }
 
     EksResources eksResources() {

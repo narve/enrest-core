@@ -1,14 +1,12 @@
 package no.dv8.reflect;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.rest.EksIndex;
+import no.dv8.eks.rest.EksApi;
 import no.dv8.enrest.mutation.Resource;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,7 +54,7 @@ public class Props {
                 val = Long.parseLong(value);
 
 
-            Optional<Resource> res = EksIndex.resources().stream().filter(r -> r.clz().getSimpleName().equalsIgnoreCase(pd.getPropertyType().getSimpleName())).findFirst();
+            Optional<Resource> res = EksApi.resources().stream().filter(r -> r.clz().getSimpleName().equalsIgnoreCase(pd.getPropertyType().getSimpleName())).findFirst();
             if( res.isPresent() ) {
                 log.info( "Locating bean for class {} id {}", pd.getPropertyType().getSimpleName(), value );
                 Object byId = res.get().locator().getById(value);

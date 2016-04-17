@@ -1,7 +1,6 @@
 package no.dv8.eks.rest;
 
-import no.dv8.eks.rest.resources.QuestionResource;
-import no.dv8.eks.rest.resources.UserResource;
+import no.dv8.enrest.model.Link;
 import no.dv8.enrest.mutation.Mutator;
 import no.dv8.enrest.mutation.Resource;
 import no.dv8.xhtml.generation.elements.*;
@@ -13,6 +12,8 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+
+import static java.util.stream.Collectors.toList;
 
 public class EksResources {
 
@@ -59,30 +60,29 @@ public class EksResources {
         return getItem(itemClass, itemId);
     }
 
-    public Element<?> toElement(Object item) {
+    public <T> Element<?> toElement(T item) {
+        Resource<T> r = getResource(item.getClass().getSimpleName());
         div d = new div();
-        if( true ) {
-            d.add(new XHTMLSerialize<>().generateElement(item, 1));
-        } else {
-            try {
-                dl list = new dl();
-                PropertyDescriptor[] pda = Introspector.getBeanInfo(item.getClass()).getPropertyDescriptors();
-                for (PropertyDescriptor pd : pda) {
-                    list.add(new dt(pd.getName()));
-                    list.add(new dd().add(String.valueOf(pd.getReadMethod().invoke(item))));
-                }
-                d.add(list);
-            } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        d.add( new a( "Edit " + item.toString()).href( editUrlForItem(item)).rel( "edit"));
+        d.add(new XHTMLSerialize<>().generateElement(item, 1));
+        d.add( new div().clz( "links" ).add(
+          new a( "Edit " + item.toString()).href( editUrlForItem(item)).rel( "edit")
+        ).add( r.linker().links(item).stream().map( this::linkToElement).collect( toList()))
+        );
         return d;
     }
 
+    private Element<?> linkToElement(Element<?> l) {
+        return l;
+//        return new a().href(String.valueOf(l.getTarget())).rel( "therel").add( l.toString() );
+    }
+
     public static Object getItem(String itemType, String itemId) {
-        Resource<?> resource = EksIndex.resources().stream().filter( r -> r.getName().equalsIgnoreCase( itemType)).findFirst().get();
+        Resource<?> resource = getResource(itemType);
         return resource.locator().getById(itemId);
+    }
+
+    private static <T> Resource<T> getResource(String itemType) {
+        return EksApi.resources().stream().filter(r -> r.getName().equalsIgnoreCase( itemType)).findFirst().get();
     }
 
     public Element<?> executeUpdate(String substring, HttpServletRequest req) {

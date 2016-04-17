@@ -6,13 +6,17 @@ import no.dv8.eks.model.User;
 import no.dv8.eks.semantic.Names;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.eks.semantic.Types;
+import no.dv8.enrest.model.Link;
+import no.dv8.enrest.mutation.Linker;
 import no.dv8.enrest.mutation.Locator;
 import no.dv8.enrest.mutation.Mutator;
 import no.dv8.enrest.mutation.Resource;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.functions.XBiConsumer;
+import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.input;
+import no.dv8.xhtml.generation.elements.link;
 import no.dv8.xhtml.generation.support.Element;
 
 import javax.servlet.http.HttpServletRequest;
@@ -73,7 +77,7 @@ public class UserResource implements Resource<User> {
 
     @Override
     public String getName() {
-        return Types.user_add.toString();
+        return User.class.getSimpleName();
     }
 
     public XBiConsumer<HttpServletRequest, HttpServletResponse> testBIC() {
@@ -121,6 +125,17 @@ public class UserResource implements Resource<User> {
             u.setWebsite(req.getParameter(Names.website.toString()));
             return u;
         }
+    }
 
+    @Override
+    public Linker<User> linker() {
+        a self = new a()
+          .rel( "self" )
+            .self()
+          .href("thehgref")
+          .add( "content" );
+        return u -> asList(
+          self
+        );
     }
 }

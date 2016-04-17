@@ -11,7 +11,7 @@ import no.dv8.xhtml.generation.support.Element;
 import javax.servlet.http.HttpServletRequest;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
-import static no.dv8.eks.rest.EksIndex.resources;
+import static no.dv8.eks.rest.EksApi.resources;
 import static no.dv8.enrest.mutation.FormHelper.pathToCreators;
 
 @Slf4j

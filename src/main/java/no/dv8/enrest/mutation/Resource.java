@@ -4,6 +4,8 @@ import no.dv8.enrest.queries.QueryResource;
 
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
 public interface Resource<T> {
 
     Class<T> clz();
@@ -17,5 +19,9 @@ public interface Resource<T> {
     String getName();
 
     List<QueryResource> queries();
+
+    default Linker<T> linker() {
+        return t -> emptyList();
+    }
 
 }
