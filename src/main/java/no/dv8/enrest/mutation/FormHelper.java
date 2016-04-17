@@ -36,6 +36,8 @@ public class FormHelper {
           .clz(name)
           .method(method)
           .action( basePath + pathToCreateResult+"/" + name)
+          .set( "accept-charset", "utf-8")
+          .set( "enc-type", "application/x-www-form-urlencoded")
           .add(new fieldset()
             .add(new legend(name))
             .add( inputDivs )

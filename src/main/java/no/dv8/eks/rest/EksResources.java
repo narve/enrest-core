@@ -3,6 +3,7 @@ package no.dv8.eks.rest;
 import no.dv8.eks.rest.resources.QuestionResource;
 import no.dv8.eks.rest.resources.UserResource;
 import no.dv8.enrest.mutation.Mutator;
+import no.dv8.enrest.mutation.Resource;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
@@ -80,16 +81,8 @@ public class EksResources {
     }
 
     public static Object getItem(String itemType, String itemId) {
-        switch( itemType.toLowerCase() ) {
-            case "user":
-                return new UserResource().getById( itemId );
-            case "question":
-                return new QuestionResource().getById( itemId );
-            default:
-                throw new IllegalStateException();
-        }
-//        Controller<?> x = controllers().stream().filter( c -> c.getClz().getSimpleName().equalsIgnoreCase(itemType)).findFirst().get();
-//        return
+        Resource<?> resource = EksIndex.resources().stream().filter( r -> r.getName().equalsIgnoreCase( itemType)).findFirst().get();
+        return resource.locator().getById(itemId);
     }
 
     public Element<?> executeUpdate(String substring, HttpServletRequest req) {

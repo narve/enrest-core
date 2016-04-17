@@ -6,6 +6,7 @@ import no.dv8.eks.model.User;
 import no.dv8.eks.semantic.Names;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.eks.semantic.Types;
+import no.dv8.enrest.mutation.Locator;
 import no.dv8.enrest.mutation.Mutator;
 import no.dv8.enrest.mutation.Resource;
 import no.dv8.enrest.queries.QueryResource;
@@ -25,6 +26,11 @@ public class QuestionResource implements Resource<Question> {
     @Override
     public Mutator<Question> creator() {
         return new QuestionMutator();
+    }
+
+    @Override
+    public Locator<Question> locator() {
+        return s -> questions().getById(s);
     }
 
     @Override

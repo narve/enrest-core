@@ -39,7 +39,7 @@ public class UsersJPA {
     public User getById(Object id) {
         List<User> collect = all()
           .stream()
-          .filter(t -> t.getId().toString().equals(id))
+          .filter(t -> t.getId().toString().equals(id.toString()))
           .collect(Collectors.toList());
         if (collect.isEmpty())
             return null;

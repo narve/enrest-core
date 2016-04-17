@@ -1,16 +1,26 @@
 package no.dv8.reflect;
 
+import lombok.extern.slf4j.Slf4j;
+import no.dv8.eks.rest.EksIndex;
+import no.dv8.enrest.mutation.Resource;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
+@Slf4j
 public class Props {
 
     public List<PropertyDescriptor> all(Class<?> clz ) {
@@ -26,7 +36,38 @@ public class Props {
     }
 
     public <T> T setProps( T t, Map<String,String> values ) {
+        Map<String, PropertyDescriptor> pdMap =
+          all(t.getClass()).stream().collect( toMap( PropertyDescriptor::getName, identity()));
+        values.entrySet().stream()
+          .forEach( me -> setProp( pdMap.get( me.getKey()), me.getValue(),t ) );
         return t;
+    }
+
+    private <T> void setProp(PropertyDescriptor pd, String value, T t) {
+        if( value == null || value.trim().isEmpty() )
+            return;
+        if( pd.getName().equals( "id" ) )
+            return;
+        String msg = format( "setting %s to '%s' on target '%s'", pd.getName(), value, t );
+        log.info( msg );
+        try {
+            Object val = value;
+            if( pd.getPropertyType().equals( Long.TYPE ) )
+                val = Long.parseLong(value);
+
+
+            Optional<Resource> res = EksIndex.resources().stream().filter(r -> r.clz().getSimpleName().equalsIgnoreCase(pd.getPropertyType().getSimpleName())).findFirst();
+            if( res.isPresent() ) {
+                log.info( "Locating bean for class {} id {}", pd.getPropertyType().getSimpleName(), value );
+                Object byId = res.get().locator().getById(value);
+                val = byId;
+                log.info( "Located bean for class {} id {}: {}", pd.getPropertyType().getSimpleName(), value, val );
+            }
+
+            pd.getWriteMethod().invoke( t, val );
+        } catch (Exception e) {
+            throw new RuntimeException( "Error in " + msg, e );
+        }
     }
 
     public <T> T createAndSetProps( Class<T> t, Map<String,String> values ) {

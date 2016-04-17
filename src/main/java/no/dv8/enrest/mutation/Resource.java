@@ -10,6 +10,8 @@ public interface Resource<T> {
 
     Mutator<T> creator();
 
+    Locator<T> locator();
+
     Mutator<T> updater();
 
     String getName();

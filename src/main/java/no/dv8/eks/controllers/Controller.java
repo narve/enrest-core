@@ -1,8 +1,5 @@
 package no.dv8.eks.controllers;
 
-import no.dv8.eks.model.Question;
-
-import javax.inject.Named;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -37,5 +34,5 @@ public abstract class Controller<T> {
         return all().stream().filter(t -> t.toString().toLowerCase().contains(s.toLowerCase())).collect(toList());
     }
 
-    public abstract Question update(Question question);
+    public abstract T update(T question);
 }

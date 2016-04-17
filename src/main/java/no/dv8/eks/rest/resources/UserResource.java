@@ -1,28 +1,32 @@
 package no.dv8.eks.rest.resources;
 
+import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.UsersJPA;
-import no.dv8.eks.model.Question;
 import no.dv8.eks.model.User;
 import no.dv8.eks.semantic.Names;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.eks.semantic.Types;
+import no.dv8.enrest.mutation.Locator;
 import no.dv8.enrest.mutation.Mutator;
 import no.dv8.enrest.mutation.Resource;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.queries.SimpleQuery;
+import no.dv8.functions.XBiConsumer;
 import no.dv8.xhtml.generation.elements.input;
 import no.dv8.xhtml.generation.support.Element;
 
-import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 import static no.dv8.enrest.mutation.FormHelper.text;
+import static no.dv8.functions.ServletFunctions.consumer;
 
 
-@Stateless
+@Slf4j
 public class UserResource implements Resource<User> {
 
     public UserResource() {
@@ -35,7 +39,7 @@ public class UserResource implements Resource<User> {
     @Override
     public List<QueryResource> queries() {
         return asList(
-          new SimpleQuery<User>(Rels.questions_search.toString(), s -> search(s))
+          new SimpleQuery<User>(Rels.users_search.toString(), s -> search(s))
         );
     }
 
@@ -53,6 +57,11 @@ public class UserResource implements Resource<User> {
     }
 
     @Override
+    public Locator<User> locator() {
+        return s -> users().getById(s);
+    }
+
+    @Override
     public Mutator<User> updater() {
         return new UserMutator();
     }
@@ -65,6 +74,16 @@ public class UserResource implements Resource<User> {
     @Override
     public String getName() {
         return Types.user_add.toString();
+    }
+
+    public XBiConsumer<HttpServletRequest, HttpServletResponse> testBIC() {
+        Function<HttpServletRequest, Long> idExtractor = req -> Long.parseLong( req.getParameterMap().get("id")[0]);
+//        Function<HttpServletRequest, User> mapper = idExtractor.andThen( id -> users().all().get(0));
+        Function<HttpServletRequest, User> mapper =
+          idExtractor
+            .andThen( id -> users().getById(id))
+            .andThen( u -> { log.info( "User: {}", u.getName()); return u;});
+        return consumer( mapper );
     }
 
     public class UserMutator implements Mutator<User> {
