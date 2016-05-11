@@ -26,8 +26,8 @@ public class SimpleInput<T>
 
                 Custom c = new Custom("datalist").id(pd.getPropertyType().getSimpleName());
                 c.add(asList(
-                  new option().set("value", "33").add("Narve Sætre"),
-                  new option().set("value", "1234234").add("NOT Narve Sætre")
+                  new option().set("stringValue", "33").add("Narve Sætre"),
+                  new option().set("stringValue", "1234234").add("NOT Narve Sætre")
                 ));
 
                 input x = new input().text().name(pd.getName()).id(pd.getName()).set("list", pd.getPropertyType().getSimpleName());

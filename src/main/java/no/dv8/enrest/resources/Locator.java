@@ -1,6 +1,8 @@
 package no.dv8.enrest.resources;
 
+import java.util.Optional;
+
 @FunctionalInterface
 public interface Locator<T> {
-    T getById( String id );
+    Optional<T> getById(String id );
 }

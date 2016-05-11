@@ -89,7 +89,7 @@ public class IntegrationTestUtil {
 //        for (Iterator<Map.Entry<String, List<Object>>> it = resp.getMetadata().entrySet().iterator(); it.hasNext(); ) {
 //            Map.Entry<String, List<Object>> me = it.next();
 //            l.insert(me.getKey());
-//            l.insert(me.getValue());
+//            l.insert(me.getStringValue());
 //        }
 //        return debug(l);
 //    }

@@ -19,7 +19,7 @@
         <!--<validation-mode>CALLBACK</validation-mode>-->
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-            <!--<property name="hibernate.hbm2ddl.auto" value="create-drop"/>-->
+            <!--<property name="hibernate.hbm2ddl.auto" stringValue="create-drop"/>-->
             <property name="hibernate.hbm2ddl.auto" value="update"/>
 
             <property name="javax.persistence.jdbc.url" value="jdbc:h2:file:databases/Eks"/>

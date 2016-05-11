@@ -71,10 +71,10 @@
     function toItem( node ) {
         var res = {};
         if( node.attributes['type'] ) {
-             res.type = node.attributes['type'].value;
+             res.type = node.attributes['type'].stringValue;
         }
         forEach.call( node.querySelectorAll( "*[itemprop]" ), n => {
-            res[n.attributes['itemprop'].value] = toPropertyValue( n );
+            res[n.attributes['itemprop'].stringValue] = toPropertyValue( n );
        //      console.log( "The node: ", n );
          });
         return res;

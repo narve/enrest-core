@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
@@ -59,7 +60,7 @@ public class UserResource implements Resource<User> {
 
     @Override
     public Locator<User> locator() {
-        return s -> users().getById(s);
+        return s -> Optional.of( users().getById(s));
     }
 
     @Override

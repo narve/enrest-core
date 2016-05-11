@@ -18,7 +18,7 @@ Start the appserver, verify localhost:8080 afterwards. Keep this command running
 
 Disable the paranoid security of JBoss: 
 
-    jbcli -c --command="/subsystem=ejb3:write-attribute(name=default-missing-method-permissions-deny-access, value=false)"
+    jbcli -c --command="/subsystem=ejb3:write-attribute(name=default-missing-method-permissions-deny-access, stringValue=false)"
 
 
 Setup a file-based H2 database server: 

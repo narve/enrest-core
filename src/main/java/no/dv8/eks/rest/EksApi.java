@@ -27,6 +27,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -78,7 +79,7 @@ public class EksApi {
 
             @Override
             public Locator<T> locator() {
-                return s -> CRUD.create(clz).getById(s);
+                return s -> Optional.of( CRUD.create(clz).getById(s));
             }
 
             @Override
