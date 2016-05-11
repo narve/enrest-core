@@ -1,4 +1,4 @@
-package no.dv8.enrest.mutation;
+package no.dv8.enrest.resources;
 
 import no.dv8.enrest.queries.QueryResource;
 
@@ -10,13 +10,15 @@ public interface Resource<T> {
 
     Class<T> clz();
 
-    Mutator<T> creator();
+    default String getName() {
+        return clz().getSimpleName();
+    }
 
-    Locator<T> locator();
+    Mutator<T> creator();
 
     Mutator<T> updater();
 
-    String getName();
+    Locator<T> locator();
 
     List<QueryResource> queries();
 

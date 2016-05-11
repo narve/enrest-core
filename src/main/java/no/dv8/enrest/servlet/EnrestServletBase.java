@@ -6,6 +6,7 @@ import no.dv8.enrest.container.Enrest;
 import no.dv8.enrest.model.Link;
 import no.dv8.enrest.model.Parameter;
 import no.dv8.enrest.model.Transition;
+import no.dv8.enrest.resources.Resource;
 import no.dv8.enrest.spi.Outputter;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.div;
@@ -44,17 +45,17 @@ public abstract class EnrestServletBase extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        EnrestResource<?,?> res = findResource( req );
+        Resource<?> res = findResource( req );
         if( res == null ) {
             throw new NullPointerException( String.format( "Unable to locate resource for %s", req.getRequestURL() ) );
         }
         String ct = getContentType(req);
-        Object result = handle(res, req, resp);
+        Object result = new Object(); //handle(res, req, resp);
         Outputter outputter = getOutputter(ct);
         outputter.output(result, resp);
     }
 
-    <From, To> EnrestResource<From, To> findResource(HttpServletRequest req) {
+    <To> Resource<To> findResource(HttpServletRequest req) {
 
 
 
@@ -62,30 +63,30 @@ public abstract class EnrestServletBase extends HttpServlet {
 
         String ctxPath = req.getServletContext().getContextPath();
         String rootPath = ctxPath + getRootPath();
-        String _path = url.substring(rootPath.length() + 1);
+        String _path = url.substring(rootPath.length()-1);
 //        if (_path.startsWith("/"))
 //            _path = _path.substring(1);
 
         String path = _path;
 
         if (path.equals("/")) {
-            return (EnrestResource<From, To>) getEnrest().indexResource();
+            return (Resource<To>) getEnrest().indexResource();
 
         } else if (path.startsWith("/_resource")) {
 //            outputStream.print( "resource: " + path );
             String ref = path.substring("/_resource/".length());
-            EnrestResource r = getEnrest().getResources().stream().filter(res -> res.getReference().equals(ref)).findFirst().get();
+            Resource r = getEnrest().getResources().stream().filter(res -> res.getName().equals(ref)).findFirst().get();
             return r;
         } else {
             String xp = path.startsWith("/") ? path.substring(1) : path;
-            Optional<EnrestResource> first = getEnrest().list().stream().peek(r -> log.info("Res-name: " + r.getName())).filter(t -> matches(t, xp) != null).findFirst();
+            Optional<Resource> first = getEnrest().list().stream().peek(r -> log.info("Res-name: " + r.getName())).filter(t -> true ).findFirst();
             if (!first.isPresent()) {
-                throw new IllegalStateException("Don't know how to setProps " + xp);
+                throw new IllegalStateException("Don't know how to locate " + xp);
             }
-            Map<String, String> pparams = matches(first.get(), path);
+            Map<String, String> pparams = new HashMap<>(); //matches(first.get(), path);
             req.setAttribute("path-param-map", pparams);
 
-            EnrestResource<From, To> r = first.get();
+            Resource<To> r = first.get();
             return r;
         }
     }
@@ -122,50 +123,18 @@ public abstract class EnrestServletBase extends HttpServlet {
 
 
 
-    <From, To> List<To> handle(EnrestResource<From, To> r, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        List<To> res;
-        if (r.getFrom().equals(Void.class)) {
-            res = r.getHandler().apply(null);
-        } else {
-            From from = r.getReqParser().apply(req);
-            res = r.getHandler().apply(from);
-        }
-
-        log.info("Res: {}", res);
-        return res;
-    }
-
-    Map<String, String> matches(EnrestResource t, String path) {
-        if (t.getPath().equals(path)) return new HashMap<>();
-
-        if (t.getPathParams().isEmpty())
-            return null;
-
-        String re = Pattern.quote(t.getPath());
-        for (Parameter p : (List<Parameter>) t.getPathParams()) {
-            re += "/([^/]+)";
-        }
-
-        Matcher matcher = Pattern.compile(re).matcher(path);
-        if (matcher.matches()) {
-            Map<String, String> ppMap = new HashMap<>();
-            for (int i = 0; i < t.getPathParams().size(); i++) {
-                ppMap.put(((Parameter) t.getPathParams().get(i)).getName(), matcher.group(i + 1));
-            }
-            return ppMap;
-        }
-
-        return null;
-    }
-
-    Object extractParams(HttpServletRequest req, Transition t) {
-        return null;
-    }
+//    <From, To> List<To> handle(Resource<To> r, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+//        List<To> res;
+//        if (r.getFrom().equals(Void.class)) {
+//            res = r.getHandler().apply(null);
+//        } else {
+//            From from = r.getReqParser().apply(req);
+//            res = r.getHandler().apply(from);
+//        }
 //
-//    RestContainer getRestContainer() {
-//        return RestSetup.setup();
+//        log.info("Res: {}", res);
+//        return res;
 //    }
-
 
     <From, To> String html(EnrestResource<From, To> resource, List<To> obj) {
         XHTMLSerialize<?> ser = new XHTMLSerialize<>();

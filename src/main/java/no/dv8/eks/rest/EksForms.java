@@ -1,10 +1,10 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.enrest.mutation.Resource;
+import no.dv8.enrest.resources.Resource;
 import no.dv8.eks.semantic.Types;
-import no.dv8.enrest.mutation.Mutator;
-import no.dv8.enrest.mutation.FormHelper;
+import no.dv8.enrest.resources.Mutator;
+import no.dv8.enrest.resources.FormHelper;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.eks.rest.EksApi.resources;
-import static no.dv8.enrest.mutation.FormHelper.pathToCreators;
+import static no.dv8.enrest.resources.FormHelper.pathToCreators;
 
 @Slf4j
 public class EksForms {

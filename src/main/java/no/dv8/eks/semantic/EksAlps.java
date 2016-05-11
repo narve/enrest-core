@@ -10,7 +10,7 @@ import static no.dv8.alps.Descriptor.semantic;
 
 public class EksAlps {
 
-    public Alps eks() {
+    public Alps alps() {
 
         Descriptor questionsSearch = Descriptor.builder()
           .doc( new Doc( "Search createForm for questions" ) )

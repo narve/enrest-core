@@ -48,7 +48,7 @@ public class Dirs implements XBiConsumer<HttpServletRequest, HttpServletResponse
         return Files.list( path )
           .filter( p -> !p.getFileName().toString().startsWith("."))
           .sorted()
-          .map( p -> new li().add( new a( p.toString() ).href( "/eks/" + prefix + "/" + root.relativize(p).toString() ) ) )
+          .map( p -> new li().add( new a( p.toString() ).href( "/alps/" + prefix + "/" + root.relativize(p).toString() ) ) )
           .collect( toList() );
 
     }

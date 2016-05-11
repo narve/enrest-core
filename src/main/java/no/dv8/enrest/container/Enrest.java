@@ -4,7 +4,9 @@ import com.google.gson.GsonBuilder;
 import lombok.Data;
 import no.dv8.enrest.EnrestResource;
 import no.dv8.enrest.EnrestResourceBuilder;
+import no.dv8.enrest.model.Link;
 import no.dv8.enrest.model.Parameter;
+import no.dv8.enrest.resources.Resource;
 import no.dv8.enrest.spi.RelTypeProvider;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
@@ -19,7 +21,7 @@ import static java.util.stream.Collectors.toList;
 @Data
 public class Enrest {
 
-    List<EnrestResource> resources = new ArrayList<>();
+    List<Resource> resources = new ArrayList<>();
 
 //    Linker linker = new Linker() {
 //    };
@@ -36,26 +38,19 @@ public class Enrest {
         return new EnrestResourceBuilder<From, To>(this, false, from, to);
     }
 
-
-
-    public EnrestResource register(EnrestResource<?, ?> res) {
-        resources.add(res);
-        return res;
-    }
-
     public EnrestResource index() {
         return new EnrestResource(true, "GET", "/", Void.class, Element.class, (req) -> null, (f) -> getResources(), "Index",null, null, null, null, null );
     }
 
-    public EnrestResource<Void, String> indexResource() {
+    public List<Link> indexResource() {
         EnrestResource re = new EnrestResourceBuilder(this, true, Void.class, String.class)
           .method( "GET" )
           .handler( (v) -> index( r -> new li().add( r.getName())) )
           .build();
-        return re;
+        return asList( );
     }
 
-    public List<Element> index(Function<EnrestResource, Element> f) {
+    public List<Element> index(Function<Resource, Element> f) {
         return full(list().stream().map(f).map(a -> new li().add(a)).collect(toList()));
     }
 
@@ -137,7 +132,7 @@ public class Enrest {
 //        return new a(r.getTo().getSimpleName()).href(r.getPath()).rel(relTypeProvider.reltype(r.getTo()));
     }
 
-    public List<EnrestResource> list() {
+    public List<Resource> list() {
         return new ArrayList<>(resources);
     }
 }

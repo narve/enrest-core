@@ -85,7 +85,8 @@ public class EnrestResourceBuilder<From, To> {
 
     public EnrestResource buildAndRegister() {
         EnrestResource r = build();
-        return enrest.register( r );
+//        return enrest.register( r );
+        throw new UnsupportedOperationException("dep");
     }
 
 

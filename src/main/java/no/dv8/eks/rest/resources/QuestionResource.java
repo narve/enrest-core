@@ -2,13 +2,12 @@ package no.dv8.eks.rest.resources;
 
 import no.dv8.eks.controllers.Questions;
 import no.dv8.eks.model.Question;
-import no.dv8.eks.model.User;
 import no.dv8.eks.semantic.Names;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.eks.semantic.Types;
-import no.dv8.enrest.mutation.Locator;
-import no.dv8.enrest.mutation.Mutator;
-import no.dv8.enrest.mutation.Resource;
+import no.dv8.enrest.resources.Locator;
+import no.dv8.enrest.resources.Mutator;
+import no.dv8.enrest.resources.Resource;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.xhtml.generation.elements.input;

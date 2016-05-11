@@ -1,4 +1,4 @@
-package no.dv8.enrest.mutation;
+package no.dv8.enrest.resources;
 
 @FunctionalInterface
 public interface Locator<T> {

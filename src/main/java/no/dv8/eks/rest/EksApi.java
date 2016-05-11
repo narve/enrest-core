@@ -7,11 +7,11 @@ import no.dv8.eks.model.Comment;
 import no.dv8.eks.rest.resources.QuestionResource;
 import no.dv8.eks.rest.resources.UserResource;
 import no.dv8.eks.semantic.EksAlps;
-import no.dv8.enrest.mutation.Locator;
-import no.dv8.enrest.mutation.Mutator;
-import no.dv8.enrest.mutation.Resource;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.queries.SimpleQuery;
+import no.dv8.enrest.resources.Locator;
+import no.dv8.enrest.resources.Mutator;
+import no.dv8.enrest.resources.Resource;
 import no.dv8.functions.XBiConsumer;
 import no.dv8.reflect.Props;
 import no.dv8.reflect.SimpleInput;
@@ -36,8 +36,8 @@ import static no.dv8.eks.rest.EksQueries.pathToQueries;
 import static no.dv8.eks.rest.EksQueries.pathToQueryResult;
 import static no.dv8.eks.rest.EksResources.editPathToResource;
 import static no.dv8.eks.rest.EksResources.pathToResource;
-import static no.dv8.enrest.mutation.FormHelper.pathToCreateResult;
-import static no.dv8.enrest.mutation.FormHelper.pathToCreators;
+import static no.dv8.enrest.resources.FormHelper.pathToCreateResult;
+import static no.dv8.enrest.resources.FormHelper.pathToCreators;
 import static no.dv8.functions.ServletFunctions.consumer;
 
 @Slf4j
@@ -69,8 +69,8 @@ public class EksApi {
         );
     }
 
-    public static <T> Resource<T> basicResource(Class<T> clz ) {
-        return new Resource<T>(){
+    public static <T> Resource<T> basicResource(Class<T> clz) {
+        return new Resource<T>() {
             @Override
             public Class<T> clz() {
                 return clz;
@@ -89,7 +89,7 @@ public class EksApi {
                     public List<Element<?>> inputs(T t) {
                         return new Props().all(clz())
                           .stream()
-                          .map( pd -> new SimpleInput<T>().apply(pd, t))
+                          .map(pd -> new SimpleInput<T>().apply(pd, t))
                           .collect(toList());
                     }
 
@@ -127,7 +127,7 @@ public class EksApi {
 
             @Override
             public List<QueryResource> queries() {
-                return asList( new SimpleQuery<T>(clz.getSimpleName()+"Collection", s -> CRUD.create(clz).all() ));
+                return asList(new SimpleQuery<T>(clz.getSimpleName() + "Collection", s -> CRUD.create(clz).all()));
             }
         };
     }
@@ -239,7 +239,7 @@ public class EksApi {
             String method = req.getMethod();
 
             if (path.equals("alps")) {
-                obj = new XHTMLSerialize<>().generateElement(new EksAlps().eks(), 100);
+                obj = new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
                 title = "ALPS";
             } else if (path.isEmpty()) {
                 obj = index().index();

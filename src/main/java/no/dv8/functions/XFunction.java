@@ -1,6 +1,7 @@
 package no.dv8.functions;
 
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 @FunctionalInterface
 public interface XFunction<T, U> {

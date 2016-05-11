@@ -6,9 +6,8 @@ import no.dv8.dirs.Dirs;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
 import no.dv8.eks.rest.resources.UserResource;
+import no.dv8.enrest.Exchange;
 import no.dv8.functions.XBiConsumer;
-import no.dv8.xhtml.generation.support.Element;
-import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -21,10 +20,11 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksServlet.ServletBase;
-import static no.dv8.functions.ServletFunctions.consumer;
+import static no.dv8.functions.ServletFunctions.*;
 import static no.dv8.functions.XBiConsumer.hidex;
 
 @javax.servlet.annotation.WebServlet(urlPatterns = {ServletBase + "/*"})
@@ -32,10 +32,8 @@ import static no.dv8.functions.XBiConsumer.hidex;
 public class EksServlet extends HttpServlet {
 
     public static final String ServletBase = "/eks";
-
-    public static String notNull(String in) {
-        return in == null ? "" : in;
-    }
+    UnaryOperator<Exchange> reqLogger = returner(x -> log.info("FULL PATH: {}", x.getFullPath()));
+    UnaryOperator<Exchange> finisher = returner(x -> x.finish());
 
     List<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>> consumers() {
         return asList(
@@ -71,27 +69,55 @@ public class EksServlet extends HttpServlet {
     }
 
     XBiConsumer<HttpServletRequest, HttpServletResponse> testBIC() {
-        return consumer( testFunc() );
+        return consumer(testFunc());
     }
 
 
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        if (false) {
+            unaries(req, res);
+        } else {
+            bics(req, res);
+        }
+    }
 
+    void unaries(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        if (req.getPathInfo() == null) {
+            res.sendRedirect(req.getRequestURI() + "/");
+        }
         log.info("PathInfo: {}", req.getPathInfo());
-        log.info("RequestURL: {}", req.getRequestURL());
-        Optional<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>>
-          handler = consumers()
-          .stream()
-          .filter(p -> p.getKey().test(req))
-          .findFirst();
 
-        BiConsumer<HttpServletRequest, HttpServletResponse> logger = (a, b) -> {
+        List<UnaryOperator<Exchange>> ops = asList(
+          reqLogger, x -> x.write("hei"), finisher
+        );
+
+        Exchange exchange = new Exchange(req, res);
+        UnaryOperator<Exchange> composite = ops
+          .stream()
+          .reduce(UnaryOperator.identity(), (a, b) -> s -> b.apply(a.apply(s)));
+        composite.apply(exchange);
+    }
+
+
+    void bics(HttpServletRequest req, HttpServletResponse res) throws IOException {
+
+        log.info("RequestURL: {}", req.getRequestURL());
+        Optional<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>> handler =
+          consumers()
+            .stream()
+            .filter(p -> exMeansFalse(p.getKey()).test(req))
+            .findFirst();
+//          .map(p -> p.getValue())
+//          .collect(toList());
+//          .forEach(bi -> bi.accept(req, res));
+
+        BiConsumer<HttpServletRequest, HttpServletResponse> reqLogger = (a, b) -> {
             log.info("REQUEST: {}, mapped to: {}", req.getRequestURL(), handler.isPresent() ? handler.get().getValue() : null);
         };
 
         if (handler.isPresent()) {
-            BiConsumer mod = logger.andThen(handler.get().getValue());
+            BiConsumer mod = reqLogger.andThen(handler.get().getValue());
             mod.accept(req, res);
         } else {
             throw new NullPointerException("No handler for " + req.getPathInfo());

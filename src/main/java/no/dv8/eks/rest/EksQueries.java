@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
-import static no.dv8.enrest.mutation.FormHelper.control;
+import static no.dv8.enrest.resources.FormHelper.control;
 
 @Slf4j
 public class EksQueries {

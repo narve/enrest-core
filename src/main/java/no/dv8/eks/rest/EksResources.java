@@ -1,17 +1,12 @@
 package no.dv8.eks.rest;
 
-import no.dv8.enrest.model.Link;
-import no.dv8.enrest.mutation.Mutator;
-import no.dv8.enrest.mutation.Resource;
+import no.dv8.enrest.resources.Mutator;
+import no.dv8.enrest.resources.Resource;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.http.HttpServletRequest;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 
 import static java.util.stream.Collectors.toList;
 
