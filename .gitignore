@@ -2,4 +2,7 @@ target
 out
 .idea
 wildfly-10.0.0.Final
-databases
+databases/*.*
+*.db
+**/*.db
+

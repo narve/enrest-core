@@ -8,6 +8,8 @@ import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Optional;
+
 import static java.util.stream.Collectors.toList;
 
 public class EksResources {
@@ -73,11 +75,16 @@ public class EksResources {
 
     public static Object getItem(String itemType, String itemId) {
         Resource<?> resource = getResource(itemType);
-        return resource.locator().getById(itemId);
+        return resource.locator().getById(itemId).get();
     }
 
     private static <T> Resource<T> getResource(String itemType) {
-        return EksApi.resources().stream().filter(r -> r.getName().equalsIgnoreCase( itemType)).findFirst().get();
+        Optional<Resource> first = EksApi.resources().stream().filter(r -> r.getName().equalsIgnoreCase(itemType)).findFirst();
+        if( first.isPresent() ) {
+            return first.get();
+        } else {
+            throw new UnsupportedOperationException("No resource found for " + itemType );
+        }
     }
 
     public Element<?> executeUpdate(String substring, HttpServletRequest req) {

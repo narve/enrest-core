@@ -87,26 +87,8 @@ public class EksApi {
                 return new Mutator<T>() {
 
                     @Override
-                    public List<Element<?>> inputs(T t) {
-                        return new Props().all(clz())
-                          .stream()
-                          .map(pd -> new SimpleInput<T>().apply(pd, t))
-                          .collect(toList());
-                    }
-
-                    @Override
                     public T create(T t) {
                         return CRUD.create(clz).insert(t);
-                    }
-
-                    @Override
-                    public T setProps(T target, HttpServletRequest req) {
-                        return asList(req)
-                          .stream()
-                          .map(HttpServletRequest::getParameterMap)
-                          .map(new Props()::single)
-                          .map(m -> new Props().setProps(target, m))
-                          .findFirst().get();
                     }
 
                     @Override

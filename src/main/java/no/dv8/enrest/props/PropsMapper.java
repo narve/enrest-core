@@ -1,15 +1,18 @@
 package no.dv8.enrest.props;
 
-import javafx.util.Pair;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import no.dv8.reflect.Props;
 
+import javax.servlet.http.HttpServletRequest;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.List;
 import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class PropsMapper {
 
@@ -19,41 +22,82 @@ public class PropsMapper {
         };
     }
 
-    public Map<String, String> toMap(Object t, String prefix) {
-        return
-          new Props()
-            .all(t.getClass())
-            .stream()
-            .flatMap(pd -> propToMap(pd, t))
-            .filter( p -> p.getValue() != null )
-            .collect(Collectors.toMap(p -> prefix + p.getKey(), p -> p.getValue(), throwingMerger(), TreeMap::new));
+    public List<PropNode> props(Object t, boolean includeNull ) {
+        return new Props()
+          .all( t.getClass() )
+          .stream()
+          .flatMap( pd -> propToMap(pd, t, "", includeNull))
+          .sorted()
+          .collect( toList() );
     }
 
-    Stream<Pair<String, String>> propToMap(PropertyDescriptor pd, Object t) {
-        if (pd.getPropertyType().isPrimitive() || pd.getPropertyType().getPackage().getName().startsWith("java"))
-            return Stream.of(new Pair<>(pd.getName(), getValue(pd, t)));
+    Stream<PropNode> propToMap(PropertyDescriptor descriptor, Object t, String prefix, boolean includeNull) {
+        Object val = getValue(descriptor, t);
+        if (val == null && !includeNull)
+            return Stream.empty();
+
+        if (isSimple(descriptor)) {
+            return Stream.of(new PropNode(prefix + descriptor.getName(), descriptor, getValue(descriptor, t)));
+        }
 
         try {
-            Object nested = pd.getReadMethod().invoke(t);
-            return toMap(nested, pd.getName() + ".")
-              .entrySet()
+            Object nested = val == null ? descriptor.getPropertyType().newInstance() : val;
+            return new Props()
+              .all(descriptor.getPropertyType())
               .stream()
-              .map(me -> new Pair<>(me.getKey(), me.getValue()));
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+              .peek ( pd -> getValue(pd, nested ) )
+              .flatMap(subProp -> propToMap(subProp, nested, prefix + descriptor.getName() + ".", includeNull ) );
+        } catch (IllegalAccessException | InstantiationException | IllegalArgumentException e) {
+            throw new RuntimeException("Error with " + prefix + descriptor.getName() + " " + descriptor.getPropertyType(), e);
         }
     }
 
-    String getValue(PropertyDescriptor pd, Object t) {
+    private boolean isSimple(PropertyDescriptor pd) {
+        return pd.getPropertyType().isPrimitive() || pd.getPropertyType().getPackage().getName().startsWith("java");
+    }
+
+    public Object getValue(PropertyDescriptor pd, Object t) {
         try {
-            Object val = pd.getReadMethod().invoke(t);
-            return val == null ? null : val.toString();
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            return pd.getReadMethod().invoke(t);
+        } catch (IllegalAccessException | InvocationTargetException |IllegalArgumentException e) {
+            throw new RuntimeException("Error with " + pd.getName() + " " + pd.getPropertyType() + "/" + t.getClass(), e);
         }
     }
 
-    public <T> T fromMap(Class<T> clz, Map<String, String> vals) {
-        return new Props().createAndSetProps(clz, vals);
+    public Object setValue(PropNode pn, Object target, String stringVal) {
+        try {
+            Object val = new Props().coerce( stringVal, pn.getPd() );
+            return pn.getPd().getWriteMethod().invoke(target, val);
+        } catch (IllegalAccessException | InvocationTargetException |IllegalArgumentException e) {
+            String s = "Error with property " + pn.getName();
+            s += "; pd-type=" + pn.getPd().getPropertyType().getName();
+            s += "; target-type=" + target.getClass().getName();
+            throw new RuntimeException(s, e);
+        }
+    }
+
+    public <T> T setProps(T target, HttpServletRequest req) {
+        List<PropNode> props = props(target, true);
+        for( PropNode pn: props ) {
+            if( pn.getName().equals( "id" ) )
+                continue;
+            String parameter = req.getParameter(pn.getName());
+            setValue( pn, target, parameter );
+        }
+        return target;
+    }
+
+    @EqualsAndHashCode
+    @AllArgsConstructor
+    @Value
+    public static class PropNode implements Comparable<PropNode>{
+        String name;
+        PropertyDescriptor pd;
+        Object val;
+
+        @Override
+        public int compareTo(PropNode o) {
+            return this.name.compareTo( o.name);
+        }
     }
 }

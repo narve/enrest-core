@@ -59,7 +59,7 @@ public class Props {
 
     public Object coerce(String value, PropertyDescriptor pd) {
         log.debug( "Coercing {} to {} ({})", value, pd.getName(), pd.getPropertyType());
-        if (pd.getPropertyType().equals(Long.TYPE))
+        if (pd.getPropertyType().equals(Long.TYPE) || pd.getPropertyType().equals( Long.class))
             return Long.parseLong(value);
 
         Optional<Resource> res = EksApi.resources().stream().filter(r -> r.clz().getSimpleName().equalsIgnoreCase(pd.getPropertyType().getSimpleName())).findFirst();

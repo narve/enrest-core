@@ -41,7 +41,13 @@ public class EksForms {
     }
 
     public form createForm(String name) {
-        return FormHelper.createForm(name, locateByRel(name).creator().inputs(null), basePath, "post");
+        try {
+            Resource res = locateByRel(name);
+            Object obj = res.clz().newInstance();
+            return FormHelper.createForm(name, res.creator().inputs(obj), basePath, "post");
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public form editForm(String substring) {
@@ -79,7 +85,7 @@ public class EksForms {
         ul list = new ul();
         resources()
           .stream()
-          .map(cr -> relToA(cr.getName(), pathToCreators + "/"))
+          .map(cr -> relToA(cr.getName(), basePath + "/" + pathToCreators + "/"))
           .map(a -> new li().add(a))
           .forEach(list::add);
         return list;
