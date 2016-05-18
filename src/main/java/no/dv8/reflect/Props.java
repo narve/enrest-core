@@ -2,6 +2,7 @@ package no.dv8.reflect;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.rest.EksApi;
+import no.dv8.eks.rest.EksResources;
 import no.dv8.enrest.resources.Resource;
 
 import java.beans.IntrospectionException;
@@ -20,6 +21,12 @@ import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 public class Props {
+
+//    EksResources resources;
+
+    public Props() {
+//        this.resources = resources;
+    }
 
     public List<PropertyDescriptor> all(Class<?> clz) {
         try {
@@ -62,15 +69,15 @@ public class Props {
         if (pd.getPropertyType().equals(Long.TYPE) || pd.getPropertyType().equals( Long.class))
             return Long.parseLong(value);
 
-        Optional<Resource> res = EksApi.resources().stream().filter(r -> r.clz().getSimpleName().equalsIgnoreCase(pd.getPropertyType().getSimpleName())).findFirst();
-        if (res.isPresent()) {
-            log.debug("Locating bean for class {} id {}", pd.getPropertyType().getSimpleName(), value);
-            Object val = res.get().locator().getById(value);
-            log.info("Located bean for class {} id {}: {}", pd.getPropertyType().getSimpleName(), value, val);
-            if (val == null)
-                throw new IllegalArgumentException(format("Unable to locate %s by ref '%s'", pd.getPropertyType().getSimpleName(), value));
-            return val;
-        }
+//        Optional<Resource> res = resources.resources().stream().filter(r -> r.clz().getSimpleName().equalsIgnoreCase(pd.getPropertyType().getSimpleName())).findFirst();
+//        if (res.isPresent()) {
+//            log.debug("Locating bean for class {} id {}", pd.getPropertyType().getSimpleName(), value);
+//            Object val = res.get().locator().apply(value);
+//            log.info("Located bean for class {} id {}: {}", pd.getPropertyType().getSimpleName(), value, val);
+//            if (val == null)
+//                throw new IllegalArgumentException(format("Unable to locate %s by ref '%s'", pd.getPropertyType().getSimpleName(), value));
+//            return val;
+//        }
 
         return value;
     }

@@ -3,6 +3,7 @@ package no.dv8.enrest.props;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import no.dv8.eks.rest.EksResources;
 import no.dv8.reflect.Props;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +21,12 @@ public class PropsMapper {
         return (u, v) -> {
             throw new IllegalStateException(String.format("Duplicate key %s", u));
         };
+    }
+
+//    final EksResources resources;
+
+    public PropsMapper() {
+//        this.resources = resources;
     }
 
     public List<PropNode> props(Object t, boolean includeNull ) {

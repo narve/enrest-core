@@ -3,18 +3,10 @@ package no.dv8.eks.rest;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
-import no.dv8.eks.model.Comment;
-import no.dv8.eks.rest.resources.QuestionResource;
-import no.dv8.eks.rest.resources.UserResource;
 import no.dv8.eks.semantic.EksAlps;
-import no.dv8.enrest.queries.QueryResource;
-import no.dv8.enrest.queries.SimpleQuery;
-import no.dv8.enrest.resources.Locator;
-import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 import no.dv8.functions.XBiConsumer;
 import no.dv8.reflect.Props;
-import no.dv8.reflect.SimpleInput;
 import no.dv8.xhtml.generation.elements.body;
 import no.dv8.xhtml.generation.elements.h1;
 import no.dv8.xhtml.generation.elements.html;
@@ -25,14 +17,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksQueries.pathToQueries;
 import static no.dv8.eks.rest.EksQueries.pathToQueryResult;
 import static no.dv8.eks.rest.EksResources.editPathToResource;
@@ -44,7 +32,8 @@ import static no.dv8.functions.ServletFunctions.consumer;
 @Slf4j
 public class EksApi {
 
-    public final String basePath;
+    final EksResources resources;
+
     Function<HttpServletRequest, Article> reqProcessor = hr -> new Article();
     Function<Article, Long> al = Article::getId;
     Function<Long, String> ls = String::valueOf;
@@ -53,82 +42,24 @@ public class EksApi {
     Function<HttpServletRequest, HttpServletResponse> func;
     BiConsumer<HttpServletRequest, HttpServletRequest> bic;
 
-    public EksApi(String basePath) {
-        this.basePath = basePath;
+    public EksApi(EksResources resources) {
+        this.resources = resources;
     }
 
     static html error404(String path) {
         return new html().add(new body().add(new h1("404: " + path)));
     }
 
-    public static List<Resource> resources() {
-        return asList(
-          new UserResource(),
-          new QuestionResource(),
-          basicResource(Article.class),
-          basicResource(Comment.class)
-        );
-    }
-
-    public static <T> Resource<T> basicResource(Class<T> clz) {
-        return new Resource<T>() {
-            @Override
-            public Class<T> clz() {
-                return clz;
-            }
-
-            @Override
-            public Locator<T> locator() {
-                return s -> Optional.of( CRUD.create(clz).getById(s));
-            }
-
-            @Override
-            public Mutator<T> creator() {
-                return new Mutator<T>() {
-
-                    @Override
-                    public T create(T t) {
-                        return CRUD.create(clz).insert(t);
-                    }
-
-                    @Override
-                    public T update(T t) {
-                        return CRUD.create(clz).update(t);
-                    }
-                };
-            }
-
-            @Override
-            public Mutator<T> updater() {
-                return creator();
-            }
-
-            @Override
-            public String getName() {
-                return clz.getSimpleName();
-            }
-
-            @Override
-            public List<QueryResource> queries() {
-                return asList(new SimpleQuery<T>(clz.getSimpleName() + "Collection", s -> CRUD.create(clz).all()));
-            }
-        };
-    }
-
-    EksResources eksResources() {
-        return new EksResources(basePath);
-    }
-
     EksQueries queries() {
-        return new EksQueries(basePath);
+        return new EksQueries(resources);
     }
 
     EksForms forms() {
-        return new EksForms(basePath);
+        return new EksForms(resources);
     }
 
     EksIndex index() {
-        return new EksIndex(basePath);
+        return new EksIndex(resources);
     }
 
     Function<HttpServletRequest, Map<String, String>> reqToMap() {
@@ -149,7 +80,7 @@ public class EksApi {
     }
 
     <T> Function<T, String> serializer() {
-        return a -> a.toString();
+        return Object::toString;
     }
 
     XBiConsumer<HttpServletResponse, String> sender() {
@@ -210,7 +141,7 @@ public class EksApi {
             String path = new URL(req.getRequestURL().toString()).getPath();
             log.info("FULLPATH: {}", path);
 //            path = path.substring(ServletBase.length());
-            path = path.substring(basePath.length());
+            path = path.substring(resources.basePath.length());
             log.info("PATH2: {}", path);
             if (path.startsWith("/")) path = path.substring(1);
             if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
@@ -227,11 +158,20 @@ public class EksApi {
             } else if (path.isEmpty()) {
                 obj = index().index();
             } else if (path.startsWith(pathToResource + "/") && method.equalsIgnoreCase("GET")) {
-                obj = eksResources().itemToElement(path.substring(pathToResource.length() + 1));
+//                obj = eksResources().itemToElement(path.substring(pathToResource.length() + 1));
+                String sub = path.substring(pathToResource.length() + 1);
+                String itemClass = sub.split("/")[0];
+                String itemId = sub.split("/")[1];
+                Object item = resources.locateByName(itemClass).get().locator().apply(itemId).get();
+                obj = resources.toElement(item);
             } else if (path.startsWith(pathToResource + "/") && (method.equalsIgnoreCase("post") || method.equalsIgnoreCase("put"))) {
-                obj = eksResources().executeUpdate(path.substring(pathToResource.length() + 1), req);
+                obj = resources.executeUpdate(path.substring(pathToResource.length() + 1), req);
             } else if (path.startsWith(editPathToResource + "/")) {
-                obj = forms().editForm(path.substring(editPathToResource.length() + 1));
+                String sub = path.substring(pathToResource.length() + 1);
+                String itemClass = sub.split("/")[0];
+                String itemId = sub.split("/")[1];
+                Object item = resources.locateByName(itemClass).get().locator().apply(itemId).get();
+                obj = forms().editForm(item, path.substring(editPathToResource.length() + 1));
             } else if (path.startsWith(pathToQueries + "/")) {
                 obj = queries().searchForm(path.substring(pathToQueries.length() + 1));
             } else if (path.startsWith(pathToQueryResult + "/")) {

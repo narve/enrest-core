@@ -1,5 +1,6 @@
 package no.dv8.enrest.core;
 
+import no.dv8.eks.model.User;
 import no.dv8.enrest.props.PropsMapper;
 import no.dv8.enrest.resources.Locator;
 import no.dv8.enrest.resources.Mutator;
@@ -11,6 +12,7 @@ import no.dv8.xhtml.generation.support.Element;
 import javax.servlet.http.HttpServletRequest;
 import java.beans.PropertyDescriptor;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -54,13 +56,8 @@ public class TestObjectResource implements Resource<TestObject> {
     }
 
     @Override
-    public Locator<TestObject> locator() {
-        return new Locator<TestObject>() {
-            @Override
-            public Optional<TestObject> getById(String id) {
-                return objects.stream().filter(t -> id.equals(t.getId())).findFirst();
-            }
-        };
+    public Function<String, Optional<TestObject>> locator() {
+        return id -> objects.stream().filter(t -> id.equals(t.getId())).findFirst();
     }
 }
 

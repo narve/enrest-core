@@ -6,10 +6,10 @@ import static no.dv8.eks.semantic.Rels.*;
 
 public class EksIndex {
 
-    final String basePath;
+    final EksResources resources;
 
-    public EksIndex(String basePath) {
-        this.basePath = basePath;
+    public EksIndex(EksResources resources) {
+        this.resources = resources;
     }
 
 
@@ -23,18 +23,18 @@ public class EksIndex {
             ).add(
             new section()
               .add(new h1("Queries"))
-              .add(new EksQueries(basePath).queriesAsList())
+              .add(new EksQueries(resources).queriesAsList())
           ).add(
             new section()
               .add(new h1("Creators"))
-              .add(new EksForms(basePath).creatorForms())
+              .add(new EksForms(resources).creatorForms())
           );
     }
 
     public ul basicLinksAsList() {
         return new ul()
-          .add(new li().add(new a("index").rel(index).href(basePath)))
-          .add(new li().add(new a("self").rel(self).href(basePath)))
+          .add(new li().add(new a("index").rel(index).href(resources.basePath)))
+          .add(new li().add(new a("self").rel(self).href(resources.basePath)))
           .add(new li().add(new a("profile").rel(profile).href("http://alps.io/spec/alps-xhtml-profiles/")));
     }
 

@@ -11,20 +11,19 @@ import no.dv8.xhtml.generation.support.Element;
 import javax.servlet.http.HttpServletRequest;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
-import static no.dv8.eks.rest.EksApi.resources;
 import static no.dv8.enrest.resources.FormHelper.pathToCreators;
 
 @Slf4j
 public class EksForms {
 
-    final String basePath;
+    final EksResources resources;
 
-    public EksForms(String basePath) {
-        this.basePath = basePath;
+    public EksForms(EksResources resources) {
+        this.resources = resources;
     }
 
     public Element executeCreate(String name, HttpServletRequest req) {
-        Resource r = locateByRel(name);
+        Resource r = resources.locateByRel(name).get();
         Mutator cr = r.creator();
         Object createResult;
         try {
@@ -33,7 +32,7 @@ public class EksForms {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        Element e = new EksResources(basePath).toElement(createResult);
+        Element e = resources.toElement(createResult);
         return new div()
           .add(new h1("The object:"))
           .add(e)
@@ -42,50 +41,38 @@ public class EksForms {
 
     public form createForm(String name) {
         try {
-            Resource res = locateByRel(name);
+            Resource res = resources.locateByRel(name).get();
             Object obj = res.clz().newInstance();
-            return FormHelper.createForm(name, res.creator().inputs(obj), basePath, "post");
+            return FormHelper.createForm(name, res.creator().inputs(obj), resources.basePath, "post");
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public form editForm(String substring) {
-
-        Object item = EksResources.getItem(substring);
+    public form editForm(Object item, String substring) {
 
         String itemType = substring.split("/")[0];
         String itemId = substring.split("/")[1];
         log.info("Edit form for {} {}", itemType, itemId);
 
         String name = Types.edit.toString();
-        Mutator resource = locateByClz(itemType);
+        Mutator resource = resources.locateByName(itemType).get().updater();
 
         String id = EksResources.itemId(item);
 
-        form f = FormHelper.createForm(Types.edit.toString(), resource.inputs(item), basePath, "post");
+        form f = FormHelper.createForm(Types.edit.toString(), resource.inputs(item), resources.basePath, "post");
         f.add(new input().type("text").id("id").name("id").value(id));
 
-        f.action(new EksResources(basePath).viewUrlForItem(item));
+        f.action(resources.viewUrlForItem(item));
         f.add(new label("action: " + f.get("action")));
         return f;
     }
 
-    public Resource locateByRel(String name) {
-        log.info("Locating UserMutator for {}", name);
-        return resources().stream().filter(cr -> cr.getName().equals(name)).findFirst().get();
-    }
-
-    public Mutator locateByClz(String name) {
-        log.info("Locating UserMutator for {}", name);
-        return resources().stream().filter(cr -> cr.clz().getSimpleName().equalsIgnoreCase(name)).findFirst().get().creator();
-    }
-
     public ul creatorForms() {
         ul list = new ul();
-        resources()
+        resources.resources()
           .stream()
-          .map(cr -> relToA(cr.getName(), basePath + "/" + pathToCreators + "/"))
+          .map(cr -> relToA(cr.getName(), resources.basePath + "/" + pathToCreators + "/"))
           .map(a -> new li().add(a))
           .forEach(list::add);
         return list;

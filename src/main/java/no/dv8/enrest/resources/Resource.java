@@ -1,17 +1,21 @@
 package no.dv8.enrest.resources;
 
 import no.dv8.enrest.queries.QueryResource;
+import no.dv8.xhtml.generation.elements.a;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 public interface Resource<T> {
 
     Class<T> clz();
 
-    Locator<T> locator();
+    Function<String, Optional<T>> locator();
 
     default String getName() {
         return clz().getSimpleName();
@@ -31,6 +35,10 @@ public interface Resource<T> {
 
     default Linker<T> linker() {
         return t -> emptyList();
+//        return item -> asList(
+//          new a( "Edit " + item.toString()).href( editUrlForItem(item)).rel( "edit")
+//        )
+//        );
     }
 
 }

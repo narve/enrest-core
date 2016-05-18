@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 
@@ -29,7 +30,7 @@ public class QuestionResource implements Resource<Question> {
     }
 
     @Override
-    public Locator<Question> locator() {
+    public Function<String, Optional<Question>> locator() {
         return s -> Optional.of(questions().getById(s));
     }
 

@@ -71,4 +71,12 @@ public class Dirs implements XBiConsumer<HttpServletRequest, HttpServletResponse
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "Dirs{" +
+          "baseDir='" + baseDir + '\'' +
+          ", prefix='" + prefix + '\'' +
+          '}';
+    }
 }

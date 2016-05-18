@@ -23,36 +23,17 @@ public class EnrestTest {
 
     @Test
     public void testResourceLookup() {
-        assertTrue(resource().locator().getById("123").isPresent());
-        assertFalse(resource().locator().getById("1234").isPresent());
-        assertThat(resource().locator().getById("12345").get().getId(), equalTo("12345"));
+        assertTrue(resource().locator().apply("123").isPresent());
+        assertFalse(resource().locator().apply("1234").isPresent());
+        assertThat(resource().locator().apply("12345").get().getId(), equalTo("12345"));
     }
 
     @Test
     public void testContainerLookup() {
         Enrest enrest = new Enrest().add(resource());
         assertThat(enrest.locateResource("TestObject"), notNullValue());
-        assertThat(enrest.locateResource("TestObject").locator().getById("123"), isPresent());
-        assertThat(enrest.locateResource("TestObject").locator().getById("1234"), not(isPresent()));
-    }
-
-    @Test
-    public void testCreation() {
-        TestObject t = new TestObject();
-        t.setNested(new NestedTestObject());
-        String val1 = "zxcv";
-        Long val2 = 654987L;
-        t.getNested().setNestedPrimitiveLong(val2);
-        t.setStringValue("zxcv");
-        List<Element<?>> inputs = resource().creator().inputs(t);
-        assertThat( inputs.size(), equalTo(4));
-
-        String reduced = inputs.stream().map(e -> e.toString()).reduce("", (a, b) -> a + b);
-
-        assertThat( reduced, containsString( "input" ));
-        assertThat( reduced, containsString( "value='" + val1 + "'" ));
-        assertThat( reduced, containsString( "value='" + val2 + "'" ));
-
+        assertThat(enrest.locateResource("TestObject").locator().apply("123"), isPresent());
+        assertThat(enrest.locateResource("TestObject").locator().apply("1234"), not(isPresent()));
     }
 
 }

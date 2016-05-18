@@ -18,27 +18,31 @@ import static no.dv8.enrest.resources.FormHelper.control;
 @Slf4j
 public class EksQueries {
 
+    final EksResources resources;
+
+    public EksQueries(EksResources resources) {
+        this.resources = resources;
+    }
+
+
+
     static final String pathToQueries = "queries";
     static final String pathToQueryResult = "query-result";
-    final String basePath;
     UserResource users = new UserResource();
     QuestionResource questions = new QuestionResource();
     public List<QueryResource> queries() {
-        return EksApi.resources()
+        return resources.resources()
           .stream()
           .map( r -> r.queries() )
           .reduce( new ArrayList<>(), (a,b) -> { a.addAll(b); return a; });
     }
 
-    public EksQueries(String basePath) {
-        this.basePath = basePath;
-    }
 
     public ul queriesAsList() {
         ul l = new ul();
         queries()
           .stream()
-          .map(q -> relToA(q.getRel(), basePath + "/" + pathToQueries + "/"))
+          .map(q -> relToA(q.getRel(), resources.basePath + "/" + pathToQueries + "/"))
           .map(a -> new li().add(a))
           .forEach(i -> l.add(i));
         return l;
@@ -57,7 +61,7 @@ public class EksQueries {
 
     public li listItem(Object u) {
         return new li().add(
-          new a(u.toString()).href(new EksResources(basePath).viewUrlForItem(u))
+          new a(u.toString()).href(resources.viewUrlForItem(u))
         );
     }
 
@@ -66,7 +70,7 @@ public class EksQueries {
         return new form()
           .clz(rel)
           .get()
-          .action(basePath + "/" + pathToQueryResult + "/" + rel)
+          .action(resources.basePath + "/" + pathToQueryResult + "/" + rel)
           .add(
             new fieldset()
               .add(new legend(rel.toString()))
