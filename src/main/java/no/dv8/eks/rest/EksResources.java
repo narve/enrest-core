@@ -69,13 +69,12 @@ public class EksResources {
             if (sub.isPresent()) {
                 log.info("Converting link using {}", sub);
                 switch (link.getAttributes().getOrDefault("rel", "").toString()) {
-                    case "self":
-                        link.href(viewUrlForItem(link.href()));
-                        break;
                     case "edit":
                         link.href(editUrlForItem(link.href()));
                         break;
+                    case "self":
                     default:
+                        link.href(viewUrlForItem(link.href()));
                         break;
                 }
             }

@@ -21,9 +21,7 @@ public class BasicResource<T> implements Resource<T> {
     public Function<String, Optional<T>> locator = s -> Optional.ofNullable(CRUD.create(clz()).getById(s));
     public Mutator<T> updater = crudMutator();
     public Mutator<T> creator = crudMutator();
-    public List<QueryResource> queries = asList(
-      new SimpleQuery<T>(getName() + "Collection", s -> CRUD.create(clz()).all())
-    );
+    public List<QueryResource> queries;
 
     public static <T> BasicResource<T> create( EksResources owner, Class<T> clz ) {
         return new BasicResource<>(owner, clz);
@@ -32,6 +30,9 @@ public class BasicResource<T> implements Resource<T> {
     public BasicResource(EksResources owner, Class<T> clz) {
         this.clz = clz;
         this.owner = owner;
+        this.queries = asList(
+          new SimpleQuery<T>(getName() + "Collection", s -> CRUD.create(clz()).all())
+        );
     }
 
     @Override
@@ -84,5 +85,10 @@ public class BasicResource<T> implements Resource<T> {
         };
     }
 
-
+    @Override
+    public String toString() {
+        return "BasicResource{" +
+          "clz=" + clz +
+          '}';
+    }
 }

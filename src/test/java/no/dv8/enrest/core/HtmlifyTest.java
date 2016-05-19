@@ -10,6 +10,7 @@ import no.dv8.xhtml.generation.support.Element;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
+import static no.dv8.utils.OptionalMatcher.isPresent;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -22,8 +23,8 @@ public class HtmlifyTest {
         BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
         BasicResource<Comment> commentResource = BasicResource.create(resources, Comment.class);
 
-        resources.resources().add( artResource );
-        resources.resources().add( commentResource );
+        resources.resources().add(artResource);
+        resources.resources().add(commentResource);
 
         Comment theComment = new Comment();
         theComment.setId(123L);
@@ -39,17 +40,19 @@ public class HtmlifyTest {
     @Test
     public void testArticle() {
         Article art = new Article();
-        art.setId( 456L);
+        art.setId(456L);
+
+        assertThat(resource().locateByClz(Comment.class), isPresent());
 
         Element<?> element = resource().toElement(art);
 
         Element<?> links = element.getChildren().get(element.getChildren().size() - 1);
-        assertThat( links.getChildren().size(), equalTo( 3 ) );
+        assertThat(links.getChildren().size(), equalTo(3));
 
         a link = (a) links.getChildren().get(links.getChildren().size() - 1);
-        assertThat( link.href().toString(), containsString("comment/123"));
+        assertThat(link.href().toString(), containsString("comment/123"));
 
-        fail( element.toString());
+        fail(element.toString());
     }
 
 }
