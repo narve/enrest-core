@@ -7,6 +7,7 @@ import no.dv8.xhtml.generation.support.Element;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
@@ -35,7 +36,7 @@ public interface Mutator<T> {
             .collect(toList());
     }
 
-    default T setProps(T target, HttpServletRequest req) {
+    default T setProps(T target, Map<String, String> req) {
         return new PropsMapper().setProps( target, req );
     }
 

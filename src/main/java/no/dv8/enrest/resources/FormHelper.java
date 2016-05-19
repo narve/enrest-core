@@ -23,6 +23,7 @@ public class FormHelper {
 
     public static div control(Element element, Object name ) {
         return new div()
+          .clz( "input")
           .add( new label().add( name.toString() ).forId( element.get("id").toString() ) )
           .add( element );
     }

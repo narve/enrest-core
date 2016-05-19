@@ -1,7 +1,7 @@
 package no.dv8.eks.semantic;
 
 public enum Rels {
-    self, index, first, last, next, previous, profile,
+    self, index, first, last, next, previous, profile, edit,
 
 // message, message_post, message_reply, message_share, messages_all, messages_friends,
 //    messages_me, messages_mentions, messages_shares, messages_search,

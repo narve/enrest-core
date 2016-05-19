@@ -5,10 +5,14 @@ import no.dv8.enrest.resources.Resource;
 import no.dv8.eks.semantic.Types;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.FormHelper;
+import no.dv8.reflect.Props;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.enrest.resources.FormHelper.pathToCreators;
@@ -27,7 +31,8 @@ public class EksForms {
         Mutator cr = r.creator();
         Object createResult;
         try {
-            createResult = cr.setProps(r.clz().newInstance(), req);
+            Map<String, String> vals = new Props().single(req.getParameterMap());
+            createResult = cr.setProps(r.clz().newInstance(), vals);
             createResult = cr.create(createResult);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -61,10 +66,10 @@ public class EksForms {
         String id = EksResources.itemId(item);
 
         form f = FormHelper.createForm(Types.edit.toString(), resource.inputs(item), resources.basePath, "post");
-        f.add(new input().type("text").id("id").name("id").value(id));
-
+//        f.add(new input().type("text").id("id").name("id").value(id));
+//
         f.action(resources.viewUrlForItem(item));
-        f.add(new label("action: " + f.get("action")));
+//        f.add(new label("action: " + f.get("action")));
         return f;
     }
 

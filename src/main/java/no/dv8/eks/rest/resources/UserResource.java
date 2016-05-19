@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -114,13 +115,13 @@ public class UserResource implements Resource<User> {
         }
 
         @Override
-        public User setProps(User u, HttpServletRequest req) {
-            u.setName(req.getParameter(Names.name.toString()));
-            u.setEmail(req.getParameter(Names.email.toString()));
-            u.setPassword(req.getParameter(Names.password.toString()));
-            u.setUser(req.getParameter(Names.user.toString()));
-            u.setUserImage(req.getParameter(Names.user_image.toString()));
-            u.setWebsite(req.getParameter(Names.website.toString()));
+        public User setProps(User u, Map<String, String> req) {
+            u.setName(req.get(Names.name.toString()));
+            u.setEmail(req.get(Names.email.toString()));
+            u.setPassword(req.get(Names.password.toString()));
+            u.setUser(req.get(Names.user.toString()));
+            u.setUserImage(req.get(Names.user_image.toString()));
+            u.setWebsite(req.get(Names.website.toString()));
             return u;
         }
     }

@@ -3,6 +3,7 @@ package no.dv8.eks.rest;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
+import no.dv8.reflect.Props;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.div;
 import no.dv8.xhtml.generation.support.Element;
@@ -10,6 +11,7 @@ import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -60,11 +62,22 @@ public class EksResources {
 
         List<a> links = r.linker().links(item).stream().map(this::linkToElement).collect(toList());
 
-        for( a link: links ) {
+//        links.add( new a( item.toString() ).href( viewUrlForItem(item)));
+
+        for (a link : links) {
             Optional<Resource<?>> sub = locateByClz(link.href().getClass());
-            if( sub.isPresent() ) {
-                log.info( "Converting link using {}", sub );
-                link.href( viewUrlForItem( link.href()));
+            if (sub.isPresent()) {
+                log.info("Converting link using {}", sub);
+                switch (link.getAttributes().getOrDefault("rel", "").toString()) {
+                    case "self":
+                        link.href(viewUrlForItem(link.href()));
+                        break;
+                    case "edit":
+                        link.href(editUrlForItem(link.href()));
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -86,12 +99,13 @@ public class EksResources {
         String itemClass = substring.split("/")[0];
         String itemId = substring.split("/")[1];
         Resource<?> resource = locateByName(itemClass).get();
-        Object item = resource.locator().apply(itemId);
+        Object item = resource.locator().apply(itemId).get();
 
 //        Mutator resourceMutatorResource = eksForms().locateByClz(itemClass);
-        Mutator resourceMutatorResource = resource.creator();
-        Object q = resourceMutatorResource.setProps(item, req);
-        resourceMutatorResource.update(q);
+        Mutator mutator = resource.creator();
+        Map<String, String> vals = new Props().single(req.getParameterMap());
+        Object q = mutator.setProps(item, vals);
+        mutator.update(q);
         return toElement(q);
     }
 
@@ -101,14 +115,14 @@ public class EksResources {
     }
 
     public <T> Optional<Resource<?>> locateByName(String itemType) {
-        return locate( r -> r.getName().equalsIgnoreCase(itemType), "type='" + itemType + "'" );
+        return locate(r -> r.getName().equalsIgnoreCase(itemType), "type='" + itemType + "'");
     }
 
     public <T> Optional<Resource<?>> locateByClz(Class<T> clz) {
-        return locate( r -> r.clz().equals(clz), "clz='" + clz.getName() + "'" );
+        return locate(r -> r.clz().equals(clz), "clz='" + clz.getName() + "'");
     }
 
-    public <T> Optional<Resource<?>> locate(Predicate<Resource> filter, String arg ) {
+    public <T> Optional<Resource<?>> locate(Predicate<Resource> filter, String arg) {
         log.info("Locating resource where {}", arg);
         Optional<Resource<?>> res = resources().stream().filter(filter).findFirst();
         return res;

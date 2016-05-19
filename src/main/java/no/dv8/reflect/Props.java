@@ -9,6 +9,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -102,7 +103,7 @@ public class Props {
 
     public void assertLength(Map.Entry<String, String[]> e) {
         if (e.getValue().length != 1)
-            throw new IllegalArgumentException(e.getValue().length + " values for '" + e.getKey() + "'");
+            throw new IllegalArgumentException(e.getValue().length + " values for '" + e.getKey() + "': " + Arrays.toString( e.getValue()));
     }
 
 }

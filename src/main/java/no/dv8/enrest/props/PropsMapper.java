@@ -9,7 +9,9 @@ import no.dv8.reflect.Props;
 import javax.servlet.http.HttpServletRequest;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
@@ -53,7 +55,7 @@ public class PropsMapper {
               .all(descriptor.getPropertyType())
               .stream()
               .peek ( pd -> getValue(pd, nested ) )
-              .flatMap(subProp -> propToMap(subProp, nested, prefix + descriptor.getName() + ".", includeNull ) );
+              .flatMap(subProp -> propToMap(subProp, nested, prefix + descriptor.getName() + ".", false ) );
         } catch (IllegalAccessException | InstantiationException | IllegalArgumentException e) {
             throw new RuntimeException("Error with " + prefix + descriptor.getName() + " " + descriptor.getPropertyType(), e);
         }
@@ -83,15 +85,26 @@ public class PropsMapper {
         }
     }
 
-    public <T> T setProps(T target, HttpServletRequest req) {
+    public <T> T setProps(T target, Map<String, String> req) {
         List<PropNode> props = props(target, true);
         for( PropNode pn: props ) {
-            if( pn.getName().equals( "id" ) )
+            if( !canSet( pn ) )
                 continue;
-            String parameter = req.getParameter(pn.getName());
+            String parameter = req.get(pn.getName());
             setValue( pn, target, parameter );
         }
         return target;
+    }
+
+    private boolean canSet(PropNode pn) {
+        if( pn.getName().equals( "id" ) )
+            return false;
+        if( Collection.class.isAssignableFrom( pn.getPd().getPropertyType() ) )
+            return false;
+        if( pn.getPd().getWriteMethod() == null )
+            return false;
+        return true;
+
     }
 
     @EqualsAndHashCode

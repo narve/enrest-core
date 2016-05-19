@@ -33,7 +33,7 @@ public class TestObjectResource implements Resource<TestObject> {
             }
 
             @Override
-            public TestObject setProps(TestObject target, HttpServletRequest req) {
+            public TestObject setProps(TestObject target, Map<String, String> req) {
                 return target;
             }
 
