@@ -19,4 +19,10 @@ public abstract class ModelBase implements Serializable {
     @GeneratedValue
     Long id;
 
+    @Override
+    public String toString() {
+        return "ModelBase{" +
+          "id=" + id +
+          '}';
+    }
 }

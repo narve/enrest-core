@@ -3,6 +3,7 @@ package no.dv8.eks.rest.resources;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.UsersJPA;
 import no.dv8.eks.model.User;
+import no.dv8.eks.rest.BasicResource;
 import no.dv8.eks.semantic.Names;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.resources.Linker;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
+import static java.util.Arrays.toString;
 import static no.dv8.enrest.resources.FormHelper.text;
 import static no.dv8.functions.ServletFunctions.consumer;
 
@@ -128,13 +130,6 @@ public class UserResource implements Resource<User> {
 
     @Override
     public Linker<User> linker() {
-        a self = new a()
-          .rel( "self" )
-            .self()
-          .href("thehgref")
-          .add( "content" );
-        return u -> asList(
-          self
-        );
+        return Linker.defaultLinker();
     }
 }

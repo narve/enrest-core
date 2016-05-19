@@ -71,7 +71,10 @@ public class UsersJPA {
     }
 
     public List<User> search(String s) {
-        return all().stream().filter(t -> t.toString().toLowerCase().contains(s.toLowerCase())).collect(toList());
+        return all()
+          .stream()
+          .filter(t -> t.toString().toLowerCase().contains(s.toLowerCase()))
+          .collect(toList());
     }
 
     public User update(User user) {

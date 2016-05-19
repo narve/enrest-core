@@ -10,6 +10,7 @@ import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,11 +24,10 @@ public class EksResources {
     public static final String pathToResource = "view-resource";
     public static final String editPathToResource = "edit-resource";
     final String basePath;
-    final List<Resource<?>> resources;
+    final List<Resource<?>> resources = new ArrayList<>();
 
-    public EksResources(String basePath, List<Resource<?>> resources) {
+    public EksResources(String basePath) {
         this.basePath = basePath;
-        this.resources = resources;
     }
 
     public static String itemId(Object o) {

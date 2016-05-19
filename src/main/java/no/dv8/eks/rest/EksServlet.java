@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -57,12 +58,11 @@ public class EksServlet extends HttpServlet {
     }
 
     List<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>> consumers() {
-        List<Resource<?>> resourceList = asList(
-          new UserResource(),
-          new QuestionResource(),
-          new BasicResource(Article.class),
-          new BasicResource(Comment.class)
-        );
+        EksResources resources = new EksResources(ServletBase + "/api");
+        resources.resources().add( new UserResource() );
+        resources.resources().add( new QuestionResource() );
+        resources.resources().add( BasicResource.create(resources, Article.class) );
+        resources.resources().add( new BasicResource(resources, Comment.class) );
 
         return asList(
           new Pair<>(
@@ -75,15 +75,15 @@ public class EksServlet extends HttpServlet {
           ),
           new Pair<>(
             startsWith("/_test1"),
-            hidex(new EksApi(new EksResources("", emptyList())).test1())
+            hidex(new EksApi(new EksResources("")).test1())
           ),
           new Pair<>(
             startsWith("/Comment"),
-            hidex(new EksApi(new EksResources("", emptyList())).test3(Comment.class))
+            hidex(new EksApi(new EksResources("")).test3(Comment.class))
           ),
           new Pair<>(
             startsWith("/_test2"),
-            hidex(new EksApi(new EksResources("", emptyList())).test2())
+            hidex(new EksApi(new EksResources("")).test2())
           ),
           new Pair<>(
             startsWith("/_user"),
@@ -91,7 +91,7 @@ public class EksServlet extends HttpServlet {
           ),
           new Pair<>(
             startsWith("/api"),
-            hidex(new EksApi(new EksResources(ServletBase + "/api", resourceList)).api())
+            hidex(new EksApi(resources).api())
           ),
           new Pair<>(
             startsWith("/"),

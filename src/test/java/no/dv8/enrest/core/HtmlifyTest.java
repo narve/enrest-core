@@ -18,8 +18,12 @@ import static org.junit.Assert.fail;
 public class HtmlifyTest {
 
     EksResources resource() {
-        BasicResource<Article> artResource = new BasicResource<>(Article.class);
-        BasicResource<Comment> commentResource = new BasicResource<>(Comment.class);
+        EksResources resources = new EksResources("");
+        BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
+        BasicResource<Comment> commentResource = BasicResource.create(resources, Comment.class);
+
+        resources.resources().add( artResource );
+        resources.resources().add( commentResource );
 
         Comment theComment = new Comment();
         theComment.setId(123L);
@@ -29,7 +33,6 @@ public class HtmlifyTest {
           new a().href(theComment).rel("theComment")
         );
 
-        EksResources resources = new EksResources("", asList( artResource, commentResource));
         return resources;
     }
 

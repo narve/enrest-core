@@ -4,9 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import no.dv8.utils.Strings;
 
 import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import static no.dv8.utils.Strings.isNullOrEmpty;
 
 @Entity
 @XmlRootElement
@@ -22,6 +25,6 @@ public class User extends ModelBase {
 
     @Override
     public String toString() {
-        return name;
+        return isNullOrEmpty(name ) ? super.toString() : name;
     }
 }
