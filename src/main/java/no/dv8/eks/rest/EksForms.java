@@ -26,13 +26,12 @@ public class EksForms {
         this.resources = resources;
     }
 
-    public Element executeCreate(String name, HttpServletRequest req) {
-        Resource r = resources.locateByRel(name).get();
-        Mutator cr = r.creator();
+    public Element executeCreate(Resource<?> resource, HttpServletRequest req) {
+        Mutator cr = resource.creator();
         Object createResult;
         try {
             Map<String, String> vals = new Props().single(req.getParameterMap());
-            createResult = cr.setProps(r.clz().newInstance(), vals);
+            createResult = cr.setProps(resource.clz().newInstance(), vals);
             createResult = cr.create(createResult);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -54,22 +53,9 @@ public class EksForms {
         }
     }
 
-    public form editForm(Object item, String substring) {
-
-        String itemType = substring.split("/")[0];
-        String itemId = substring.split("/")[1];
-        log.info("Edit form for {} {}", itemType, itemId);
-
-        String name = Types.edit.toString();
-        Mutator resource = resources.locateByName(itemType).get().updater();
-
-        String id = EksResources.itemId(item);
-
+    public form editForm(Mutator resource, Object item) {
         form f = FormHelper.createForm(Types.edit.toString(), resource.inputs(item), resources.basePath, "post");
-//        f.add(new input().type("text").id("id").name("id").value(id));
-//
         f.action(resources.viewUrlForItem(item));
-//        f.add(new label("action: " + f.get("action")));
         return f;
     }
 
@@ -77,7 +63,7 @@ public class EksForms {
         ul list = new ul();
         resources.resources()
           .stream()
-          .map(cr -> relToA(cr.getName(), resources.basePath + "/" + pathToCreators + "/"))
+          .map(cr -> relToA(cr.getName(), resources.basePath + "/" + resources.urlCreator.createForm(cr.getName())))
           .map(a -> new li().add(a))
           .forEach(list::add);
         return list;

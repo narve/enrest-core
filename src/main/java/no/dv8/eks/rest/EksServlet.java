@@ -3,13 +3,17 @@ package no.dv8.eks.rest;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.dirs.Dirs;
+import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
 import no.dv8.eks.rest.resources.QuestionResource;
 import no.dv8.eks.rest.resources.UserResource;
+import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.Exchange;
-import no.dv8.enrest.resources.Resource;
+import no.dv8.enrest.model.Parameter;
+import no.dv8.enrest.queries.QueryResource;
 import no.dv8.functions.XBiConsumer;
+import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.li;
 import no.dv8.xhtml.generation.elements.ul;
 import no.dv8.xhtml.generation.support.Element;
@@ -20,7 +24,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -28,8 +32,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksServlet.ServletBase;
 import static no.dv8.functions.ServletFunctions.*;
@@ -40,14 +44,17 @@ import static no.dv8.functions.XBiConsumer.hidex;
 public class EksServlet extends HttpServlet {
 
     public static final String ServletBase = "/eks";
-    UnaryOperator<Exchange> reqLogger = returner(x -> log.info("FULL PATH: {}", x.getFullPath()));
-    UnaryOperator<Exchange> finisher = returner(x -> { log.info( "Finishing " + x.getFullPath() ); x.finish(); });
+    UnaryOperator<Exchange> reqLogger = returner(x -> log.info("{} {}", x.req.getMethod(), x.getFullPath()));
+    UnaryOperator<Exchange> finisher = returner(x -> {
+        log.info("Finishing " + x.getFullPath());
+        x.finish();
+    });
 
-    Predicate<HttpServletRequest> startsWith( String prefix ) {
+    Predicate<HttpServletRequest> startsWith(String prefix) {
         return new Predicate<HttpServletRequest>() {
             @Override
             public boolean test(HttpServletRequest req) {
-                return req.getPathInfo().startsWith(prefix );
+                return req.getPathInfo().startsWith(prefix);
             }
 
             @Override
@@ -59,15 +66,57 @@ public class EksServlet extends HttpServlet {
 
     List<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>> consumers() {
         EksResources resources = new EksResources(ServletBase + "/api");
-        resources.resources().add( new UserResource() );
-        resources.resources().add( new QuestionResource() );
-        resources.resources().add( BasicResource.create(resources, Article.class) );
-        resources.resources().add( new BasicResource(resources, Comment.class) );
+
+        BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
+//        artResource.linker = t -> asList(
+//        );
+
+        resources.resources().add(new UserResource());
+        resources.resources().add(new QuestionResource());
+        resources.resources().add(artResource);
+        BasicResource<Comment> commentResource = BasicResource.create(resources, Comment.class);
+        resources.resources().add(commentResource);
+
+        QueryResource commentsForArticle = new QueryResource() {
+            @Override
+            public String getRel() {
+                return "comments";
+            }
+
+            @Override
+            public List<Parameter> params() {
+                return asList(
+                  new Parameter("article.id", Long.class.getSimpleName(), "number", null)
+                );
+            }
+
+            @Override
+            public Collection<?> query(HttpServletRequest req) {
+                return CRUD.create(Comment.class).getEM()
+                  .createQuery("SELECT x FROM Comment x WHERE x.article.id = :articleId")
+                  .setParameter("articleId", Long.parseLong(req.getParameter("article.id")))
+                  .getResultList();
+            }
+        };
+        commentResource.queries.add(commentsForArticle);
+        commentResource.linker = comment -> asList(
+          new a("view " + comment.toString()).href(comment).rel(Rels.self),
+          new a("edit " + comment.toString()).href(comment).rel(Rels.edit),
+          new a(comment.getArticle()).href(comment.getArticle()).rel("article")
+        );
+
+        String qhref = resources.queryResultUrl("comments") + "?article.id=%s";
+//        String qhref = "http://localhost:8080/eks/api/query-result/comments?article.id=%s";
+        artResource.linker = article -> asList(
+          new a("view " + article.toString()).href(article).rel(Rels.self),
+          new a("edit " + article.toString()).href(article).rel(Rels.edit),
+          new a("comments for " + article).href(format(qhref, article.getId())).rel("comments")
+        );
 
         return asList(
           new Pair<>(
             r -> r.getPathInfo() == null,
-            hidex( "Redirect", (req, res) -> res.sendRedirect(req.getRequestURI() + "/" ))
+            hidex("Redirect", (req, res) -> res.sendRedirect(req.getRequestURI() + "/"))
           ),
           new Pair<>(
             startsWith("/_files"),
@@ -96,7 +145,7 @@ public class EksServlet extends HttpServlet {
           new Pair<>(
             startsWith("/"),
 //            hidex((req, res) -> res.getWriter().write(CoreMatchers.startsWith("asdf").toString()) )
-            hidex( listBIC() )
+            hidex(listBIC())
           )
         );
     }
@@ -110,17 +159,17 @@ public class EksServlet extends HttpServlet {
     }
 
     XBiConsumer<HttpServletRequest, HttpServletResponse> listBIC() {
-        return (req, res ) -> res.getWriter().write( EksHTML.complete( listConsumers(), "Index").toHTML() );
+        return (req, res) -> res.getWriter().write(EksHTML.complete(listConsumers(), "Index").toHTML());
     }
 
     Element<?> listConsumers() {
         return new ul()
           .add(
-          consumers()
-            .stream()
-            .map( p -> new li().add( p.getKey()+ " => " + p.getValue()))
-            .collect( toList() )
-        );
+            consumers()
+              .stream()
+              .map(p -> new li().add(p.getKey() + " => " + p.getValue()))
+              .collect(toList())
+          );
     }
 
 
@@ -136,7 +185,7 @@ public class EksServlet extends HttpServlet {
     void unaries(HttpServletRequest req, HttpServletResponse res) throws IOException {
         UnaryOperator<Exchange> main = x -> {
             try {
-                bics(x.req, x.res );
+                bics(x.req, x.res);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

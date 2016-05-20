@@ -26,8 +26,8 @@ public class EksHTML {
           );
     }
 
-    public static a relToA(Object rel, String prefix) {
-        return new a(rel.toString()).rel(rel).href(prefix + rel.toString());
+    public static a relToA(Object rel, String href) {
+        return new a(rel.toString()).rel(rel).href(href);
     }
 
     public static a relToA(Rels rel) {

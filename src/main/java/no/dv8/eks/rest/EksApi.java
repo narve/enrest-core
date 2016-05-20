@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.semantic.EksAlps;
+import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 import no.dv8.functions.XBiConsumer;
 import no.dv8.reflect.Props;
@@ -21,12 +22,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static no.dv8.eks.rest.EksQueries.pathToQueries;
-import static no.dv8.eks.rest.EksQueries.pathToQueryResult;
-import static no.dv8.eks.rest.EksResources.editPathToResource;
-import static no.dv8.eks.rest.EksResources.pathToResource;
-import static no.dv8.enrest.resources.FormHelper.pathToCreateResult;
-import static no.dv8.enrest.resources.FormHelper.pathToCreators;
 import static no.dv8.functions.ServletFunctions.consumer;
 
 @Slf4j
@@ -136,50 +131,54 @@ public class EksApi {
             PrintWriter writer = res.getWriter();
             res.setContentType("text/html");
 
-//            writer.write("<!DOCTYPE html>\n");
-
             String path = new URL(req.getRequestURL().toString()).getPath();
-            log.info("FULLPATH: {}", path);
-//            path = path.substring(ServletBase.length());
             path = path.substring(resources.basePath.length());
-            log.info("PATH2: {}", path);
             if (path.startsWith("/")) path = path.substring(1);
             if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
-            log.info("PATH3: {}", path);
 
-            Element<?> obj;
+            final Element<?> obj;
             String title = path;
-
             String method = req.getMethod();
+            ResourcePaths urls = resources.urlCreator;
 
             if (path.equals("alps")) {
                 obj = new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
                 title = "ALPS";
             } else if (path.isEmpty()) {
                 obj = index().index();
-            } else if (path.startsWith(pathToResource + "/") && method.equalsIgnoreCase("GET")) {
-//                obj = eksResources().itemToElement(path.substring(pathToResource.length() + 1));
-                String sub = path.substring(pathToResource.length() + 1);
-                String itemClass = sub.split("/")[0];
-                String itemId = sub.split("/")[1];
-                Object item = resources.locateByName(itemClass).get().locator().apply(itemId).get();
-                obj = resources.toElement(item);
-            } else if (path.startsWith(pathToResource + "/") && (method.equalsIgnoreCase("post") || method.equalsIgnoreCase("put"))) {
-                obj = resources.executeUpdate(path.substring(pathToResource.length() + 1), req);
-            } else if (path.startsWith(editPathToResource + "/")) {
-                String sub = path.substring(pathToResource.length() + 1);
-                String itemClass = sub.split("/")[0];
-                String itemId = sub.split("/")[1];
-                Object item = resources.locateByName(itemClass).get().locator().apply(itemId).get();
-                obj = forms().editForm(item, path.substring(editPathToResource.length() + 1));
-            } else if (path.startsWith(pathToQueries + "/")) {
-                obj = queries().searchForm(path.substring(pathToQueries.length() + 1));
-            } else if (path.startsWith(pathToQueryResult + "/")) {
-                obj = queries().executeQuery(path.substring(pathToQueryResult.length() + 1), req);
-            } else if (path.startsWith(pathToCreators + "/")) {
-                obj = forms().createForm(path.substring(pathToCreators.length() + 1));
-            } else if (path.startsWith(pathToCreateResult + "/")) {
-                obj = forms().executeCreate(path.substring(pathToCreateResult.length() + 1), req);
+            } else if (urls.isItem(path) ) {
+                String itemClass = urls.type( path );
+                String itemId = urls.id( path );
+                Resource<?> resource = resources.locateByName(itemClass).get();
+                Object item = resource.locator().apply(itemId).get();
+                switch( method.toUpperCase()) {
+                    case "GET":
+                        obj = resources.toElement(item);
+                        break;
+                    case "POST":
+                    case "PUT":
+                        obj = resources.executeUpdate(resource, item, req );
+                        break;
+                    default:
+                        throw new UnsupportedOperationException(method);
+                }
+            } else if (urls.isEditForm(path)) {
+                String itemClass = urls.type( path );
+                String itemId = urls.id( path );
+                Resource<?> resource = resources.locateByName(itemClass).get();
+                Object item = resource.locator().apply(itemId).get();
+                obj = forms().editForm(resource.updater(), item);
+            } else if (urls.isQueryForm(path)) {
+                obj = queries().searchForm(urls.queryName(path));
+            } else if (urls.isQueryResult(path)) {
+                obj = queries().executeQuery(urls.queryName(path), req);
+            } else if (urls.isCreateForm(path)) {
+                String itemClass = urls.type( path );
+                obj = forms().createForm(itemClass);
+            } else if (urls.isCreateResult(path)) {
+                String itemClass = urls.type( path );
+                Resource r = resources.locateByName(itemClass).get();
+                obj = forms().executeCreate(r, req);
             } else {
                 obj = error404(path);
             }

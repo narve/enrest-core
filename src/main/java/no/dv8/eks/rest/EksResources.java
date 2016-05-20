@@ -1,11 +1,13 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
+import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 import no.dv8.reflect.Props;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.div;
+import no.dv8.xhtml.generation.elements.li;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
@@ -15,16 +17,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class EksResources {
 
-    public static final String pathToResource = "view-resource";
-    public static final String editPathToResource = "edit-resource";
     final String basePath;
     final List<Resource<?>> resources = new ArrayList<>();
+    ResourcePaths urlCreator = new ResourcePaths();
 
     public EksResources(String basePath) {
         this.basePath = basePath;
@@ -50,19 +52,17 @@ public class EksResources {
     }
 
     public String viewUrlForItem(Object o) {
-        return basePath + "/" + pathToResource + "/" + itemClass(o) + "/" + itemId(o);
+        return basePath + "/" + urlCreator.viewItem(itemClass(o), itemId(o));
     }
 
     public String editUrlForItem(Object o) {
-        return basePath + "/" + editPathToResource + "/" + itemClass(o) + "/" + itemId(o);
+        return basePath + "/" + urlCreator.editItem(itemClass(o), itemId(o));
     }
 
     public <T> Element<?> toElement(T item) {
         Resource<T> r = (Resource<T>) locateByClz(item.getClass()).get();
 
-        List<a> links = r.linker().links(item).stream().map(this::linkToElement).collect(toList());
-
-//        links.add( new a( item.toString() ).href( viewUrlForItem(item)));
+        List<a> links = r.linker().links(item);
 
         for (a link : links) {
             Optional<Resource<?>> sub = locateByClz(link.href().getClass());
@@ -80,34 +80,21 @@ public class EksResources {
             }
         }
 
-
         div d = new div();
         d.add(new XHTMLSerialize<>().generateElement(item, 1));
         d.add(new div().clz("links").add(
-          links
+          links.stream().map(l -> new li().add(l)).collect(toList())
         ));
         return d;
     }
 
-    public a linkToElement(a l) {
-        return l;
-//        return new a().href(String.valueOf(l.getTarget())).rel( "therel").add( l.toString() );
-    }
-
-    public Element<?> executeUpdate(String substring, HttpServletRequest req) {
-        String itemClass = substring.split("/")[0];
-        String itemId = substring.split("/")[1];
-        Resource<?> resource = locateByName(itemClass).get();
-        Object item = resource.locator().apply(itemId).get();
-
-//        Mutator resourceMutatorResource = eksForms().locateByClz(itemClass);
+    public Element<?> executeUpdate(Resource<?> resource, Object item, HttpServletRequest req) {
         Mutator mutator = resource.creator();
         Map<String, String> vals = new Props().single(req.getParameterMap());
         Object q = mutator.setProps(item, vals);
         mutator.update(q);
         return toElement(q);
     }
-
 
     public <T> Optional<Resource<?>> locateByRel(String name) {
         return locate(cr -> cr.getName().equals(name), "rel='" + name + "'");
@@ -127,4 +114,18 @@ public class EksResources {
         return res;
     }
 
+    public String queryResultUrl(String rel) {
+        return basePath + "/" + urlCreator.queryResult(rel);
+    }
+
+    public QueryResource queryForRel(Object rel) {
+        Optional<QueryResource> first = resources().stream()
+          .flatMap(r -> Stream.of(r.queries().toArray(new QueryResource[0])))
+          .filter(q -> q.getRel().equals(rel.toString()))
+          .findFirst();
+        if (!first.isPresent()) {
+            throw new IllegalArgumentException("No query '" + rel + "'");
+        }
+        return first.get();
+    }
 }

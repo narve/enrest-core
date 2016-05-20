@@ -12,7 +12,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 public class Article extends ModelBase {
-    String title = "articletitle";
+    String title = "article title";
     String keywords = "keywords";
     String content = "content";
 
@@ -27,6 +27,6 @@ public class Article extends ModelBase {
 
     @Override
     public String toString() {
-        return title;
+        return "#" + getId() + " " + title;
     }
 }

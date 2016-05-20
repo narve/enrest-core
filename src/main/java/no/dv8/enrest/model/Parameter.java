@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 @EqualsAndHashCode
 @Getter
 @Builder
+@AllArgsConstructor
 @FieldDefaults( level = AccessLevel.PRIVATE)
 public class Parameter {
 

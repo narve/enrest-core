@@ -7,6 +7,7 @@ import no.dv8.enrest.resources.Linker;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -14,8 +15,8 @@ import java.util.function.Function;
 import static java.util.Arrays.asList;
 
 public class BasicResource<T> implements Resource<T> {
-    private final Class<T> clz;
-    private final EksResources owner;
+    public final Class<T> clz;
+    public final EksResources owner;
 
     public Linker<T> linker = Linker.defaultLinker();
     public Function<String, Optional<T>> locator = s -> Optional.ofNullable(CRUD.create(clz()).getById(s));
@@ -30,9 +31,9 @@ public class BasicResource<T> implements Resource<T> {
     public BasicResource(EksResources owner, Class<T> clz) {
         this.clz = clz;
         this.owner = owner;
-        this.queries = asList(
-          new SimpleQuery<T>(getName() + "Collection", s -> CRUD.create(clz()).all())
-        );
+        this.queries = new ArrayList<>(asList(
+          new SimpleQuery<T>(clz.getSimpleName() + "Collection", s -> CRUD.create(clz()).all())
+        ));
     }
 
     @Override

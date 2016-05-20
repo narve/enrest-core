@@ -57,8 +57,10 @@ public class CRUD<T> extends Controller<T> {
     }
 
     @Override
-    public T update(T question) {
-        question = getEM().merge(question);
-        return question;
+    public T update(T t) {
+        if (!getEM().getTransaction().isActive()) getEM().getTransaction().begin();
+        t = getEM().merge(t);
+        getEM().getTransaction().commit();
+        return t;
     }
 }

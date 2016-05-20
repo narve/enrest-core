@@ -3,15 +3,17 @@ package no.dv8.eks.rest;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.rest.resources.QuestionResource;
 import no.dv8.eks.rest.resources.UserResource;
-import no.dv8.eks.semantic.Names;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.xhtml.generation.elements.*;
+import no.dv8.xhtml.generation.support.Element;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
+import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.enrest.resources.FormHelper.control;
 
@@ -24,12 +26,7 @@ public class EksQueries {
         this.resources = resources;
     }
 
-
-
-    static final String pathToQueries = "queries";
-    static final String pathToQueryResult = "query-result";
     UserResource users = new UserResource();
-    QuestionResource questions = new QuestionResource();
     public List<QueryResource> queries() {
         return resources.resources()
           .stream()
@@ -37,23 +34,25 @@ public class EksQueries {
           .reduce( new ArrayList<>(), (a,b) -> { a.addAll(b); return a; });
     }
 
-
     public ul queriesAsList() {
         ul l = new ul();
         queries()
           .stream()
-          .map(q -> relToA(q.getRel(), resources.basePath + "/" + pathToQueries + "/"))
+          .map(q -> relToA(q.getRel(), resources.basePath + "/" + resources.urlCreator.query(q.getRel())))
           .map(a -> new li().add(a))
           .forEach(i -> l.add(i));
         return l;
     }
 
     public ul executeQuery(String name, HttpServletRequest req) {
-        log.info("Executing query, users={}", users);
+        log.info("Executing query {}", name );
         String queryName = name.replaceAll("\\-", "\\_");
         log.info("Query name: {}", queryName);
-        QueryResource qr = queries().stream().filter(q -> q.getRel().equals(queryName.replaceAll("_", "-"))).findFirst().get();
-        Collection<?> result = qr.query(req);
+        Optional<QueryResource> qr = queries().stream().filter(q -> q.getRel().equals(queryName.replaceAll("_", "-"))).findFirst();
+        if( !qr.isPresent() ) {
+            throw new UnsupportedOperationException("No such query: '" + queryName + "'");
+        }
+        Collection<?> result = qr.get().query(req);
         ul ul = new ul();
         result.forEach(i -> ul.add(listItem(i)));
         return ul;
@@ -65,16 +64,20 @@ public class EksQueries {
         );
     }
 
-
     public form searchForm(Object rel) {
+        QueryResource q = resources.queryForRel(rel);
+        List<Element<?>> controls = q.params()
+          .stream()
+          .map( p -> control( new input().type(p.getHtmlType()).name(p.getName()).id(p.getName()), p.getName()) )
+          .collect( toList() );
         return new form()
           .clz(rel)
           .get()
-          .action(resources.basePath + "/" + pathToQueryResult + "/" + rel)
+          .action(resources.basePath + "/" + resources.urlCreator.queryResult(rel))
           .add(
             new fieldset()
               .add(new legend(rel.toString()))
-              .add(control(new input().text().name(Names.search).id(Names.search), Names.search))
+              .add( controls )
               .add(new input().submit().value(rel))
           );
     }
