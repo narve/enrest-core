@@ -14,6 +14,7 @@ import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Objects;
@@ -21,7 +22,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
-public class EksApi {
+public class EksApi implements XUnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -30,8 +31,6 @@ public class EksApi {
     Function<Long, String> ls = String::valueOf;
     Function<Article, String> f1 = al.andThen(ls);
     Function<Article, String> f2 = ls.compose(al);
-    Function<HttpServletRequest, HttpServletResponse> func;
-    BiConsumer<HttpServletRequest, HttpServletRequest> bic;
 
     public EksApi(EksResources resources) {
         Objects.requireNonNull(resources);
@@ -54,68 +53,65 @@ public class EksApi {
         return new EksIndex(resources);
     }
 
-    public XUnaryOperator<Exchange> api() {
+    @Override
+    public Exchange apply(Exchange x) throws IOException {
+        PrintWriter writer = x.res.getWriter();
+        x.res.setContentType("text/html");
 
-        return x -> {
-            PrintWriter writer = x.res.getWriter();
-            x.res.setContentType("text/html");
-
-            String path = new URL(x.req.getRequestURL().toString()).getPath();
+        String path = new URL(x.req.getRequestURL().toString()).getPath();
 //            path = path.substring(EksApi.this.resources.urlCreator.basePath.length());
 
-            final Element<?> obj;
-            String title = path;
-            String method = x.req.getMethod();
-            ResourcePaths urls = resources.urlCreator;
+        final Element<?> obj;
+        String title = path;
+        String method = x.req.getMethod();
+        ResourcePaths urls = resources.urlCreator;
 
-            if (path.equals("alps")) {
-                obj = new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
-                title = "ALPS";
-            } else if (urls.isRoot(path)) {
-                obj = index().index();
-            } else if (urls.isItem(path) ) {
-                String itemClass = urls.type( path );
-                String itemId = urls.id( path );
-                Resource<?> resource = resources.locateByName(itemClass).get();
-                Object item = resource.locator().apply(itemId).get();
-                switch( method.toUpperCase()) {
-                    case "GET":
-                        obj = resources.toElement(item);
-                        break;
-                    case "POST":
-                    case "PUT":
-                        obj = resources.executeUpdate(resource, item, x.req );
-                        break;
-                    default:
-                        throw new UnsupportedOperationException(method);
-                }
-            } else if (urls.isEditForm(path)) {
-                String itemClass = urls.type( path );
-                String itemId = urls.id( path );
-                Resource<?> resource = resources.locateByName(itemClass).get();
-                Object item = resource.locator().apply(itemId).get();
-                obj = forms().editForm(resource.updater(), item);
-            } else if (urls.isQueryForm(path)) {
-                obj = queries().searchForm(urls.queryName(path));
-            } else if (urls.isQueryResult(path)) {
-                obj = queries().executeQuery(urls.queryName(path), x.req);
-            } else if (urls.isCreateForm(path)) {
-                String itemClass = urls.type( path );
-                obj = forms().createForm(itemClass);
-            } else if (urls.isCreateResult(path)) {
-                String itemClass = urls.type( path );
-                Resource r = resources.locateByName(itemClass).get();
-                obj = forms().executeCreate(r, x.req);
-            } else {
-                obj = error404(path);
+        if (path.equals("alps")) {
+            obj = new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
+            title = "ALPS";
+        } else if (urls.isRoot(path)) {
+            obj = index().index();
+        } else if (urls.isItem(path)) {
+            String itemClass = urls.type(path);
+            String itemId = urls.id(path);
+            Resource<?> resource = resources.locateByName(itemClass).get();
+            Object item = resource.locator().apply(itemId).get();
+            switch (method.toUpperCase()) {
+                case "GET":
+                    obj = resources.toElement(item);
+                    break;
+                case "POST":
+                case "PUT":
+                    obj = resources.executeUpdate(resource, item, x.req);
+                    break;
+                default:
+                    throw new UnsupportedOperationException(method);
             }
-            x.res.setCharacterEncoding("utf-8");
+        } else if (urls.isEditForm(path)) {
+            String itemClass = urls.type(path);
+            String itemId = urls.id(path);
+            Resource<?> resource = resources.locateByName(itemClass).get();
+            Object item = resource.locator().apply(itemId).get();
+            obj = forms().editForm(resource.updater(), item);
+        } else if (urls.isQueryForm(path)) {
+            obj = queries().searchForm(urls.queryName(path));
+        } else if (urls.isQueryResult(path)) {
+            obj = queries().executeQuery(urls.queryName(path), x.req);
+        } else if (urls.isCreateForm(path)) {
+            String itemClass = urls.type(path);
+            obj = forms().createForm(itemClass);
+        } else if (urls.isCreateResult(path)) {
+            String itemClass = urls.type(path);
+            Resource r = resources.locateByName(itemClass).get();
+            obj = forms().executeCreate(r, x.req);
+        } else {
+            obj = error404(path);
+        }
+        x.res.setCharacterEncoding("utf-8");
 
-            writer.print(EksHTML.complete(obj, title).toString());
-            writer.close();
-            return x;
-        };
+        writer.print(EksHTML.complete(obj, title).toString());
+        writer.close();
+        return x;
     }
-
 
 }

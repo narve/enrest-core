@@ -6,6 +6,10 @@ import java.util.function.UnaryOperator;
 public interface XUnaryOperator<T> {
     T apply(T in) throws Exception;
 
+    static <T> UnaryOperator<T> hidex(XUnaryOperator<T> in) {
+        return hidex( null, in );
+    }
+
     static <T> UnaryOperator<T> hidex(String name, XUnaryOperator<T> in) {
         return new UnaryOperator<T>() {
             @Override
@@ -21,7 +25,7 @@ public interface XUnaryOperator<T> {
 
             @Override
             public String toString() {
-                return name;
+                return name == null ? in.toString() : name;
             }
         };
     }

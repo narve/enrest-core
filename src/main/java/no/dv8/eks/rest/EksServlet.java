@@ -147,7 +147,7 @@ public class EksServlet extends HttpServlet {
 //          ),
           new Pair<>(
             startsWith("/api"),
-            hidex("API", new EksApi(resources).api())
+            hidex(new EksApi(resources))
           )
         );
 
