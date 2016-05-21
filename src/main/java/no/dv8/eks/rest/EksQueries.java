@@ -38,7 +38,7 @@ public class EksQueries {
         ul l = new ul();
         queries()
           .stream()
-          .map(q -> relToA(q.getRel(), resources.basePath + "/" + resources.urlCreator.query(q.getRel())))
+          .map(q -> relToA(q.getRel(), resources.urlCreator.query(q.getRel())))
           .map(a -> new li().add(a))
           .forEach(i -> l.add(i));
         return l;
@@ -60,7 +60,7 @@ public class EksQueries {
 
     public li listItem(Object u) {
         return new li().add(
-          new a(u.toString()).href(resources.viewUrlForItem(u))
+          new a(u.toString()).href(resources.urlCreator.viewItem(resources.itemClass(u), resources.itemId(u)))
         );
     }
 
@@ -73,7 +73,7 @@ public class EksQueries {
         return new form()
           .clz(rel)
           .get()
-          .action(resources.basePath + "/" + resources.urlCreator.queryResult(rel))
+          .action(resources.urlCreator.queryResult(rel))
           .add(
             new fieldset()
               .add(new legend(rel.toString()))

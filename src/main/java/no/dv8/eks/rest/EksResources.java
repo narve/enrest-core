@@ -24,12 +24,13 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 public class EksResources {
 
-    final String basePath;
+//    final String basePath;
     final List<Resource<?>> resources = new ArrayList<>();
-    ResourcePaths urlCreator = new ResourcePaths();
+    public ResourcePaths urlCreator;
 
     public EksResources(String basePath) {
-        this.basePath = basePath;
+//        this.basePath = basePath;
+        this.urlCreator = new ResourcePaths(basePath);
     }
 
     public static String itemId(Object o) {
@@ -51,14 +52,6 @@ public class EksResources {
         return resources;
     }
 
-    public String viewUrlForItem(Object o) {
-        return basePath + "/" + urlCreator.viewItem(itemClass(o), itemId(o));
-    }
-
-    public String editUrlForItem(Object o) {
-        return basePath + "/" + urlCreator.editItem(itemClass(o), itemId(o));
-    }
-
     public <T> Element<?> toElement(T item) {
         Resource<T> r = (Resource<T>) locateByClz(item.getClass()).get();
 
@@ -70,11 +63,11 @@ public class EksResources {
                 log.info("Converting link using {}", sub);
                 switch (link.getAttributes().getOrDefault("rel", "").toString()) {
                     case "edit":
-                        link.href(editUrlForItem(link.href()));
+                        link.href(urlCreator.editItem(itemClass(link.href()), itemId( link.href() ) ) );
                         break;
                     case "self":
                     default:
-                        link.href(viewUrlForItem(link.href()));
+                        link.href(urlCreator.viewItem(itemClass(link.href()), itemId( link.href() ) ) );
                         break;
                 }
             }
@@ -114,10 +107,6 @@ public class EksResources {
         return res;
     }
 
-    public String queryResultUrl(String rel) {
-        return basePath + "/" + urlCreator.queryResult(rel);
-    }
-
     public QueryResource queryForRel(Object rel) {
         Optional<QueryResource> first = resources().stream()
           .flatMap(r -> Stream.of(r.queries().toArray(new QueryResource[0])))
@@ -128,4 +117,5 @@ public class EksResources {
         }
         return first.get();
     }
+
 }

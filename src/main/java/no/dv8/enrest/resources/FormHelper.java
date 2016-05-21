@@ -1,5 +1,6 @@
 package no.dv8.enrest.resources;
 
+import no.dv8.eks.rest.EksResources;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
@@ -9,9 +10,11 @@ import static java.util.stream.Collectors.toList;
 
 public class FormHelper {
 
+    final EksResources resources;
 
-    public static String pathToCreators = "create-forms";
-    public static String pathToCreateResult = "create-result";
+    public FormHelper(EksResources resources) {
+        this.resources = resources;
+    }
 
     public static input text(Object r ) {
         return new input().text().id(r).name(r).placeholder(r.toString());
@@ -28,7 +31,7 @@ public class FormHelper {
           .add( element );
     }
 
-    public static form createForm(Object name, List<Element<?>> inputs, String basePath, Object method ) {
+    public form createForm(Object name, List<Element<?>> inputs, Object method ) {
         List<div> inputDivs = inputs.stream()
           .map( e -> control(e, e.get("name")))
           .collect( toList() );
@@ -36,7 +39,7 @@ public class FormHelper {
         return new form()
           .clz(name)
           .method(method)
-          .action( basePath + pathToCreateResult+"/" + name)
+          .action( resources.urlCreator.createAction( name ))
           .set( "accept-charset", "utf-8")
           .set( "enc-type", "application/x-www-form-urlencoded")
           .add(new fieldset()

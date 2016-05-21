@@ -1,21 +1,18 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.enrest.resources.Resource;
 import no.dv8.eks.semantic.Types;
-import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.FormHelper;
+import no.dv8.enrest.resources.Mutator;
+import no.dv8.enrest.resources.Resource;
 import no.dv8.reflect.Props;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
 import javax.servlet.http.HttpServletRequest;
-
-import java.util.HashMap;
 import java.util.Map;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
-import static no.dv8.enrest.resources.FormHelper.pathToCreators;
 
 @Slf4j
 public class EksForms {
@@ -47,15 +44,17 @@ public class EksForms {
         try {
             Resource res = resources.locateByRel(name).get();
             Object obj = res.clz().newInstance();
-            return FormHelper.createForm(name, res.creator().inputs(obj), resources.basePath, "post");
+            FormHelper fh = new FormHelper(this.resources);
+            return fh.createForm(name, res.creator().inputs(obj), "post");
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
     public form editForm(Mutator resource, Object item) {
-        form f = FormHelper.createForm(Types.edit.toString(), resource.inputs(item), resources.basePath, "post");
-        f.action(resources.viewUrlForItem(item));
+        FormHelper fh = new FormHelper(this.resources);
+        form f = fh.createForm(Types.edit.toString(), resource.inputs(item), "post");
+        f.action(resources.urlCreator.viewItem( resources.itemClass( item ), resources.itemId( item )));
         return f;
     }
 
@@ -63,7 +62,7 @@ public class EksForms {
         ul list = new ul();
         resources.resources()
           .stream()
-          .map(cr -> relToA(cr.getName(), resources.basePath + "/" + resources.urlCreator.createForm(cr.getName())))
+          .map(cr -> relToA(cr.getName(), resources.urlCreator.createForm(cr.getName())))
           .map(a -> new li().add(a))
           .forEach(list::add);
         return list;

@@ -33,8 +33,8 @@ public class EksIndex {
 
     public ul basicLinksAsList() {
         return new ul()
-          .add(new li().add(new a("index").rel(index).href(resources.basePath)))
-          .add(new li().add(new a("self").rel(self).href(resources.basePath)))
+          .add(new li().add(new a("index").rel(index).href(resources.urlCreator.root())))
+          .add(new li().add(new a("self").rel(self).href(resources.urlCreator.root())))
           .add(new li().add(new a("profile").rel(profile).href("http://alps.io/spec/alps-xhtml-profiles/")));
     }
 

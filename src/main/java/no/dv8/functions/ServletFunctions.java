@@ -44,5 +44,19 @@ public class ServletFunctions {
         };
     }
 
+    public static Predicate<HttpServletRequest> startsWith(String prefix) {
+        return new Predicate<HttpServletRequest>() {
+            @Override
+            public boolean test(HttpServletRequest req) {
+                return req.getPathInfo() != null && req.getPathInfo().startsWith(prefix);
+            }
+
+            @Override
+            public String toString() {
+                return "startsWith " + prefix;
+            }
+        };
+    }
+
 
 }
