@@ -1,4 +1,4 @@
-package no.dv8.enrest.props;
+package no.dv8.utils;
 
 import java.util.*;
 

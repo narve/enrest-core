@@ -1,6 +1,5 @@
 package no.dv8.eks.rest;
 
-import no.dv8.eks.semantic.Rels;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
@@ -27,10 +26,8 @@ public class EksHTML {
     }
 
     public static a relToA(Object rel, String href) {
-        return new a(rel.toString()).rel(rel).href(href);
+        return new a(rel).rel(rel).href(href);
     }
 
-    public static a relToA(Rels rel) {
-        return relToA(rel, "");
-    }
+
 }

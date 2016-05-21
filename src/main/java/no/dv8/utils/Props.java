@@ -1,4 +1,4 @@
-package no.dv8.reflect;
+package no.dv8.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.rest.EksApi;

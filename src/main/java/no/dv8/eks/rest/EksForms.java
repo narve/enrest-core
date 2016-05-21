@@ -1,11 +1,11 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.semantic.Types;
-import no.dv8.enrest.resources.FormHelper;
+import no.dv8.eks.semantic.Rels;
+import no.dv8.enrest.forms.FormHelper;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.reflect.Props;
+import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
@@ -53,7 +53,7 @@ public class EksForms {
 
     public form editForm(Mutator resource, Object item) {
         FormHelper fh = new FormHelper(this.resources);
-        form f = fh.createForm(Types.edit.toString(), resource.inputs(item), "post");
+        form f = fh.createForm(Rels.edit, resource.inputs(item), "post");
         f.action(resources.urlCreator.viewItem( resources.itemClass( item ), resources.itemId( item )));
         return f;
     }

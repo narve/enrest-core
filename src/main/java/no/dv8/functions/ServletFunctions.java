@@ -2,6 +2,7 @@ package no.dv8.functions;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.rest.EksHTML;
+import no.dv8.enrest.Exchange;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
@@ -16,23 +17,14 @@ public class ServletFunctions {
         return (req, res) -> outputter.accept(mapper.apply(req), res);
     }
 
-    public static <T> Predicate<T> exMeansFalse(Predicate in) {
+    public static <T> Predicate<T> exMeansFalse(Predicate<T> in) {
         return t -> {
             try {
                 return in.test(t);
             } catch (Exception e) {
-                log.warn("Predicate evaluation failed: {}", e);
+                log.warn("Predicate evaluation failed: " + e, e);
                 return false;
             }
-        };
-    }
-
-
-
-    public static <T> UnaryOperator<T> returner(Consumer<T> consumer) {
-        return x -> {
-            consumer.accept(x);
-            return x;
         };
     }
 

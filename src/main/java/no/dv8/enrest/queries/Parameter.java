@@ -1,4 +1,4 @@
-package no.dv8.enrest.model;
+package no.dv8.enrest.queries;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

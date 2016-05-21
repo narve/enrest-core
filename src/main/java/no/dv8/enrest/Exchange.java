@@ -26,12 +26,8 @@ public class Exchange {
         }
     }
 
-    public Exchange write(String hei) {
-        try {
-            res.getWriter().write( hei );
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
+    @Override
+    public String toString() {
+        return req.getMethod() + " " + req.getRequestURL();
     }
 }

@@ -1,36 +1,26 @@
 package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.model.Article;
 import no.dv8.eks.semantic.EksAlps;
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.forms.FormHelper;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.functions.XUnaryOperator;
-import no.dv8.xhtml.generation.elements.body;
-import no.dv8.xhtml.generation.elements.h1;
-import no.dv8.xhtml.generation.elements.html;
+import no.dv8.functions.XFunction;
+import no.dv8.utils.Forker;
+import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 @Slf4j
-public class EksApi implements XUnaryOperator<Exchange> {
+public class EksApi implements XFunction<Exchange, Exchange> {
 
     final EksResources resources;
-
-    Function<HttpServletRequest, Article> reqProcessor = hr -> new Article();
-    Function<Article, Long> al = Article::getId;
-    Function<Long, String> ls = String::valueOf;
-    Function<Article, String> f1 = al.andThen(ls);
-    Function<Article, String> f2 = ls.compose(al);
 
     public EksApi(EksResources resources) {
         Objects.requireNonNull(resources);
@@ -39,10 +29,6 @@ public class EksApi implements XUnaryOperator<Exchange> {
 
     static html error404(String path) {
         return new html().add(new body().add(new h1("404: " + path)));
-    }
-
-    EksQueries queries() {
-        return new EksQueries(resources);
     }
 
     EksForms forms() {
@@ -54,18 +40,28 @@ public class EksApi implements XUnaryOperator<Exchange> {
     }
 
     @Override
-    public Exchange apply(Exchange x) throws IOException {
-        PrintWriter writer = x.res.getWriter();
-        x.res.setContentType("text/html");
+    public Exchange apply(Exchange exchange) throws IOException {
 
-        String path = new URL(x.req.getRequestURL().toString()).getPath();
-//            path = path.substring(EksApi.this.resources.urlCreator.basePath.length());
+        PrintWriter writer = exchange.res.getWriter();
+        exchange.res.setContentType("text/html");
+
+        String path = new URL(exchange.req.getRequestURL().toString()).getPath();
 
         final Element<?> obj;
         String title = path;
-        String method = x.req.getMethod();
+        String method = exchange.req.getMethod();
         ResourcePaths urls = resources.urlCreator;
 
+//        Forker<Exchange, Object> forker = new Forker<Exchange, Object>()
+//          .add( "alps", x -> x.req.getPathInfo().equals( "/alps" ), this::alps)
+//          .add( "get-index", x -> urls.isRoot( x.req.getPathInfo() ), x -> new EksIndex(resources).index() )
+//          .add( "get-item", x -> urls.isItem( x.getFullPath() ), x -> "hei" );
+//
+//        if( true ) {
+//            Object apply = forker.apply(exchange);
+////            obj = resources.toElement(apply);
+//            obj = new p(apply.toString());
+//        } else
         if (path.equals("alps")) {
             obj = new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
             title = "ALPS";
@@ -82,7 +78,7 @@ public class EksApi implements XUnaryOperator<Exchange> {
                     break;
                 case "POST":
                 case "PUT":
-                    obj = resources.executeUpdate(resource, item, x.req);
+                    obj = resources.executeUpdate(resource, item, exchange.req);
                     break;
                 default:
                     throw new UnsupportedOperationException(method);
@@ -94,24 +90,37 @@ public class EksApi implements XUnaryOperator<Exchange> {
             Object item = resource.locator().apply(itemId).get();
             obj = forms().editForm(resource.updater(), item);
         } else if (urls.isQueryForm(path)) {
-            obj = queries().searchForm(urls.queryName(path));
+            FormHelper fh = new FormHelper(this.resources);
+            obj = fh.searchForm(urls.queryName(path));
         } else if (urls.isQueryResult(path)) {
-            obj = queries().executeQuery(urls.queryName(path), x.req);
+            Collection<?> objects = resources.executeQuery(urls.queryName(path), exchange.req);
+            ul ul = new ul();
+            objects.forEach( o -> ul.add( new li( linkToObject(o))));
+            obj = ul;
         } else if (urls.isCreateForm(path)) {
             String itemClass = urls.type(path);
             obj = forms().createForm(itemClass);
         } else if (urls.isCreateResult(path)) {
             String itemClass = urls.type(path);
             Resource r = resources.locateByName(itemClass).get();
-            obj = forms().executeCreate(r, x.req);
+            obj = forms().executeCreate(r, exchange.req);
         } else {
             obj = error404(path);
         }
-        x.res.setCharacterEncoding("utf-8");
+        exchange.res.setCharacterEncoding("utf-8");
 
         writer.print(EksHTML.complete(obj, title).toString());
         writer.close();
-        return x;
+        return exchange;
     }
+
+    private Object alps(Exchange x) {
+        return new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
+    }
+
+    private a linkToObject(Object u) {
+        return new a(u.toString()).href(resources.urlCreator.viewItem(resources.itemClass(u), resources.itemId(u)));
+    }
+
 
 }

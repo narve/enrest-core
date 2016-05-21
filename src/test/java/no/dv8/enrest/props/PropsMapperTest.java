@@ -2,6 +2,7 @@ package no.dv8.enrest.props;
 
 import no.dv8.enrest.core.NestedTestObject;
 import no.dv8.enrest.core.TestObject;
+import no.dv8.utils.PropsMapper;
 import org.junit.Test;
 
 import java.util.List;

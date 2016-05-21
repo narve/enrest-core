@@ -1,12 +1,10 @@
-package no.dv8.enrest.props;
+package no.dv8.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import no.dv8.eks.rest.EksResources;
-import no.dv8.reflect.Props;
+import no.dv8.utils.Props;
 
-import javax.servlet.http.HttpServletRequest;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;

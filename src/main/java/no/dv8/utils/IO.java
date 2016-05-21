@@ -1,4 +1,4 @@
-package no.dv8.enrest;
+package no.dv8.utils;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 @Slf4j
-public class EnrestConfigurator {
-
+public class IO {
 
 
     public static <T> T parseJSON(Class<T> clz, String bodyAsString) {
@@ -38,5 +37,4 @@ public class EnrestConfigurator {
             throw new RuntimeException(e);
         }
     }
-
 }

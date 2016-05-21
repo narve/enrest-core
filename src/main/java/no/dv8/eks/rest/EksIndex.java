@@ -23,7 +23,7 @@ public class EksIndex {
             ).add(
             new section()
               .add(new h1("Queries"))
-              .add(new EksQueries(resources).queriesAsList())
+              .add( resources.queriesAsList())
           ).add(
             new section()
               .add(new h1("Creators"))

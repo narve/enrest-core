@@ -1,16 +1,17 @@
 package no.dv8.eks.rest;
 
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
-import no.dv8.eks.rest.resources.QuestionResource;
-import no.dv8.eks.rest.resources.UserResource;
+import no.dv8.eks.resources.QuestionResource;
+import no.dv8.eks.resources.UserResource;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.Exchange;
-import no.dv8.enrest.model.Parameter;
+import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
+import no.dv8.utils.Chainer;
+import no.dv8.utils.Forker;
 import no.dv8.xhtml.generation.elements.a;
 
 import javax.servlet.ServletConfig;
@@ -20,28 +21,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksServlet.ServletBase;
-import static no.dv8.functions.ServletFunctions.exMeansFalse;
-import static no.dv8.functions.ServletFunctions.startsWith;
-import static no.dv8.functions.XUnaryOperator.hidex;
 
 @javax.servlet.annotation.WebServlet(urlPatterns = {ServletBase + "/*"})
 @Slf4j
 public class EksServlet extends HttpServlet {
 
-    public static final String ServletBase = "/eks";
-    UnaryOperator<Exchange> handler;
-    List<Pair<Predicate<HttpServletRequest>, UnaryOperator<Exchange>>> consumers;
-    private ServletConfig config;
+    static final String ServletBase = "/eks";
 
-    private EksResources createResources() {
-        EksResources resources = new EksResources(ServletBase + "/api/");
+    private ServletConfig config;
+    private Chainer handler;
+
+    private EksResources createResources(String path) {
+        EksResources resources = new EksResources(path);
 
         BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
         BasicResource<Comment> commentResource = BasicResource.create(resources, Comment.class);
@@ -93,6 +90,11 @@ public class EksServlet extends HttpServlet {
     }
 
     @Override
+    public ServletConfig getServletConfig() {
+        return config;
+    }
+
+    @Override
     public String getServletInfo() {
         return null;
     }
@@ -116,51 +118,18 @@ public class EksServlet extends HttpServlet {
         };
     }
 
-    UnaryOperator<Exchange> main() {
-        return x -> {
-            Optional<Pair<Predicate<HttpServletRequest>, UnaryOperator<Exchange>>> handler =
-              consumers
-                .stream()
-                .filter(p -> exMeansFalse(p.getKey()).test(x.req))
-                .findFirst();
-            if (handler.isPresent()) {
-                return handler.get().getValue().apply(x);
-            } else {
-                throw new NullPointerException("No handler for " + x.req.getPathInfo());
-            }
-        };
-    }
-
     @Override
     public void init(ServletConfig config) throws ServletException {
+        final String apiPath = "";
         this.config = config;
-
-        EksResources resources = createResources();
-
-        consumers = asList(
-//          new Pair<>(
-//            r -> r.getPathInfo() == null,
-//            hidex("Redirect", x -> {
-//                x.res.sendRedirect(x.req.getRequestURI() + "/");
-//                return x;
-//            })
-//          ),
-          new Pair<>(
-            startsWith("/api"),
-            hidex(new EksApi(resources))
-          )
-        );
-
-        handler = asList(
-          reqLogger(), main(), finisher()
-        ).stream()
-          .reduce(UnaryOperator.identity(), (a, b) -> s -> b.apply(a.apply(s)));
-
+        handler = new Chainer<Exchange>()
+          .add(reqLogger())
+          .add(new Forker<Exchange, Exchange>().add("api", startsWith(apiPath), new EksApi(createResources(ServletBase + apiPath+"/"))))
+          .add(finisher());
     }
 
-    @Override
-    public ServletConfig getServletConfig() {
-        return config;
+    private Predicate<Exchange> startsWith(String s) {
+        return x -> ( x.req.getPathInfo() == null ? "" : x.req.getPathInfo()).startsWith(s);
     }
 
 }

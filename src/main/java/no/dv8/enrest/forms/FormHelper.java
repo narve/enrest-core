@@ -1,6 +1,7 @@
-package no.dv8.enrest.resources;
+package no.dv8.enrest.forms;
 
 import no.dv8.eks.rest.EksResources;
+import no.dv8.enrest.queries.QueryResource;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
@@ -49,4 +50,22 @@ public class FormHelper {
             ));
     }
 
+
+    public form searchForm(Object rel) {
+        QueryResource q = resources.queryForRel(rel);
+        List<Element<?>> controls = q.params()
+          .stream()
+          .map(p -> control(new input().type(p.getHtmlType()).name(p.getName()).id(p.getName()), p.getName()))
+          .collect(toList());
+        return new form()
+          .clz(rel)
+          .get()
+          .action(resources.urlCreator.queryResult(rel))
+          .add(
+            new fieldset()
+              .add(new legend(rel.toString()))
+              .add(controls)
+              .add(new input().submit().value(rel))
+          );
+    }
 }

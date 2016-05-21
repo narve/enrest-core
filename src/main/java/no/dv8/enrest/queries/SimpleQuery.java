@@ -1,7 +1,6 @@
 package no.dv8.enrest.queries;
 
 import no.dv8.eks.semantic.Names;
-import no.dv8.enrest.model.Parameter;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;

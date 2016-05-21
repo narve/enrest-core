@@ -6,13 +6,13 @@ import no.dv8.dirs.Dirs;
 import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
-import no.dv8.eks.rest.resources.QuestionResource;
-import no.dv8.eks.rest.resources.UserResource;
+import no.dv8.eks.resources.QuestionResource;
+import no.dv8.eks.resources.UserResource;
 import no.dv8.eks.semantic.Rels;
-import no.dv8.enrest.model.Parameter;
+import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.functions.XBiConsumer;
-import no.dv8.reflect.Props;
+import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.li;
 import no.dv8.xhtml.generation.elements.ul;
@@ -37,8 +37,16 @@ import static no.dv8.functions.XBiConsumer.hidex;
 @Slf4j
 public class EksServletFun {
 
+    Function<HttpServletRequest, Article> reqProcessor = hr -> new Article();
+    Function<Article, Long> al = Article::getId;
+    Function<Long, String> ls = String::valueOf;
+    Function<Article, String> f1 = al.andThen(ls);
+    Function<Article, String> f2 = ls.compose(al);
+
+
+
     List<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>> consumers() {
-        EksResources resources = new EksResources(EksServlet.ServletBase + "/api/");
+        EksResources resources = new EksResources("justsomestuff");
 
         BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
 //        artResource.linker = t -> asList(

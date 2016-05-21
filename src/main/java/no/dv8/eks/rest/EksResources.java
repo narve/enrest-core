@@ -4,22 +4,21 @@ import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.reflect.Props;
+import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.div;
 import no.dv8.xhtml.generation.elements.li;
+import no.dv8.xhtml.generation.elements.ul;
 import no.dv8.xhtml.generation.support.Element;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static no.dv8.eks.rest.EksHTML.relToA;
 
 @Slf4j
 public class EksResources {
@@ -117,5 +116,39 @@ public class EksResources {
         }
         return first.get();
     }
+
+    public List<QueryResource> queries() {
+        return resources()
+          .stream()
+          .map(r -> r.queries())
+          .reduce(new ArrayList<>(), (a, b) -> {
+              a.addAll(b);
+              return a;
+          });
+    }
+
+    public ul queriesAsList() {
+        ul l = new ul();
+        queries()
+          .stream()
+          .map(q -> relToA(q.getRel(), urlCreator.query(q.getRel())))
+          .map(a -> new li().add(a))
+          .forEach(i -> l.add(i));
+        return l;
+    }
+
+    public Collection<?> executeQuery(String name, HttpServletRequest req) {
+        log.info("Executing query {}", name);
+        String queryName = name.replaceAll("\\-", "\\_");
+        log.info("Query name: {}", queryName);
+        QueryResource qr = queryForRel( name );
+        return qr.query(req);
+    }
+//
+//    public ul toUL( Collection<a> result ) {
+//        ul ul = new ul();
+//        result.forEach(i -> ul.add(i));
+//        return ul;
+//    }
 
 }

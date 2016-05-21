@@ -1,23 +1,30 @@
 package no.dv8.functions;
 
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 @FunctionalInterface
 public interface XFunction<T, U> {
-    U apply( T t ) throws Exception;
+    static <T, U> Function<T, U> hidex(String name, XFunction<T, U> in) {
+        return new Function<T, U>() {
+            @Override
+            public String toString() {
+                return name != null ? name : in.toString();
+            }
 
-    default <T,U> Function<T, U> hidex(XFunction<T, U> in ) {
-        return t -> {
-            try {
-                return in.apply(t);
-            } catch( RuntimeException re ) {
-                throw re;
-            } catch( Exception e ) {
-                throw new RuntimeException(e);
+            @Override
+            public U apply(T t) {
+                try {
+                    return in.apply(t);
+                } catch (RuntimeException re) {
+                    throw re;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         };
     }
+
+    U apply(T t) throws Exception;
 
 
 }

@@ -1,11 +1,9 @@
 package no.dv8.enrest.resources;
 
-import lombok.extern.slf4j.Slf4j;
-import no.dv8.enrest.props.PropsMapper;
+import no.dv8.utils.PropsMapper;
 import no.dv8.xhtml.generation.elements.input;
 import no.dv8.xhtml.generation.support.Element;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
