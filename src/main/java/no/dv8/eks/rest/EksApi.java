@@ -1,5 +1,6 @@
 package no.dv8.eks.rest;
 
+import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.semantic.EksAlps;
 import no.dv8.enrest.Exchange;
@@ -16,27 +17,26 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 public class EksApi implements XFunction<Exchange, Exchange> {
 
     final EksResources resources;
+    private final ResourcePaths urls;
 
     public EksApi(EksResources resources) {
         Objects.requireNonNull(resources);
         this.resources = resources;
+        this.urls = resources.urlCreator;
     }
 
-    static html error404(String path) {
-        return new html().add(new body().add(new h1("404: " + path)));
+    html error404(Exchange x) {
+        return new html().add(new body().add(new h1("404: " + x.getFullPath())));
     }
 
     EksForms forms() {
         return new EksForms(resources);
-    }
-
-    EksIndex index() {
-        return new EksIndex(resources);
     }
 
     @Override
@@ -45,76 +45,110 @@ public class EksApi implements XFunction<Exchange, Exchange> {
         PrintWriter writer = exchange.res.getWriter();
         exchange.res.setContentType("text/html");
 
-        String path = new URL(exchange.req.getRequestURL().toString()).getPath();
-
         final Element<?> obj;
-        String title = path;
-        String method = exchange.req.getMethod();
-        ResourcePaths urls = resources.urlCreator;
+        String title = exchange.req.getPathInfo();
 
-//        Forker<Exchange, Object> forker = new Forker<Exchange, Object>()
-//          .add( "alps", x -> x.req.getPathInfo().equals( "/alps" ), this::alps)
-//          .add( "get-index", x -> urls.isRoot( x.req.getPathInfo() ), x -> new EksIndex(resources).index() )
-//          .add( "get-item", x -> urls.isItem( x.getFullPath() ), x -> "hei" );
-//
-//        if( true ) {
-//            Object apply = forker.apply(exchange);
-////            obj = resources.toElement(apply);
-//            obj = new p(apply.toString());
-//        } else
-        if (path.equals("alps")) {
-            obj = new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
-            title = "ALPS";
-        } else if (urls.isRoot(path)) {
-            obj = index().index();
-        } else if (urls.isItem(path)) {
-            String itemClass = urls.type(path);
-            String itemId = urls.id(path);
-            Resource<?> resource = resources.locateByName(itemClass).get();
-            Object item = resource.locator().apply(itemId).get();
-            switch (method.toUpperCase()) {
-                case "GET":
-                    obj = resources.toElement(item);
-                    break;
-                case "POST":
-                case "PUT":
-                    obj = resources.executeUpdate(resource, item, exchange.req);
-                    break;
-                default:
-                    throw new UnsupportedOperationException(method);
-            }
-        } else if (urls.isEditForm(path)) {
-            String itemClass = urls.type(path);
-            String itemId = urls.id(path);
-            Resource<?> resource = resources.locateByName(itemClass).get();
-            Object item = resource.locator().apply(itemId).get();
-            obj = forms().editForm(resource.updater(), item);
-        } else if (urls.isQueryForm(path)) {
-            FormHelper fh = new FormHelper(this.resources);
-            obj = fh.searchForm(urls.queryName(path));
-        } else if (urls.isQueryResult(path)) {
-            Collection<?> objects = resources.executeQuery(urls.queryName(path), exchange.req);
-            ul ul = new ul();
-            objects.forEach( o -> ul.add( new li( linkToObject(o))));
-            obj = ul;
-        } else if (urls.isCreateForm(path)) {
-            String itemClass = urls.type(path);
-            obj = forms().createForm(itemClass);
-        } else if (urls.isCreateResult(path)) {
-            String itemClass = urls.type(path);
-            Resource r = resources.locateByName(itemClass).get();
-            obj = forms().executeCreate(r, exchange.req);
-        } else {
-            obj = error404(path);
-        }
+        Forker<Exchange, Element<?>> forker = new Forker<Exchange, Element<?>>()
+          .add("alps", x -> x.req.getPathInfo().equals("/alps"), this::alps)
+          .add("get-index", x -> urls.isRoot(x.getFullPath()), this::handleIndex)
+          .add("item", x -> urls.isItem(x.getFullPath()), this::handleItem)
+          .add("edit-form", x -> urls.isEditForm(x.getFullPath()), this::handleEditForm)
+          .add("query-form", x -> urls.isQueryForm(x.getFullPath()), this::handleQueryForm)
+          .add("query-result", x -> urls.isQueryResult(x.getFullPath()), this::handleQueryResult)
+          .add("create-form", x -> urls.isCreateForm((x.getFullPath())), this::handleCreateForm)
+          .add("create-result", x -> urls.isCreateResult(x.getFullPath()), this::executeCreate )
+          .add("404", x -> urls.isQueryForm(x.getFullPath()), this::error404);
+
+        Element<?> result = forker.apply(exchange);
         exchange.res.setCharacterEncoding("utf-8");
-
-        writer.print(EksHTML.complete(obj, title).toString());
+        writer.print(EksHTML.complete(result, title).toString());
         writer.close();
         return exchange;
+
+//        if (true) {
+//            Object apply = forker.apply(exchange);
+////            obj = resources.toElement(apply);
+//            obj = (Element<?>) apply;
+//        }
+//        else if (path.equals("alps")) {
+//            obj = new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
+//            title = "ALPS";
+//        } else if (urls.isRoot(path)) {
+//            obj = eksIndex.index();
+//        } else if (urls.isItem(path)) {
+//            obj = handleIndex(exchange);
+//        } else if (urls.isEditForm(path)) {
+//            obj = handleEditForm(exchange);
+//        } else if (urls.isQueryForm(path)) {
+//            obj = handleQueryForm(exchange)
+//        } else if (urls.isQueryResult(path)) {
+//            obj = handleQueryResult(exchange);
+//        } else if (urls.isCreateForm(path)) {
+//            obj = handleCreateForm( exchange );
+//        } else if (urls.isCreateResult(path)) {
+//            obj = executeCreate(exchange);
+//        } else {
+//            obj = error404(path);
+//        }
     }
 
-    private Object alps(Exchange x) {
+    private Element<?> handleCreateForm(Exchange exchange) {
+        String itemClass = urls.type(exchange.getFullPath());
+        return forms().createForm(itemClass);
+    }
+
+    private Element<?> handleQueryForm(Exchange exchange) {
+        return new FormHelper(resources).searchForm(urls.queryName(exchange.getFullPath()));
+    }
+
+    private Element<?> executeCreate(Exchange exchange) {
+        Element<?> obj;
+        String itemClass = urls.type(exchange.getFullPath());
+        Resource r = resources.locateByName(itemClass).get();
+        obj = forms().executeCreate(r, exchange.req);
+        return obj;
+    }
+
+    private Element<?> handleEditForm(Exchange exchange) {
+        String itemClass = urls.type(exchange.getFullPath());
+        String itemId = urls.id(exchange.getFullPath());
+        Resource<?> resource = resources.locateByName(itemClass).get();
+        Object item = resource.locator().apply(itemId).get();
+        return forms().editForm(resource.updater(), item);
+    }
+
+    private Element<?> handleQueryResult(Exchange exchange) {
+        Collection<?> objects = resources.executeQuery(this.resources.urlCreator.queryName(exchange.getFullPath()), exchange.req);
+        ul ul = new ul();
+        objects.forEach(o -> ul.add(new li().add(linkToObject(o))));
+        return ul;
+    }
+
+    private Element<?> handleIndex(Exchange exchange) {
+        return new EksIndex(resources).index();
+    }
+
+    private Element<?> handleItem(Exchange exchange) {
+        String itemClass = resources.urlCreator.type(exchange.getFullPath());
+        String itemId = resources.urlCreator.id(exchange.getFullPath());
+        Resource<?> resource = resources.locateByName(itemClass);
+        Optional<?> item = resource.locator().apply(itemId);
+        if( !item.isPresent() ) {
+            throw new IllegalArgumentException( "Not found: " + itemClass + "#" + itemId );
+        }
+
+        switch (exchange.req.getMethod().toUpperCase()) {
+            case "GET":
+                return resources.toElement(item.get());
+            case "POST":
+            case "PUT":
+                return resources.executeUpdate(resource, item.get(), exchange.req);
+            default:
+                throw new UnsupportedOperationException(exchange.req.getMethod().toUpperCase());
+        }
+    }
+
+    private Element<?> alps(Exchange x) {
         return new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
     }
 

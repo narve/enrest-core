@@ -3,6 +3,8 @@ package no.dv8.enrest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class Exchange {
     public final HttpServletRequest req;
@@ -14,7 +16,11 @@ public class Exchange {
     }
 
     public String getFullPath() {
-        return req.getRequestURL().toString();
+//        try {
+            return req.getServletPath() + "/" + req.getPathInfo();
+//        } catch (MalformedURLException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     public Exchange finish() {
