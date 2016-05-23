@@ -36,8 +36,7 @@ public class EksForms {
         Element e = resources.toElement(createResult);
         return new div()
           .add(new h1("The object:"))
-          .add(e)
-          ;
+          .add(e);
     }
 
     public form createForm(String name) {
@@ -54,7 +53,7 @@ public class EksForms {
     public form editForm(Mutator resource, Object item) {
         FormHelper fh = new FormHelper(this.resources);
         form f = fh.createForm(Rels.edit, resource.inputs(item), "post");
-        f.action(resources.urlCreator.viewItem( resources.itemClass( item ), resources.itemId( item )));
+        f.action(resources.urlCreator.viewItem(resources.itemClass(item), resources.itemId(item)));
         return f;
     }
 

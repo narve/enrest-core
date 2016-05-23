@@ -1,10 +1,14 @@
 package no.dv8.eks.rest;
 
+import no.dv8.enrest.Exchange;
+import no.dv8.functions.XFunction;
 import no.dv8.xhtml.generation.elements.*;
+
+import java.util.function.Predicate;
 
 import static no.dv8.eks.semantic.Rels.*;
 
-public class EksIndex {
+public class EksIndex implements Predicate<Exchange>, XFunction<Exchange, Exchange> {
 
     final EksResources resources;
 
@@ -38,4 +42,13 @@ public class EksIndex {
           .add(new li().add(new a("profile").rel(profile).href("http://alps.io/spec/alps-xhtml-profiles/")));
     }
 
+    @Override
+    public boolean test(Exchange exchange) {
+        return false;
+    }
+
+    @Override
+    public Exchange apply(Exchange exchange) throws Exception {
+        return null;
+    }
 }

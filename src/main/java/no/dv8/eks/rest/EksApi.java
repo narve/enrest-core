@@ -1,6 +1,5 @@
 package no.dv8.eks.rest;
 
-import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.semantic.EksAlps;
 import no.dv8.enrest.Exchange;
@@ -14,7 +13,6 @@ import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -104,7 +102,7 @@ public class EksApi implements XFunction<Exchange, Exchange> {
     private Element<?> executeCreate(Exchange exchange) {
         Element<?> obj;
         String itemClass = urls.type(exchange.getFullPath());
-        Resource r = resources.locateByName(itemClass).get();
+        Resource r = resources.locateByName(itemClass);
         obj = forms().executeCreate(r, exchange.req);
         return obj;
     }
@@ -112,7 +110,7 @@ public class EksApi implements XFunction<Exchange, Exchange> {
     private Element<?> handleEditForm(Exchange exchange) {
         String itemClass = urls.type(exchange.getFullPath());
         String itemId = urls.id(exchange.getFullPath());
-        Resource<?> resource = resources.locateByName(itemClass).get();
+        Resource<?> resource = resources.locateByName(itemClass);
         Object item = resource.locator().apply(itemId).get();
         return forms().editForm(resource.updater(), item);
     }
