@@ -2,24 +2,27 @@ package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.semantic.Rels;
-import no.dv8.enrest.forms.FormHelper;
+import no.dv8.enrest.Exchange;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
+import no.dv8.functions.XFunction;
 import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
 
 @Slf4j
-public class EksForms {
+public class EksCreateForms implements Predicate<Exchange>, XFunction<Exchange, Element<?>> {
 
     final EksResources resources;
 
-    public EksForms(EksResources resources) {
+    public EksCreateForms(EksResources resources) {
         this.resources = resources;
     }
 
@@ -39,20 +42,8 @@ public class EksForms {
           .add(e);
     }
 
-    public form createForm(String name) {
-        try {
-            Resource res = resources.locateByRel(name).get();
-            Object obj = res.clz().newInstance();
-            FormHelper fh = new FormHelper(this.resources);
-            return fh.createForm(name, res.creator().inputs(obj), "post");
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public form editForm(Mutator resource, Object item) {
-        FormHelper fh = new FormHelper(this.resources);
-        form f = fh.createForm(Rels.edit, resource.inputs(item), "post");
+        form f = createForm(Rels.edit, resource.inputs(item), "post");
         f.action(resources.urlCreator.viewItem(resources.itemClass(item), resources.itemId(item)));
         return f;
     }
@@ -65,6 +56,43 @@ public class EksForms {
           .map(a -> new li().add(a))
           .forEach(list::add);
         return list;
+    }
+
+    @Override
+    public boolean test(Exchange x) {
+        return resources.urlCreator.isCreateForm((x.getFullPath()));
+    }
+
+    @Override
+    public Element<?> apply(Exchange x) throws Exception {
+        try {
+            String path = x.getFullPath();
+            String type = resources.urlCreator.type(path);
+            Resource res = resources.locateByRel(type).get();
+            Object obj = res.clz().newInstance();
+            return createForm(type, res.creator().inputs(obj), "post");
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static input text(Object r ) {
+        return new input().text().id(r).name(r).placeholder(r.toString());
+    }
+
+    public form createForm(Object name, List<Element<?>> inputs, Object method ) {
+        return new form()
+          .clz(name)
+          .method(method)
+          .action( resources.urlCreator.createAction( name ))
+          .set( "accept-charset", "utf-8")
+          .set( "enc-type", "application/x-www-form-urlencoded")
+          .add(new fieldset()
+            .add(new legend(name))
+            .add( inputs )
+            .add(new input().submit().value(name)
+            ));
     }
 
 }

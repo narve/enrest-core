@@ -1,4 +1,4 @@
-package no.dv8.eks.rest;
+package no.dv8.functions;
 
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
@@ -8,10 +8,12 @@ import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
 import no.dv8.eks.resources.QuestionResource;
 import no.dv8.eks.resources.UserResource;
+import no.dv8.eks.rest.BasicResource;
+import no.dv8.eks.rest.EksHTML;
+import no.dv8.eks.rest.EksResources;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
-import no.dv8.functions.XBiConsumer;
 import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.li;

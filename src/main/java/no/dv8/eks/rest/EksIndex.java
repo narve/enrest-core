@@ -66,7 +66,7 @@ public class EksIndex implements Predicate<Exchange>, XFunction<Exchange, Elemen
             ).add(
             new section()
               .add(new h1("Creators"))
-              .add(new EksForms(resources).creatorForms())
+              .add(new EksCreateForms(resources).creatorForms())
           );
     }
 }

@@ -24,7 +24,7 @@ public class Forker<T, V> {
         return t -> applyFirstMatch(t);
     }
 
-    public V applyFirstMatch(T x) {
+    public V applyFirstMatch(T x) throws UnsupportedOperationException{
         Optional<Pair<Predicate<T>, Function<T, V>>> handler =
           fork
             .stream()
