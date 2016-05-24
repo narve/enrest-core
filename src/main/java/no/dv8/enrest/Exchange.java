@@ -1,5 +1,7 @@
 package no.dv8.enrest;
 
+import no.dv8.eks.rest.EksResources;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -16,11 +18,7 @@ public class Exchange {
     }
 
     public String getFullPath() {
-//        try {
             return req.getServletPath() + "/" + req.getPathInfo();
-//        } catch (MalformedURLException e) {
-//            throw new RuntimeException(e);
-//        }
     }
 
     public Exchange finish() {

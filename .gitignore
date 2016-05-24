@@ -9,3 +9,4 @@ databases/*.*
 databases/Eks.h2.db
 databases/Eks.lock.db
 databases/Eks.trace.db
+nohup.out

@@ -23,12 +23,10 @@ import static no.dv8.eks.rest.EksHTML.relToA;
 @Slf4j
 public class EksResources {
 
-//    final String basePath;
     final List<Resource<?>> resources = new ArrayList<>();
     public ResourcePaths urlCreator;
 
     public EksResources(String basePath) {
-//        this.basePath = basePath;
         this.urlCreator = new ResourcePaths(basePath);
     }
 
@@ -125,16 +123,6 @@ public class EksResources {
               a.addAll(b);
               return a;
           });
-    }
-
-    public ul queriesAsList() {
-        ul l = new ul();
-        queries()
-          .stream()
-          .map(q -> relToA(q.getRel(), urlCreator.query(q.getRel())))
-          .map(a -> new li().add(a))
-          .forEach(i -> l.add(i));
-        return l;
     }
 
     public Collection<?> executeQuery(String name, HttpServletRequest req) {

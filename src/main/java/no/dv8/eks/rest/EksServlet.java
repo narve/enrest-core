@@ -124,12 +124,16 @@ public class EksServlet extends HttpServlet {
         this.config = config;
         handler = new Chainer<Exchange>()
           .add(reqLogger())
-          .add(new Forker<Exchange, Exchange>().add("api", startsWith(apiPath), new EksApi(createResources(ServletBase + apiPath+"/"))))
+          .add(
+            new Forker<Exchange, Exchange>()
+              .add("api", startsWith(apiPath), new EksApi(createResources(ServletBase + apiPath + "/")))
+              .forker()
+          )
           .add(finisher());
     }
 
     private Predicate<Exchange> startsWith(String s) {
-        return x -> ( x.req.getPathInfo() == null ? "" : x.req.getPathInfo()).startsWith(s);
+        return x -> (x.req.getPathInfo() == null ? "" : x.req.getPathInfo()).startsWith(s);
     }
 
 }

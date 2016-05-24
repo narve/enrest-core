@@ -13,12 +13,18 @@ import static no.dv8.functions.ServletFunctions.exMeansFalse;
 import static no.dv8.functions.XFunction.hidex;
 
 
-public class Forker<T, V> implements Function<T, V> {
+public class Forker<T, V> {
 
     private List<Pair<Predicate<T>, Function<T, V>>> fork = new ArrayList<>();
 
-    @Override
-    public V apply(T x) {
+    public Forker() {
+    }
+
+    public Function<T, V> forker() {
+        return t -> applyFirstMatch(t);
+    }
+
+    public V applyFirstMatch(T x) {
         Optional<Pair<Predicate<T>, Function<T, V>>> handler =
           fork
             .stream()
@@ -35,14 +41,9 @@ public class Forker<T, V> implements Function<T, V> {
         fork.add(new Pair<>(condition, hidex(name, handler)));
         return this;
     }
-//
-//    public Forker add(String name, Predicate<T> condition, Consumer<T> handler) {
-//        fork.add(new Pair<>(condition, hidex(name, returner( handler))));
-//        return this;
-//    }
-//
-//    private <T> Function<T, V> returner(Consumer<T> handler) {
-//        return x -> { handler.accept(x); return x;};
-//    }
+
+    public <X extends Predicate<T>&XFunction<T, V>> Forker<T, V> add(String name, X x) {
+        return add( name, x, x );
+    }
 
 }
