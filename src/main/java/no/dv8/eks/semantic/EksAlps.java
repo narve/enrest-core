@@ -3,12 +3,18 @@ package no.dv8.eks.semantic;
 import no.dv8.alps.Alps;
 import no.dv8.alps.Descriptor;
 import no.dv8.alps.Doc;
+import no.dv8.enrest.Exchange;
+import no.dv8.functions.XFunction;
+import no.dv8.xhtml.generation.support.Element;
+import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 import static no.dv8.alps.Descriptor.semantic;
 
-public class EksAlps {
+public class EksAlps implements Predicate<Exchange>, XFunction<Exchange, Element<?>> {
+
 
     public Alps alps() {
 
@@ -64,4 +70,13 @@ public class EksAlps {
         return alps;
     }
 
+    @Override
+    public boolean test(Exchange x) {
+        return x.getFullPath().endsWith("/alps");
+    }
+
+    @Override
+    public Element<?> apply(Exchange exchange) throws Exception {
+        return new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100);
+    }
 }

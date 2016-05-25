@@ -1,16 +1,14 @@
 package no.dv8.enrest;
 
-import no.dv8.eks.rest.EksResources;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class Exchange {
     public final HttpServletRequest req;
     public final HttpServletResponse res;
+
+    private Object entity;
 
     public Exchange(HttpServletRequest req, HttpServletResponse res) {
         this.req = req;
@@ -18,7 +16,7 @@ public class Exchange {
     }
 
     public String getFullPath() {
-            return req.getServletPath() + "/" + req.getPathInfo();
+        return req.getServletPath() + "/" + (req.getPathInfo() == null ? "" : req.getPathInfo());
     }
 
     public Exchange finish() {
@@ -33,5 +31,13 @@ public class Exchange {
     @Override
     public String toString() {
         return req.getMethod() + " " + req.getRequestURL();
+    }
+
+    public Object getEntity() {
+        return entity;
+    }
+
+    public void setEntity(Object entity) {
+        this.entity = entity;
     }
 }

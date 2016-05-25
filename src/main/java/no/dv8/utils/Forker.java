@@ -46,4 +46,8 @@ public class Forker<T, V> {
         return add( name, x, x );
     }
 
+    public <X extends Predicate<T>&XFunction<T, V>> Forker<T, V> add(X x) {
+        return add( x.toString(), x, x );
+    }
+
 }
