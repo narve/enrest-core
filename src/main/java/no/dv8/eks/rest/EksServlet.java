@@ -35,7 +35,7 @@ public class EksServlet extends HttpServlet {
     static final String ServletBase = "/eks";
 
     private ServletConfig config;
-    private Chainer handler;
+    private UnaryOperator<Exchange> handler;
 
     private EksResources createResources(String path) {
         EksResources resources = new EksResources(path);
@@ -129,7 +129,8 @@ public class EksServlet extends HttpServlet {
               .add("api", startsWith(apiPath), new EksApi(createResources(ServletBase + apiPath + "/")))
               .forker()
           )
-          .add(finisher());
+          .add(finisher())
+          .chain();
     }
 
     private Predicate<Exchange> startsWith(String s) {
