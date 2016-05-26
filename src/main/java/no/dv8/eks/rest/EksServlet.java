@@ -125,7 +125,7 @@ public class EksServlet extends HttpServlet {
         handler = new Chainer<Exchange>()
           .add(reqLogger())
           .add(
-            new Forker<Exchange, Exchange>()
+            new Forker<Exchange>()
               .add("api", startsWith(apiPath), new EksApi(createResources(ServletBase + apiPath + "/")))
               .forker()
           )

@@ -3,13 +3,12 @@ package no.dv8.eks.rest;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.functions.XFunction;
-import no.dv8.xhtml.generation.support.Element;
+import no.dv8.functions.XUnaryOperator;
 
 import java.util.function.Predicate;
 
 @Slf4j
-public class EksEditForms implements Predicate<Exchange>, XFunction<Exchange, Element<?>> {
+public class EksEditForms implements Predicate<Exchange>, XUnaryOperator<Exchange> {
 
     private final EksResources resources;
 
@@ -28,11 +27,11 @@ public class EksEditForms implements Predicate<Exchange>, XFunction<Exchange, El
     }
 
     @Override
-    public Element<?> apply(Exchange exchange) throws Exception {
+    public Exchange apply(Exchange exchange) throws Exception {
         String itemClass = resources.urlCreator.type(exchange.getFullPath());
         String itemId = resources.urlCreator.id(exchange.getFullPath());
         Resource<?> resource = resources.locateByName(itemClass);
         Object item = resource.locator().apply(itemId).get();
-        return forms().editForm(resource.updater(), item);
+        return exchange.withEntity(forms().editForm(resource.updater(), item));
     }
 }

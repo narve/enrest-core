@@ -2,7 +2,7 @@ package no.dv8.eks.rest;
 
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.queries.QueryResource;
-import no.dv8.functions.XFunction;
+import no.dv8.functions.XUnaryOperator;
 import no.dv8.xhtml.generation.elements.fieldset;
 import no.dv8.xhtml.generation.elements.form;
 import no.dv8.xhtml.generation.elements.input;
@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 
-public class EksQueryForms implements Predicate<Exchange>, XFunction<Exchange, Element<?>> {
+public class EksQueryForms implements Predicate<Exchange>, XUnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -29,14 +29,14 @@ public class EksQueryForms implements Predicate<Exchange>, XFunction<Exchange, E
     }
 
     @Override
-    public Element<?> apply(Exchange exchange) throws Exception {
+    public Exchange apply(Exchange exchange) throws Exception {
         String rel = resources.urlCreator.queryName(exchange.getFullPath());
         QueryResource q = resources.queryForRel(rel);
         List<Element<?>> controls = q.params()
           .stream()
           .map(p -> new input().type(p.getHtmlType()).name(p.getName()).id(p.getName()))
           .collect(toList());
-        return new form()
+        return exchange.withEntity(new form()
           .clz(rel)
           .get()
           .action(resources.urlCreator.queryResult(rel))
@@ -45,6 +45,6 @@ public class EksQueryForms implements Predicate<Exchange>, XFunction<Exchange, E
               .add(new legend(rel.toString()))
               .add(controls)
               .add(new input().submit().value(rel))
-          );
+          ));
     }
 }

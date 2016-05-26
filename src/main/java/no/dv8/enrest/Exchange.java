@@ -1,5 +1,7 @@
 package no.dv8.enrest;
 
+import no.dv8.xhtml.generation.elements.p;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -37,7 +39,9 @@ public class Exchange {
         return entity;
     }
 
-    public void setEntity(Object entity) {
-        this.entity = entity;
+
+    public Exchange withEntity(Object test) {
+        this.entity = test;
+        return this;
     }
 }

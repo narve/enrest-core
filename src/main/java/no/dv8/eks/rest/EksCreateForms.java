@@ -6,6 +6,7 @@ import no.dv8.enrest.Exchange;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 import no.dv8.functions.XFunction;
+import no.dv8.functions.XUnaryOperator;
 import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
@@ -18,7 +19,7 @@ import java.util.function.Predicate;
 import static no.dv8.eks.rest.EksHTML.relToA;
 
 @Slf4j
-public class EksCreateForms implements Predicate<Exchange>, XFunction<Exchange, Element<?>> {
+public class EksCreateForms implements Predicate<Exchange>, XUnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -64,13 +65,13 @@ public class EksCreateForms implements Predicate<Exchange>, XFunction<Exchange, 
     }
 
     @Override
-    public Element<?> apply(Exchange x) throws Exception {
+    public Exchange apply(Exchange x) throws Exception {
         try {
             String path = x.getFullPath();
             String type = resources.urlCreator.type(path);
             Resource res = resources.locateByRel(type).get();
             Object obj = res.clz().newInstance();
-            return createForm(type, res.creator().inputs(obj), "post");
+            return x.withEntity(createForm(type, res.creator().inputs(obj), "post"));
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }

@@ -1,9 +1,8 @@
 package no.dv8.eks.rest;
 
 import no.dv8.enrest.Exchange;
-import no.dv8.functions.XFunction;
+import no.dv8.functions.XUnaryOperator;
 import no.dv8.xhtml.generation.elements.*;
-import no.dv8.xhtml.generation.support.Element;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -13,7 +12,7 @@ import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.eks.semantic.Rels.*;
 
-public class EksIndex implements Predicate<Exchange>, XFunction<Exchange, Element<?>> {
+public class EksIndex implements Predicate<Exchange>, XUnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -52,8 +51,8 @@ public class EksIndex implements Predicate<Exchange>, XFunction<Exchange, Elemen
     }
 
     @Override
-    public Element<?> apply(Exchange exchange) {
-        return
+    public Exchange apply(Exchange exchange) {
+        article d =
           new article()
             .add(
               new section()
@@ -68,5 +67,6 @@ public class EksIndex implements Predicate<Exchange>, XFunction<Exchange, Elemen
               .add(new h1("Creators"))
               .add(new EksCreateForms(resources).creatorForms())
           );
+        return exchange.withEntity(d);
     }
 }
