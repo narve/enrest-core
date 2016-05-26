@@ -141,24 +141,23 @@ public class EksServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        final String apiPath = "";
         this.config = config;
+        EksResources resources = createResources(ServletBase + "/" );
         handler = new FuncList<Exchange>()
           .add("req-logger", always(), reqLogger())
-          .add("main", always(), mainFork(createResources(ServletBase + apiPath + "/")))
-          .add("writer", always(), writer())
-          .add("req-logger", always(), finisher())
+          .add("main", always(), mainFork(resources))
+          .add("linker", always(), new EksLinker(resources))
+          .add("writer", always(), writer(resources))
+          .add("res-logger", always(), finisher())
           .all();
     }
 
-    UnaryOperator<Exchange> writer() {
+    UnaryOperator<Exchange> writer(EksResources resources) {
         return new FuncList<Exchange>()
           .add("html", isJSON(), new JSONWriter())
           .add("html", isXHTML(), new XHTMLWriter())
           .add("html", always(), new XHTMLWriter())
           .forker(x -> "No suitable outputter for " + x);
-//        return exchange ->
-//        return new XHTMLWriter();
     }
 
     Predicate<Exchange> isXHTML() {

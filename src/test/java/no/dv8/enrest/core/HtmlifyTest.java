@@ -3,8 +3,11 @@ package no.dv8.enrest.core;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
 import no.dv8.eks.rest.BasicResource;
+import no.dv8.eks.rest.EksLinker;
 import no.dv8.eks.rest.EksResources;
 import no.dv8.eks.semantic.Rels;
+import no.dv8.enrest.Exchange;
+import no.dv8.enrest.writers.XHTMLWriter;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.support.Element;
 import org.junit.Test;
@@ -42,9 +45,11 @@ public class HtmlifyTest {
         Article art = new Article();
         art.setId(456L);
 
-        assertThat(resource().locateByClz(Comment.class), isPresent());
+        EksResources resource = resource();
 
-        Element<?> element = resource().toElement(art);
+        assertThat(resource.locateByClz(Comment.class), isPresent());
+
+        Element<?> element = new XHTMLWriter().toElement(art, new EksLinker(resource).apply(new Exchange(null, null)).getLinks());
 
         Element<?> links = element.getChildren().get(element.getChildren().size() - 1);
         assertThat(links.getChildren().size(), equalTo(3));

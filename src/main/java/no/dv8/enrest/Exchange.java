@@ -1,16 +1,19 @@
 package no.dv8.enrest;
 
+import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.p;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 public class Exchange {
     public final HttpServletRequest req;
     public final HttpServletResponse res;
 
     private Object entity;
+    private List<a> links;
 
     public Exchange(HttpServletRequest req, HttpServletResponse res) {
         this.req = req;
@@ -43,5 +46,14 @@ public class Exchange {
     public Exchange withEntity(Object test) {
         this.entity = test;
         return this;
+    }
+
+    public Exchange withLinks(List<a> links) {
+        this.links = links;
+        return this;
+    }
+
+    public List<a> getLinks() {
+        return links;
     }
 }

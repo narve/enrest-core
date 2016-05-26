@@ -49,43 +49,6 @@ public class EksResources {
         return resources;
     }
 
-    public <T> Element<?> toElement(T item) {
-        Resource<T> r = (Resource<T>) locateByClz(item.getClass()).get();
-
-        List<a> links = r.linker().links(item);
-
-        for (a link : links) {
-            Optional<Resource<?>> sub = locateByClz(link.href().getClass());
-            if (sub.isPresent()) {
-                log.info("Converting link using {}", sub);
-                switch (link.getAttributes().getOrDefault("rel", "").toString()) {
-                    case "edit":
-                        link.href(urlCreator.editItem(itemClass(link.href()), itemId( link.href() ) ) );
-                        break;
-                    case "self":
-                    default:
-                        link.href(urlCreator.viewItem(itemClass(link.href()), itemId( link.href() ) ) );
-                        break;
-                }
-            }
-        }
-
-        div d = new div();
-        d.add(new XHTMLSerialize<>().generateElement(item, 1));
-        d.add(new div().clz("links").add(
-          links.stream().map(l -> new li().add(l)).collect(toList())
-        ));
-        return d;
-    }
-
-    public Element<?> executeUpdate(Resource<?> resource, Object item, HttpServletRequest req) {
-        Mutator mutator = resource.creator();
-        Map<String, String> vals = new Props().single(req.getParameterMap());
-        Object q = mutator.setProps(item, vals);
-        mutator.update(q);
-        return toElement(q);
-    }
-
     public <T> Optional<Resource<?>> locateByRel(String name) {
         return locate(cr -> cr.getName().equals(name), "rel='" + name + "'");
     }

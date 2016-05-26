@@ -28,20 +28,21 @@ public class EksCreateForms implements Predicate<Exchange>, UnaryOperator<Exchan
         this.resources = resources;
     }
 
-    public Element executeCreate(Resource<?> resource, HttpServletRequest req) {
+    public Object executeCreate(Resource<?> resource, HttpServletRequest req) {
         Mutator cr = resource.creator();
         Object createResult;
         try {
             Map<String, String> vals = new Props().single(req.getParameterMap());
             createResult = cr.setProps(resource.clz().newInstance(), vals);
             createResult = cr.create(createResult);
+            return createResult;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        Element e = resources.toElement(createResult);
-        return new div()
-          .add(new h1("The object:"))
-          .add(e);
+//        Element e = resources.toElement(createResult);
+//        return new div()
+//          .add(new h1("The object:"))
+//          .add(e);
     }
 
     public form editForm(Mutator resource, Object item) {

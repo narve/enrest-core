@@ -2,8 +2,12 @@ package no.dv8.eks.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
+import no.dv8.utils.Props;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -34,13 +38,23 @@ public class EksItem implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
         switch (exchange.req.getMethod().toUpperCase()) {
             case "GET":
-                return exchange.withEntity(resources.toElement(item.get()));
+//                return exchange.withEntity(resources.toElement(item.get()));
+                return exchange.withEntity(item.get());
             case "POST":
             case "PUT":
-                return exchange.withEntity(resources.executeUpdate(resource, item.get(), exchange.req));
+                return exchange.withEntity(executeUpdate(resource, item.get(), exchange.req));
             default:
                 throw new UnsupportedOperationException(exchange.toString());
         }
+    }
+
+    public Object executeUpdate(Resource<?> resource, Object item, HttpServletRequest req) {
+        Mutator mutator = resource.creator();
+        Map<String, String> vals = new Props().single(req.getParameterMap());
+        Object q = mutator.setProps(item, vals);
+        q = mutator.update(q);
+//        return toElement(q);
+        return q;
     }
 
 
