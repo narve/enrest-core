@@ -6,12 +6,16 @@ import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
 import no.dv8.eks.resources.QuestionResource;
 import no.dv8.eks.resources.UserResource;
+import no.dv8.eks.semantic.EksAlps;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
+import no.dv8.enrest.writers.JSONWriter;
+import no.dv8.enrest.writers.XHTMLWriter;
 import no.dv8.utils.FuncList;
 import no.dv8.xhtml.generation.elements.a;
+import no.dv8.xhtml.generation.elements.p;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -118,23 +122,64 @@ public class EksServlet extends HttpServlet {
         };
     }
 
+
+    UnaryOperator<Exchange> mainFork(EksResources resources) {
+        return new FuncList<Exchange>()
+          .add("test", x -> x.getFullPath().endsWith("/test"), x -> x.withEntity(new p("test")))
+          .add(new EksAlps())
+          .add(new EksIndex(resources))
+          .add(new EksItem(resources))
+          .add(new EksEditForms(resources))
+          .add(new EksQueryForms(resources))
+          .add(new EksQueryResults(resources))
+          .add(new EksCreateForms(resources))
+          .add(new EksCreateResult(resources))
+          .add(new EksNotFound())
+          .forker(x -> "No suitable path-match for " + x);
+    }
+
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         final String apiPath = "";
         this.config = config;
         handler = new FuncList<Exchange>()
           .add("req-logger", always(), reqLogger())
-          .add("main", always(),
-            new FuncList<Exchange>()
-              .add("api", startsWith(apiPath), new EksApi(createResources(ServletBase + apiPath + "/")))
-              .forker()
-          )
+          .add("main", always(), mainFork(createResources(ServletBase + apiPath + "/")))
+          .add("writer", always(), writer())
           .add("req-logger", always(), finisher())
-          .chain();
+          .all();
     }
 
-    private Predicate<Exchange> startsWith(String s) {
-        return x -> (x.req.getPathInfo() == null ? "" : x.req.getPathInfo()).startsWith(s);
+    UnaryOperator<Exchange> writer() {
+        return new FuncList<Exchange>()
+          .add("html", isJSON(), new JSONWriter())
+          .add("html", isXHTML(), new XHTMLWriter())
+          .add("html", always(), new XHTMLWriter())
+          .forker(x -> "No suitable outputter for " + x);
+//        return exchange ->
+//        return new XHTMLWriter();
     }
+
+    Predicate<Exchange> isXHTML() {
+        return x -> {
+            String acc = x.req.getHeader("Accept");
+            log.info(x + ": " + acc);
+            return acc != null && acc.contains("html");
+        };
+    }
+
+    Predicate<Exchange> isJSON() {
+        return x -> {
+            String acc = x.req.getHeader("Accept");
+            log.info(x + ": " + acc);
+            return acc != null && acc.contains("json");
+        };
+    }
+
+//
+//    private Predicate<Exchange> startsWith(String s) {
+//        return x -> (x.req.getPathInfo() == null ? "" : x.req.getPathInfo()).startsWith(s);
+//    }
 
 }

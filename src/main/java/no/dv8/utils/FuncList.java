@@ -5,6 +5,7 @@ import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
@@ -23,10 +24,14 @@ public class FuncList<T> {
     }
 
     public UnaryOperator<T> forker() {
-        return t -> applyFirstMatch(t);
+        return forker(x -> "No handler for " + String.valueOf(x));
     }
 
-    public T applyFirstMatch(T x) throws UnsupportedOperationException {
+    public UnaryOperator<T> forker( Function<T, String> messageSupplier ) {
+        return t -> applyFirstMatch(t, messageSupplier);
+    }
+
+    public T applyFirstMatch(T x, Function<T, String> messageSupplier) throws UnsupportedOperationException {
         Optional<Pair<Predicate<T>, UnaryOperator<T>>> handler =
           fork
             .stream()
@@ -35,7 +40,7 @@ public class FuncList<T> {
         if (handler.isPresent()) {
             return handler.get().getValue().apply(x);
         } else {
-            throw new UnsupportedOperationException("No handler for " + x);
+            throw new UnsupportedOperationException(messageSupplier.apply(x));
         }
     }
 
@@ -53,7 +58,7 @@ public class FuncList<T> {
         return add(x.toString(), x, x);
     }
 
-    public UnaryOperator<T> chain() {
+    public UnaryOperator<T> all() {
         return obj ->
           fork
             .stream()

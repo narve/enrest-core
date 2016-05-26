@@ -1,9 +1,6 @@
 package no.dv8.utils;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.rest.EksApi;
-import no.dv8.eks.rest.EksResources;
-import no.dv8.enrest.resources.Resource;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -12,7 +9,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
