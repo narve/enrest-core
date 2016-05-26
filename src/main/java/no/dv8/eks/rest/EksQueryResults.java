@@ -8,8 +8,9 @@ import no.dv8.xhtml.generation.elements.ul;
 
 import java.util.Collection;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
-public class EksQueryResults implements Predicate<Exchange>, XUnaryOperator<Exchange> {
+public class EksQueryResults implements Predicate<Exchange>, UnaryOperator<Exchange> {
     final EksResources resources;
 
     public EksQueryResults(EksResources resources) {
@@ -23,7 +24,7 @@ public class EksQueryResults implements Predicate<Exchange>, XUnaryOperator<Exch
     }
 
     @Override
-    public Exchange apply(Exchange exchange) throws Exception {
+    public Exchange apply(Exchange exchange) {
         Collection<?> objects = resources.executeQuery(this.resources.urlCreator.queryName(exchange.getFullPath()), exchange.req);
         ul ul = new ul();
         objects.forEach(o -> ul.add(new li().add(linkToObject(o))));

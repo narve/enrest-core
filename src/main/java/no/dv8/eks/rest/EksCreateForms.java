@@ -15,11 +15,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import static no.dv8.eks.rest.EksHTML.relToA;
 
 @Slf4j
-public class EksCreateForms implements Predicate<Exchange>, XUnaryOperator<Exchange> {
+public class EksCreateForms implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -65,7 +66,7 @@ public class EksCreateForms implements Predicate<Exchange>, XUnaryOperator<Excha
     }
 
     @Override
-    public Exchange apply(Exchange x) throws Exception {
+    public Exchange apply(Exchange x) {
         try {
             String path = x.getFullPath();
             String type = resources.urlCreator.type(path);

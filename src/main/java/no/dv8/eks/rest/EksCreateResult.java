@@ -7,8 +7,9 @@ import no.dv8.functions.XUnaryOperator;
 import no.dv8.xhtml.generation.support.Element;
 
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
-public class EksCreateResult implements Predicate<Exchange>, XUnaryOperator<Exchange> {
+public class EksCreateResult implements Predicate<Exchange>, UnaryOperator<Exchange> {
     final EksResources resources;
 
     public EksCreateResult(EksResources resources) {
@@ -21,7 +22,7 @@ public class EksCreateResult implements Predicate<Exchange>, XUnaryOperator<Exch
     }
 
     @Override
-    public Exchange apply(Exchange exchange) throws Exception {
+    public Exchange apply(Exchange exchange) {
         Element<?> obj;
         String itemClass = resources.urlCreator.type(exchange.getFullPath());
         Resource r = resources.locateByName(itemClass);

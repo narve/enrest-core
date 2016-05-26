@@ -2,7 +2,6 @@ package no.dv8.eks.rest;
 
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.queries.QueryResource;
-import no.dv8.functions.XUnaryOperator;
 import no.dv8.xhtml.generation.elements.fieldset;
 import no.dv8.xhtml.generation.elements.form;
 import no.dv8.xhtml.generation.elements.input;
@@ -11,10 +10,11 @@ import no.dv8.xhtml.generation.support.Element;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import static java.util.stream.Collectors.toList;
 
-public class EksQueryForms implements Predicate<Exchange>, XUnaryOperator<Exchange> {
+public class EksQueryForms implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -29,7 +29,7 @@ public class EksQueryForms implements Predicate<Exchange>, XUnaryOperator<Exchan
     }
 
     @Override
-    public Exchange apply(Exchange exchange) throws Exception {
+    public Exchange apply(Exchange exchange) {
         String rel = resources.urlCreator.queryName(exchange.getFullPath());
         QueryResource q = resources.queryForRel(rel);
         List<Element<?>> controls = q.params()

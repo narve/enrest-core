@@ -3,15 +3,13 @@ package no.dv8.eks.rest;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.functions.XFunction;
-import no.dv8.functions.XUnaryOperator;
-import no.dv8.xhtml.generation.support.Element;
 
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 @Slf4j
-public class EksItem implements Predicate<Exchange>, XUnaryOperator<Exchange> {
+public class EksItem implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -25,7 +23,7 @@ public class EksItem implements Predicate<Exchange>, XUnaryOperator<Exchange> {
     }
 
     @Override
-    public Exchange apply(Exchange exchange) throws Exception {
+    public Exchange apply(Exchange exchange) {
         String itemClass = resources.urlCreator.type(exchange.getFullPath());
         String itemId = resources.urlCreator.id(exchange.getFullPath());
         Resource<?> resource = resources.locateByName(itemClass);

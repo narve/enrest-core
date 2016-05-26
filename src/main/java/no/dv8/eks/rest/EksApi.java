@@ -3,20 +3,17 @@ package no.dv8.eks.rest;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.semantic.EksAlps;
 import no.dv8.enrest.Exchange;
-import no.dv8.functions.XFunction;
-import no.dv8.functions.XUnaryOperator;
-import no.dv8.utils.Forker;
+import no.dv8.utils.FuncList;
 import no.dv8.xhtml.generation.elements.p;
 import no.dv8.xhtml.generation.support.Element;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 @Slf4j
-public class EksApi implements XUnaryOperator<Exchange> {
+public class EksApi implements UnaryOperator<Exchange> {
 
     final EksResources resources;
 
@@ -26,9 +23,9 @@ public class EksApi implements XUnaryOperator<Exchange> {
     }
 
     @Override
-    public Exchange apply(Exchange exchange) throws Exception {
+    public Exchange apply(Exchange exchange) {
 
-        UnaryOperator<Exchange> forker = new Forker<Exchange>()
+        UnaryOperator<Exchange> forker = new FuncList<Exchange>()
           .add("test", x -> x.getFullPath().endsWith("/test"), x -> x.withEntity( new p("test")))
           .add(new EksAlps())
           .add(new EksIndex(this.resources))
@@ -46,9 +43,13 @@ public class EksApi implements XUnaryOperator<Exchange> {
 
         exchange.res.setContentType("text/html");
         exchange.res.setCharacterEncoding("utf-8");
-        PrintWriter writer = exchange.res.getWriter();
-        writer.print(EksHTML.complete(result, title).toString());
-        writer.close();
+        try {
+            PrintWriter writer = exchange.res.getWriter();
+            writer.print(EksHTML.complete(result, title).toString());
+            writer.close();
+        } catch( IOException e ) {
+            throw new RuntimeException(e);
+        }
         return exchange;
     }
 

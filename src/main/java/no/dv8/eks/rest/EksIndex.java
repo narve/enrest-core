@@ -1,18 +1,18 @@
 package no.dv8.eks.rest;
 
 import no.dv8.enrest.Exchange;
-import no.dv8.functions.XUnaryOperator;
 import no.dv8.xhtml.generation.elements.*;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.eks.semantic.Rels.*;
 
-public class EksIndex implements Predicate<Exchange>, XUnaryOperator<Exchange> {
+public class EksIndex implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
     final EksResources resources;
 

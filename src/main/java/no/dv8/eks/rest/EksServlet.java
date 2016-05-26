@@ -10,8 +10,7 @@ import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
-import no.dv8.utils.Chainer;
-import no.dv8.utils.Forker;
+import no.dv8.utils.FuncList;
 import no.dv8.xhtml.generation.elements.a;
 
 import javax.servlet.ServletConfig;
@@ -27,6 +26,7 @@ import java.util.function.UnaryOperator;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static no.dv8.eks.rest.EksServlet.ServletBase;
+import static no.dv8.utils.FuncList.always;
 
 @javax.servlet.annotation.WebServlet(urlPatterns = {ServletBase + "/*"})
 @Slf4j
@@ -122,14 +122,14 @@ public class EksServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         final String apiPath = "";
         this.config = config;
-        handler = new Chainer<Exchange>()
-          .add(reqLogger())
-          .add(
-            new Forker<Exchange>()
+        handler = new FuncList<Exchange>()
+          .add("req-logger", always(), reqLogger())
+          .add("main", always(),
+            new FuncList<Exchange>()
               .add("api", startsWith(apiPath), new EksApi(createResources(ServletBase + apiPath + "/")))
               .forker()
           )
-          .add(finisher())
+          .add("req-logger", always(), finisher())
           .chain();
     }
 
