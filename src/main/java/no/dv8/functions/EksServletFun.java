@@ -1,6 +1,5 @@
 package no.dv8.functions;
 
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
@@ -13,6 +12,7 @@ import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.semantic.Rels;
 import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
+import no.dv8.utils.Pair;
 import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.li;

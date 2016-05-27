@@ -1,7 +1,5 @@
 package no.dv8.utils;
 
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +25,7 @@ public class FuncList<T> {
         return forker(x -> "No handler for " + String.valueOf(x));
     }
 
-    public UnaryOperator<T> forker( Function<T, String> messageSupplier ) {
+    public UnaryOperator<T> forker(Function<T, String> messageSupplier) {
         return t -> applyFirstMatch(t, messageSupplier);
     }
 
