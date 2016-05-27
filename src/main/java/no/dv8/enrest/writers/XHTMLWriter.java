@@ -27,7 +27,6 @@ public class XHTMLWriter implements UnaryOperator<Exchange> {
         return d;
     }
 
-
     @Override
     public Exchange apply(Exchange exchange) {
         Object entity = exchange.getEntity();
@@ -50,6 +49,4 @@ public class XHTMLWriter implements UnaryOperator<Exchange> {
             throw new RuntimeException(e);
         }
     }
-
-    ;
 }

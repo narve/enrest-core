@@ -22,7 +22,7 @@ public class EksCreateResult implements Predicate<Exchange>, UnaryOperator<Excha
     public Exchange apply(Exchange exchange) {
         Object obj;
         String itemClass = resources.urlCreator.type(exchange.getFullPath());
-        Resource r = resources.locateByName(itemClass);
+        Resource r = resources.getByName(itemClass);
         obj = new EksCreateForms(resources).executeCreate(r, exchange.req);
         return exchange.withEntity(obj);    }
 }

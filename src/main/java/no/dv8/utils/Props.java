@@ -63,6 +63,7 @@ public class Props {
 
     public Object coerce(String value, PropertyDescriptor pd) {
         log.debug( "Coercing {} to {} ({})", value, pd.getName(), pd.getPropertyType());
+        if( value == null ) return null;
         if (pd.getPropertyType().equals(Long.TYPE) || pd.getPropertyType().equals( Long.class))
             return Long.parseLong(value);
 

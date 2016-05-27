@@ -145,6 +145,7 @@ public class EksServlet extends HttpServlet {
         EksResources resources = createResources(ServletBase + "/" );
         handler = new FuncList<Exchange>()
           .add("req-logger", always(), reqLogger())
+          .add(new EksEntityParser(resources))
           .add("main", always(), mainFork(resources))
           .add("linker", always(), new EksLinker(resources))
           .add("writer", always(), writer(resources))

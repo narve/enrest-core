@@ -53,9 +53,14 @@ public class EksResources {
         return locate(cr -> cr.getName().equals(name), "rel='" + name + "'");
     }
 
-    public <T> Resource<?> locateByName(String itemType) {
+    public <T> Resource<?> getByName(String itemType) {
         return locate(r -> r.getName().equalsIgnoreCase(itemType), "type='" + itemType + "'").get();
     }
+
+    public Optional<Resource<?>> findByName(String itemType) {
+        return locate(r -> r.getName().equalsIgnoreCase(itemType), "type='" + itemType + "'");
+    }
+
 
     public <T> Optional<Resource<?>> locateByClz(Class<T> clz) {
         return locate(r -> r.clz().equals(clz), "clz='" + clz.getName() + "'");

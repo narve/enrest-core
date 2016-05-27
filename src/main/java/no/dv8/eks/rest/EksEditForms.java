@@ -30,7 +30,7 @@ public class EksEditForms implements Predicate<Exchange>, UnaryOperator<Exchange
     public Exchange apply(Exchange exchange) {
         String itemClass = resources.urlCreator.type(exchange.getFullPath());
         String itemId = resources.urlCreator.id(exchange.getFullPath());
-        Resource<?> resource = resources.locateByName(itemClass);
+        Resource<?> resource = resources.getByName(itemClass);
         Object item = resource.locator().apply(itemId).get();
         return exchange.withEntity(forms().editForm(resource.updater(), item));
     }

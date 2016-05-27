@@ -38,8 +38,8 @@ public class Exchange {
         return req.getMethod() + " " + req.getRequestURL();
     }
 
-    public Object getEntity() {
-        return entity;
+    public <T> T getEntity() {
+        return (T) entity;
     }
 
 
@@ -55,5 +55,9 @@ public class Exchange {
 
     public List<a> getLinks() {
         return links;
+    }
+
+    public String header(String s) {
+        return req.getHeader(s);
     }
 }
