@@ -1,8 +1,10 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourcePaths;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 import no.dv8.utils.Props;
@@ -17,11 +19,11 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 @Slf4j
-public class EksEntityParser implements Predicate<Exchange>, UnaryOperator<Exchange> {
+public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
-    final EksResources resources;
+    final ResourceRegistry resources;
 
-    public EksEntityParser(EksResources resources) {
+    public EntityParser(ResourceRegistry resources) {
         this.resources = resources;
     }
 

@@ -2,9 +2,9 @@ package no.dv8.enrest.core;
 
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
-import no.dv8.eks.rest.BasicResource;
-import no.dv8.eks.rest.EksLinker;
-import no.dv8.eks.rest.EksResources;
+import no.dv8.eks.resources.BasicResource;
+import no.dv8.enrest.handlers.LinkHandler;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.writers.XHTMLWriter;
@@ -21,8 +21,8 @@ import static org.junit.Assert.fail;
 
 public class HtmlifyTest {
 
-    EksResources resource() {
-        EksResources resources = new EksResources("");
+    ResourceRegistry resource() {
+        ResourceRegistry resources = new ResourceRegistry("");
         BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
         BasicResource<Comment> commentResource = BasicResource.create(resources, Comment.class);
 
@@ -45,11 +45,11 @@ public class HtmlifyTest {
         Article art = new Article();
         art.setId(456L);
 
-        EksResources resource = resource();
+        ResourceRegistry resource = resource();
 
         assertThat(resource.locateByClz(Comment.class), isPresent());
 
-        Element<?> element = new XHTMLWriter().toElement(art, new EksLinker(resource).apply(new Exchange(null, null)).getLinks());
+        Element<?> element = new XHTMLWriter().toElement(art, new LinkHandler(resource).apply(new Exchange(null, null)).getLinks());
 
         Element<?> links = element.getChildren().get(element.getChildren().size() - 1);
         assertThat(links.getChildren().size(), equalTo(3));

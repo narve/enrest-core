@@ -1,5 +1,6 @@
 package no.dv8.eks.rest;
 
+import no.dv8.enrest.ResourcePaths;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

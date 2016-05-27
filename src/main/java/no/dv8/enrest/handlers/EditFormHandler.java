@@ -1,23 +1,24 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Resource;
 
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 @Slf4j
-public class EksEditForms implements Predicate<Exchange>, UnaryOperator<Exchange> {
+public class EditFormHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
-    private final EksResources resources;
+    private final ResourceRegistry resources;
 
-    public EksEditForms(EksResources resources) {
+    public EditFormHandler(ResourceRegistry resources) {
         this.resources = resources;
     }
 
-    EksCreateForms forms() {
-        return new EksCreateForms(resources);
+    CreateFormHandler forms() {
+        return new CreateFormHandler(resources);
     }
 
 

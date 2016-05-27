@@ -1,6 +1,7 @@
-package no.dv8.eks.rest;
+package no.dv8.eks.resources;
 
 import no.dv8.eks.controllers.CRUD;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.enrest.resources.Linker;
@@ -16,7 +17,7 @@ import static java.util.Arrays.asList;
 
 public class BasicResource<T> implements Resource<T> {
     public final Class<T> clz;
-    public final EksResources owner;
+    public final ResourceRegistry owner;
 
     public Linker<T> linker = Linker.defaultLinker();
     public Function<String, Optional<T>> locator = s -> Optional.ofNullable(CRUD.create(clz()).getById(s));
@@ -24,11 +25,11 @@ public class BasicResource<T> implements Resource<T> {
     public Mutator<T> creator = crudMutator();
     public List<QueryResource> queries;
 
-    public static <T> BasicResource<T> create( EksResources owner, Class<T> clz ) {
+    public static <T> BasicResource<T> create(ResourceRegistry owner, Class<T> clz ) {
         return new BasicResource<>(owner, clz);
     }
 
-    public BasicResource(EksResources owner, Class<T> clz) {
+    public BasicResource(ResourceRegistry owner, Class<T> clz) {
         this.clz = clz;
         this.owner = owner;
         this.queries = new ArrayList<>(asList(

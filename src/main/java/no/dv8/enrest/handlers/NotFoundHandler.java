@@ -1,4 +1,4 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import no.dv8.enrest.Exchange;
 import no.dv8.xhtml.generation.elements.div;
@@ -7,7 +7,7 @@ import no.dv8.xhtml.generation.elements.h1;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-public class EksNotFound implements Predicate<Exchange>, UnaryOperator<Exchange> {
+public class NotFoundHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
     @Override
     public boolean test(Exchange exchange) {
         return true;

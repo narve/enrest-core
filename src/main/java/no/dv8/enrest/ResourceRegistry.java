@@ -1,32 +1,21 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.queries.QueryResource;
-import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.utils.Props;
-import no.dv8.xhtml.generation.elements.a;
-import no.dv8.xhtml.generation.elements.div;
-import no.dv8.xhtml.generation.elements.li;
-import no.dv8.xhtml.generation.elements.ul;
-import no.dv8.xhtml.generation.support.Element;
-import no.dv8.xhtml.serializer.XHTMLSerialize;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
-import static no.dv8.eks.rest.EksHTML.relToA;
-
 @Slf4j
-public class EksResources {
+public class ResourceRegistry {
 
     final List<Resource<?>> resources = new ArrayList<>();
     public ResourcePaths urlCreator;
 
-    public EksResources(String basePath) {
+    public ResourceRegistry(String basePath) {
         this.urlCreator = new ResourcePaths(basePath);
     }
 

@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.toMap;
 @Slf4j
 public class Props {
 
-//    EksResources resources;
+//    ResourceRegistry resources;
 
     public Props() {
 //        this.resources = resources;

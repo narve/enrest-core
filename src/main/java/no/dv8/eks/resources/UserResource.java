@@ -3,7 +3,6 @@ package no.dv8.eks.resources;
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.controllers.UsersJPA;
 import no.dv8.eks.model.User;
-import no.dv8.eks.rest.EksCreateForms;
 import no.dv8.eks.semantic.Names;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.queries.QueryResource;
@@ -24,7 +23,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
-import static no.dv8.eks.rest.EksCreateForms.text;
+import static no.dv8.enrest.handlers.CreateFormHandler.text;
 import static no.dv8.functions.ServletFunctions.consumer;
 
 

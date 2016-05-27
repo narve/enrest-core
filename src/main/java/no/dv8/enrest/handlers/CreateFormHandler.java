@@ -1,12 +1,11 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.functions.XFunction;
-import no.dv8.functions.XUnaryOperator;
 import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.*;
 import no.dv8.xhtml.generation.support.Element;
@@ -20,11 +19,11 @@ import java.util.function.UnaryOperator;
 import static no.dv8.eks.rest.EksHTML.relToA;
 
 @Slf4j
-public class EksCreateForms implements Predicate<Exchange>, UnaryOperator<Exchange> {
+public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
-    final EksResources resources;
+    final ResourceRegistry resources;
 
-    public EksCreateForms(EksResources resources) {
+    public CreateFormHandler(ResourceRegistry resources) {
         this.resources = resources;
     }
 

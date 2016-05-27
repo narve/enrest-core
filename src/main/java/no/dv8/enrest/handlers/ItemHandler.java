@@ -1,7 +1,8 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Resource;
 
 import java.util.Optional;
@@ -9,11 +10,11 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 @Slf4j
-public class EksItem implements Predicate<Exchange>, UnaryOperator<Exchange> {
+public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
-    final EksResources resources;
+    final ResourceRegistry resources;
 
-    public EksItem(EksResources resources) {
+    public ItemHandler(ResourceRegistry resources) {
         this.resources = resources;
     }
 

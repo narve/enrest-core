@@ -1,6 +1,7 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.xhtml.generation.elements.*;
 
 import java.util.List;
@@ -12,11 +13,11 @@ import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksHTML.relToA;
 import static no.dv8.eks.semantic.Rels.*;
 
-public class EksIndex implements Predicate<Exchange>, UnaryOperator<Exchange> {
+public class IndexHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
-    final EksResources resources;
+    final ResourceRegistry resources;
 
-    public EksIndex(EksResources resources) {
+    public IndexHandler(ResourceRegistry resources) {
         this.resources = resources;
     }
 
@@ -65,7 +66,7 @@ public class EksIndex implements Predicate<Exchange>, UnaryOperator<Exchange> {
             ).add(
             new section()
               .add(new h1("Creators"))
-              .add(new EksCreateForms(resources).creatorForms())
+              .add(new CreateFormHandler(resources).creatorForms())
           );
         return exchange.withEntity(d);
     }

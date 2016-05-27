@@ -1,7 +1,7 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import no.dv8.enrest.Exchange;
-import no.dv8.functions.XUnaryOperator;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.elements.li;
 import no.dv8.xhtml.generation.elements.ul;
@@ -10,10 +10,10 @@ import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-public class EksQueryResults implements Predicate<Exchange>, UnaryOperator<Exchange> {
-    final EksResources resources;
+public class QueryResultHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
+    final ResourceRegistry resources;
 
-    public EksQueryResults(EksResources resources) {
+    public QueryResultHandler(ResourceRegistry resources) {
         this.resources = resources;
     }
 

@@ -22,7 +22,7 @@ public class PropsMapper {
 //        this.resources = resources;
     }
 
-//    final EksResources resources;
+//    final ResourceRegistry resources;
 
     static <T> BinaryOperator<T> throwingMerger() {
         return (u, v) -> {

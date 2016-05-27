@@ -1,4 +1,4 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest;
 
 public class ResourcePaths {
     private final String pathToResource = "view-resource";

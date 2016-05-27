@@ -8,9 +8,9 @@ import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
 import no.dv8.eks.resources.QuestionResource;
 import no.dv8.eks.resources.UserResource;
-import no.dv8.eks.rest.BasicResource;
+import no.dv8.eks.resources.BasicResource;
 import no.dv8.eks.rest.EksHTML;
-import no.dv8.eks.rest.EksResources;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
@@ -48,7 +48,7 @@ public class EksServletFun {
 
 
     List<Pair<Predicate<HttpServletRequest>, BiConsumer<HttpServletRequest, HttpServletResponse>>> consumers() {
-        EksResources resources = new EksResources("justsomestuff");
+        ResourceRegistry resources = new ResourceRegistry("justsomestuff");
 
         BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
 //        artResource.linker = t -> asList(

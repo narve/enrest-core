@@ -1,15 +1,16 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Resource;
 
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-public class EksCreateResult implements Predicate<Exchange>, UnaryOperator<Exchange> {
-    final EksResources resources;
+public class CreateResultHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
+    final ResourceRegistry resources;
 
-    public EksCreateResult(EksResources resources) {
+    public CreateResultHandler(ResourceRegistry resources) {
         this.resources = resources;
     }
 
@@ -23,6 +24,6 @@ public class EksCreateResult implements Predicate<Exchange>, UnaryOperator<Excha
         Object obj;
         String itemClass = resources.urlCreator.type(exchange.getFullPath());
         Resource r = resources.getByName(itemClass);
-        obj = new EksCreateForms(resources).executeCreate(r, exchange.req);
+        obj = new CreateFormHandler(resources).executeCreate(r, exchange.req);
         return exchange.withEntity(obj);    }
 }

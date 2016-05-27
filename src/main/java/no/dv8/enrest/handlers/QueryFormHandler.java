@@ -1,6 +1,7 @@
-package no.dv8.eks.rest;
+package no.dv8.enrest.handlers;
 
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.xhtml.generation.elements.fieldset;
 import no.dv8.xhtml.generation.elements.form;
@@ -14,11 +15,11 @@ import java.util.function.UnaryOperator;
 
 import static java.util.stream.Collectors.toList;
 
-public class EksQueryForms implements Predicate<Exchange>, UnaryOperator<Exchange> {
+public class QueryFormHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
-    final EksResources resources;
+    final ResourceRegistry resources;
 
-    public EksQueryForms(EksResources resources) {
+    public QueryFormHandler(ResourceRegistry resources) {
         this.resources = resources;
     }
 
