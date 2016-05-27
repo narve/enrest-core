@@ -1,4 +1,4 @@
-package no.dv8.eks.semantic;
+package no.dv8.enrest.semantic;
 
 public enum Types {
 //    all, date_time, description, friends, followers, me, mentions, message, message_post, message_reply, message_share, single, messages_search, message_text,

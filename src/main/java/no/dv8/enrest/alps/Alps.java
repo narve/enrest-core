@@ -1,4 +1,4 @@
-package no.dv8.alps;
+package no.dv8.enrest.alps;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

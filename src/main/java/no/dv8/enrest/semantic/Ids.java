@@ -1,4 +1,4 @@
-package no.dv8.eks.semantic;
+package no.dv8.enrest.semantic;
 
 public enum Ids {
 

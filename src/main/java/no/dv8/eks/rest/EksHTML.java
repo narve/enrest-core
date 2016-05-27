@@ -14,10 +14,14 @@ public class EksHTML {
               .set("profile", "http://alps.io/spec/alps-xhtml-profiles/")
               .add(new title(title))
 
-              .add( new script().type( "text/javascript").set( "async", "async" ).src( "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=AM_CHTML") )
-              .add(new link().rel("stylesheet").type("text/stylesheet").href("/forms.css"))
-            .add( new meta().charset( "UTF-8"))
-            .add( new meta().set( "http-equiv", "Content-Type").set( "content", "text/html").charset("utf-8"))
+              .add(new script().type("text/javascript").set("async", "async").src("https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=AM_CHTML"))
+
+              .add(new link().type("text/css").href("/css/developer.css").rel("alternate stylesheet").set("title", "developer"))
+              .add(new link().type("text/css").href("/css/user.css").rel("alternate stylesheet").set("title", "user"))
+
+              .add(new link().type("text/css").href("/css/common.css").rel("stylesheet"))
+              .add(new meta().charset("UTF-8"))
+              .add(new meta().set("http-equiv", "Content-Type").set("content", "text/html").charset("utf-8"))
           ).add(
             new body()
               .add(new h1(title))

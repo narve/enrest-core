@@ -1,13 +1,17 @@
 package no.dv8.enrest.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.semantic.Rels;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
+import no.dv8.enrest.semantic.Rels;
 import no.dv8.utils.Props;
-import no.dv8.xhtml.generation.elements.*;
+import no.dv8.xhtml.generation.elements.form;
+import no.dv8.xhtml.generation.elements.input;
+import no.dv8.xhtml.generation.elements.li;
+import no.dv8.xhtml.generation.elements.ul;
+import no.dv8.xhtml.generation.support.Custom;
 import no.dv8.xhtml.generation.support.Element;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +31,10 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
         this.resources = resources;
     }
 
+    public static input text(Object r) {
+        return new input().text().id(r).name(r).placeholder(r.toString());
+    }
+
     public Object executeCreate(Resource<?> resource, HttpServletRequest req) {
         Mutator cr = resource.creator();
         Object createResult;
@@ -42,12 +50,6 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
 //        return new div()
 //          .add(new h1("The object:"))
 //          .add(e);
-    }
-
-    public form editForm(Mutator resource, Object item) {
-        form f = createForm(Rels.edit, resource.inputs(item), "post");
-        f.action(resources.urlCreator.viewItem(resources.itemClass(item), resources.itemId(item)));
-        return f;
     }
 
     public ul creatorForms() {
@@ -72,29 +74,28 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
             String type = resources.urlCreator.type(path);
             Resource res = resources.locateByRel(type).get();
             Object obj = res.clz().newInstance();
-            return x.withEntity(createForm(type, res.creator().inputs(obj), "post"));
+            return x.withEntity(getForm(type, "create", res.creator().inputs(obj), "post"));
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-
-    public static input text(Object r ) {
-        return new input().text().id(r).name(r).placeholder(r.toString());
-    }
-
-    public form createForm(Object name, List<Element<?>> inputs, Object method ) {
+    public form getForm(Object name, String clz, List<Element<?>> inputs, Object method) {
         return new form()
-          .clz(name)
+          .addClz( name )
+          .addClz( clz )
           .method(method)
-          .action( resources.urlCreator.createAction( name ))
-          .set( "accept-charset", "utf-8")
-          .set( "enc-type", "application/x-www-form-urlencoded")
-          .add(new fieldset()
-            .add(new legend(name))
-            .add( inputs )
-            .add(new input().submit().value(name)
-            ));
+          .action(resources.urlCreator.createAction(name))
+          .set("accept-charset", "utf-8")
+          .set("enc-type", "application/x-www-form-urlencoded")
+          .add(inputs)
+          .add(new Custom( "button" ).set( "type", "submit").add( ""+name));
+
+//          .add(new fieldset()
+//            .add(new legend(name))
+//            .add( inputs )
+//            .add(new input().submit().value(name)
+//            ));
     }
 
 }

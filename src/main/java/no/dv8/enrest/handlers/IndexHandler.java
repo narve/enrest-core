@@ -11,7 +11,7 @@ import java.util.function.UnaryOperator;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static no.dv8.eks.rest.EksHTML.relToA;
-import static no.dv8.eks.semantic.Rels.*;
+import static no.dv8.enrest.semantic.Rels.*;
 
 public class IndexHandler implements Predicate<Exchange>, UnaryOperator<Exchange> {
 

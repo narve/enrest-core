@@ -1,8 +1,8 @@
 package no.dv8.enrest;
 
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.dirs.Dirs;
-import no.dv8.eks.semantic.EksAlps;
+import no.dv8.enrest.handlers.FileHandler;
+import no.dv8.enrest.semantic.EksAlps;
 import no.dv8.enrest.handlers.*;
 import no.dv8.enrest.writers.JSONWriter;
 import no.dv8.enrest.writers.XHTMLWriter;
@@ -65,7 +65,7 @@ public abstract class EnrestServlet extends HttpServlet {
     UnaryOperator<Exchange> mainFork(ResourceRegistry resources) {
         return new FuncList<Exchange>()
           .add("test", x -> x.getFullPath().endsWith("/test"), x -> x.withEntity(new p("test")))
-          .add("static-files", x -> x.req.getPathInfo() != null && x.req.getPathInfo().startsWith("/_files" ), new Dirs("/home/narve/dev", "/eks/_files"))
+          .add("static-files", x -> x.req.getPathInfo() != null && x.req.getPathInfo().startsWith("/_files" ), new FileHandler("/home/narve/dev", "/eks/_files"))
           .add(new EksAlps())
           .add(new IndexHandler(resources))
           .add(new ItemHandler(resources))

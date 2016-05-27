@@ -5,7 +5,7 @@ import no.dv8.eks.model.Comment;
 import no.dv8.eks.resources.BasicResource;
 import no.dv8.enrest.handlers.LinkHandler;
 import no.dv8.enrest.ResourceRegistry;
-import no.dv8.eks.semantic.Rels;
+import no.dv8.enrest.semantic.Rels;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.writers.XHTMLWriter;
 import no.dv8.xhtml.generation.elements.a;

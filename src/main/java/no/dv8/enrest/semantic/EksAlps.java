@@ -1,8 +1,8 @@
-package no.dv8.eks.semantic;
+package no.dv8.enrest.semantic;
 
-import no.dv8.alps.Alps;
-import no.dv8.alps.Descriptor;
-import no.dv8.alps.Doc;
+import no.dv8.enrest.alps.Alps;
+import no.dv8.enrest.alps.Descriptor;
+import no.dv8.enrest.alps.Doc;
 import no.dv8.enrest.Exchange;
 import no.dv8.xhtml.serializer.XHTMLSerialize;
 
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-import static no.dv8.alps.Descriptor.semantic;
+import static no.dv8.enrest.alps.Descriptor.semantic;
 
 public class EksAlps implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
@@ -18,7 +18,7 @@ public class EksAlps implements Predicate<Exchange>, UnaryOperator<Exchange> {
     public Alps alps() {
 
         Descriptor questionsSearch = Descriptor.builder()
-          .doc(new Doc("Search createForm for questions"))
+          .doc(new Doc("Search getForm for questions"))
           .id(Types.questions_search.toString())
           .type("safe")
           .rt("contact")
@@ -56,9 +56,9 @@ public class EksAlps implements Predicate<Exchange>, UnaryOperator<Exchange> {
           .id("collection")
           .type("safe")
           .rt("contact")
-          .doc(new Doc("A simple link/createForm for getting a list of contacts"))
+          .doc(new Doc("A simple link/getForm for getting a list of contacts"))
           .build()
-          .add(semantic("nameSearch").withDoc(new Doc("Input for a search createForm")));
+          .add(semantic("nameSearch").withDoc(new Doc("Input for a search getForm")));
 
 
         Alps alps = new Alps();

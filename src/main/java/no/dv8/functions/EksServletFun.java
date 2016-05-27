@@ -2,7 +2,6 @@ package no.dv8.functions;
 
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.dirs.Dirs;
 import no.dv8.eks.controllers.CRUD;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
@@ -11,7 +10,7 @@ import no.dv8.eks.resources.UserResource;
 import no.dv8.eks.resources.BasicResource;
 import no.dv8.eks.rest.EksHTML;
 import no.dv8.enrest.ResourceRegistry;
-import no.dv8.eks.semantic.Rels;
+import no.dv8.enrest.semantic.Rels;
 import no.dv8.enrest.queries.Parameter;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.utils.Props;
@@ -103,7 +102,7 @@ public class EksServletFun {
           ),
 //          new Pair<>(
 //            startsWith("/_files"),
-//            hidex(new Dirs("/home/narve/", "_files"))
+//            hidex(new FileHandler("/home/narve/", "_files"))
 //          ),
           new Pair<>(
             startsWith("/_test1"),

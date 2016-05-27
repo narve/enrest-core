@@ -2,9 +2,9 @@ package no.dv8.eks.resources;
 
 import no.dv8.eks.controllers.Questions;
 import no.dv8.eks.model.Question;
-import no.dv8.eks.semantic.Names;
-import no.dv8.eks.semantic.Rels;
-import no.dv8.eks.semantic.Types;
+import no.dv8.enrest.semantic.Names;
+import no.dv8.enrest.semantic.Rels;
+import no.dv8.enrest.semantic.Types;
 import no.dv8.enrest.queries.QueryResource;
 import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.enrest.resources.Mutator;

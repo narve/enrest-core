@@ -7,7 +7,7 @@ import no.dv8.eks.model.Comment;
 import no.dv8.eks.resources.BasicResource;
 import no.dv8.eks.resources.QuestionResource;
 import no.dv8.eks.resources.UserResource;
-import no.dv8.eks.semantic.Rels;
+import no.dv8.enrest.semantic.Rels;
 import no.dv8.enrest.EnrestServlet;
 import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.queries.Parameter;

@@ -1,4 +1,4 @@
-package no.dv8.dirs;
+package no.dv8.enrest.handlers;
 
 import no.dv8.enrest.Exchange;
 import no.dv8.functions.XBiConsumer;
@@ -22,12 +22,12 @@ import java.util.function.UnaryOperator;
 
 import static java.util.stream.Collectors.toList;
 
-public class Dirs implements UnaryOperator<Exchange> {
+public class FileHandler implements UnaryOperator<Exchange> {
 
     final String baseDir;
     final String prefix;
 
-    public Dirs(String baseDir, String prefix) {
+    public FileHandler(String baseDir, String prefix) {
         this.baseDir = baseDir;
         this.prefix = prefix;
     }
@@ -70,7 +70,7 @@ public class Dirs implements UnaryOperator<Exchange> {
 
     @Override
     public String toString() {
-        return "Dirs{" +
+        return "FileHandler{" +
           "baseDir='" + baseDir + '\'' +
           ", prefix='" + prefix + '\'' +
           '}';

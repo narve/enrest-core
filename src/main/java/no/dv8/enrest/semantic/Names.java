@@ -1,4 +1,4 @@
-package no.dv8.eks.semantic;
+package no.dv8.enrest.semantic;
 
 public enum Names {
     description, email, message, name, password, search, user, user_image, website,
