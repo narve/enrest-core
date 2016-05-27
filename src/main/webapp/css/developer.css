@@ -1,16 +1,5 @@
-a {
-    // background-color: gray;
-}
-
-
-form {
-    border: 1px solid black;
-}
-
 a::after {
     content: "[rel: " attr(rel) ", href: " attr(href) "]";
     font-size: small;
     margin-left: 0.5em;
 }
-
-/*    //display: block;*/
