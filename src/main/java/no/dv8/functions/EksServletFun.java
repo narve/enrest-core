@@ -101,10 +101,10 @@ public class EksServletFun {
             r -> r.getPathInfo() == null,
             hidex("Redirect", (req, res) -> res.sendRedirect(req.getRequestURI() + "/"))
           ),
-          new Pair<>(
-            startsWith("/_files"),
-            hidex(new Dirs("/home/narve/", "_files"))
-          ),
+//          new Pair<>(
+//            startsWith("/_files"),
+//            hidex(new Dirs("/home/narve/", "_files"))
+//          ),
           new Pair<>(
             startsWith("/_test1"),
             hidex(new EksServletFun().test1())
