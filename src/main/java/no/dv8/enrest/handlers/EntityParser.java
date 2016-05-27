@@ -66,7 +66,19 @@ public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange
             }
         } else {
             Map<String, String> vals = new Props().single(exchange.req.getParameterMap());
-            q = resource.locator().apply(resources.urlCreator.id(exchange.getFullPath())).get();
+            if( resources.urlCreator.isCreateResult(exchange.getFullPath())) {
+                try {
+                    q = resource.clz().newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                String id = resources.urlCreator.id(exchange.getFullPath());
+                q = resource
+                  .locator()
+                  .apply(id)
+                  .orElseThrow( () -> new RuntimeException( "Unable to find " + type + " with id " + id ) );
+            }
             q = mutator.setProps(q, vals);
         }
         return exchange.withEntity(q);
