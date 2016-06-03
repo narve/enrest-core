@@ -7,6 +7,7 @@ import no.dv8.enrest.resources.Resource;
 import no.dv8.xhtml.generation.elements.a;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,6 +24,7 @@ public class LinkHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
 
     @Override
     public Exchange apply(Exchange exchange) {
+        Objects.requireNonNull( exchange.getEntity(), "Cant handle links for NULL" );
         Object item = exchange.getEntity();
 //        Resource resource = resources.locateByClz(item.getClass()).orElseThrow( () -> new UnsupportedOperationException("No resource for " + item.getClass()));
         Optional<Resource<?>> resourceOpt = resources.locateByClz(item.getClass());;
@@ -40,7 +42,7 @@ public class LinkHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
                 log.info("Converting link using {}", sub);
                 switch (link.getAttributes().getOrDefault("rel", "").toString()) {
                     case "edit":
-                        link.href(resources.urlCreator.editItem(resources.itemClass(link.href()), resources.itemId(link.href())));
+                        link.href(resources.urlCreator.editForm(resources.itemClass(link.href()), resources.itemId(link.href())));
                         break;
                     case "self":
                     default:

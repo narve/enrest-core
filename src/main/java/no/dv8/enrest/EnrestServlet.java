@@ -18,6 +18,7 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import static no.dv8.utils.FuncList.always;
+import static no.dv8.utils.FuncList.ifEntity;
 
 @Slf4j
 public abstract class EnrestServlet extends HttpServlet {
@@ -87,8 +88,8 @@ public abstract class EnrestServlet extends HttpServlet {
           .add("req-logger", always(), reqLogger())
           .add(new EntityParser(resources))
           .add("main", always(), mainFork(resources))
-          .add("linker", always(), new LinkHandler(resources))
-          .add("writer", always(), writer())
+          .add("linker", ifEntity(), new LinkHandler(resources))
+          .add("writer", ifEntity(), writer())
           .add("res-logger", always(), finisher())
           .all();
     }

@@ -61,4 +61,9 @@ public class Exchange {
     public String header(String s) {
         return req.getHeader(s);
     }
+
+    public Exchange withStatus(int httpStatus) {
+        res.setStatus(httpStatus);
+        return this;
+    }
 }

@@ -3,6 +3,7 @@ package no.dv8.enrest;
 public class ResourcePaths {
     private final String pathToResource = "view-resource";
     private final String editPathToResource = "edit-resource";
+    private final String deletePathToResource = "delete-resource";
     private final String pathToQueries = "queries";
     private final String pathToQueryResult = "query-result";
 
@@ -79,8 +80,12 @@ public class ResourcePaths {
         return full( pathToResource + "/" + type + "/" + id );
     }
 
-    public String editItem(String type, String id) {
+    public String editForm(String type, String id) {
         return full( editPathToResource + "/" + type + "/" + id );
+    }
+
+    public String deleteForm(String type, String id) {
+        return full( deletePathToResource + "/" + type + "/" + id );
     }
 
     public String createForm(String name) {

@@ -1,11 +1,11 @@
 package no.dv8.enrest.handlers;
 
-import lombok.extern.slf4j.Slf4j;
 import no.dv8.enrest.EnrestServlet;
 import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.core.TestObject;
 import no.dv8.enrest.core.TestObjectResource;
 import no.dv8.enrest.resources.Resource;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.ServletException;
@@ -13,11 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static junit.framework.TestCase.assertTrue;
@@ -31,33 +27,18 @@ public class ItemHandlerTest {
 
     public static final String BASE_PATH = "/unit-test/";
 
-    @Test
-    public void testDeleteOnResource() {
-        // Given:
-        Resource<TestObject> resource = new TestObjectResource();
-        TestObject test1 = new TestObject();
-        test1.setStringValue("val1");
-        resource.creator().create(test1);
+    Resource<TestObject> resource;
+    TestObject test1;
+    EnrestServlet servlet;
+    ResourceRegistry resources;
 
-        // When:
-        Optional<TestObject> got = resource
-                .locator()
-                .apply(test1.getId());
-        assertThat(got, isPresent());
-        resource.deleter().deleteById(test1.getId());
-        assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
-    }
-
-
-    @Test
-    public void testGETByHTTP() throws ServletException {
-        // Given:
-        Resource<TestObject> resource = new TestObjectResource();
-        TestObject test1 = new TestObject();
+    @Before
+    public void beforeTest() throws ServletException {
+        resource = new TestObjectResource();
+        test1 = new TestObject();
         test1.setStringValue("stringval1");
         resource.creator().create(test1);
-
-        EnrestServlet servlet = new EnrestServlet() {
+        servlet = new EnrestServlet() {
             @Override
             public ResourceRegistry createResources() {
                 ResourceRegistry resources = new ResourceRegistry(BASE_PATH);
@@ -65,34 +46,41 @@ public class ItemHandlerTest {
                 return resources;
             }
         };
+        servlet.init(null);
+        resources = servlet.createResources();
+    }
 
-        ResourceRegistry resources = servlet.createResources();
+    @Test
+    public void testDeleteOnResource() {
+        // Given
+        assertThat( resource.locator().apply(test1.getId()), isPresent());
 
+        // When
+        resource.deleter().deleteById(test1.getId());
+
+        // Then
+        assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
+    }
+
+
+    @Test
+    public void testHTTPGET() throws ServletException {
+        // Given:
         assertThat(resource.locator().apply(test1.getId()), isPresent());
-
         assertThat(resources.locateByClz(TestObject.class), isPresent());
         assertThat(resources.getByName(TestObject.class.getSimpleName()), not(is(nullValue())));
 
-
-        // When:
         Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
           .throwIfUnset();
-
-        String url = resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() );
-
-        req.set("getServletPath", BASE_PATH);
-        req.set("getPathInfo", url.substring(BASE_PATH.length()));
-        req.set("getRequestURL", new StringBuffer(url));
+        initReq(req, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ));
         req.set("getMethod", "GET");
-        req.set("getHeader", "application/xhtml");
-        req.set( "getParameterMap", new HashMap<String, String[]>() );
 
         Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        res.set("getWriter", printWriter);
+        StringWriter stringWriter = initRes(res);
 
-        servlet.init(null);
+
+
+        // When:
         servlet.service(req.instance(), res.instance());
 
         assertTrue( "not item: " + req.instance().getRequestURL(), resources.urlCreator.isItem( req.instance().getRequestURL().toString() ) );
@@ -101,91 +89,75 @@ public class ItemHandlerTest {
     }
 
 
+
     @Test
-    public void testDeleteByHTTP() throws ServletException {
+    public void testHTTPDeleteForm() throws ServletException {
         // Given:
-        Resource<TestObject> resource = new TestObjectResource();
-        TestObject test1 = new TestObject();
-        test1.setStringValue("stringval1");
-        resource.creator().create(test1);
+        assertThat(resource.locator().apply(test1.getId()), isPresent());
+        assertThat(resources.locateByClz(TestObject.class), isPresent());
+        assertThat(resources.getByName(TestObject.class.getSimpleName()), not(is(nullValue())));
 
-        EnrestServlet servlet = new EnrestServlet() {
-            @Override
-            public ResourceRegistry createResources() {
-                ResourceRegistry resources = new ResourceRegistry(BASE_PATH);
-                resources.resources().add(resource);
-                return resources;
-            }
-        };
+        Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
+          .throwIfUnset();
+        initReq(req, resources.urlCreator.deleteForm( TestObject.class.getSimpleName(), test1.getId() ));
+        req.set("getMethod", "GET");
 
-        ResourceRegistry resources = servlet.createResources();
+        Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
+        StringWriter stringWriter = initRes(res);
 
+        // When:
+        servlet.service(req.instance(), res.instance());
+
+        assertThat(stringWriter.toString(), containsString("stringval1"));
+    }
+
+
+    @Test
+    public void testHTTPDELETE() throws ServletException {
+        // Given:
         assertThat(resource.locator().apply(test1.getId()), isPresent());
 
         // When:
-        Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
+        Mock<HttpServletRequest> deleteReq = new Mock<>(HttpServletRequest.class)
           .throwIfUnset();
+        initReq( deleteReq, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
+        deleteReq.set("getMethod", "DELETE");
 
-        String url = resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() );
+        Mock<HttpServletResponse> deleteRes = new Mock<>(HttpServletResponse.class);
+        initRes(deleteRes);
+
+        servlet.service(deleteReq.instance(), deleteRes.instance());
+
+        // Then
+        assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
+
+        Mock<HttpServletRequest> getReq = new Mock<>(HttpServletRequest.class)
+          .throwIfUnset();
+        initReq( getReq, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
+        getReq.set("getMethod", "GET");
+
+        Mock<HttpServletResponse> getRes = new Mock<>(HttpServletResponse.class);
+        initRes(getRes);
+
+        servlet.service(getReq.instance(), getRes.instance());
+        assertThat( getRes.instance().getStatus(), equalTo( 404 ) );
+    }
+
+    private void initReq(Mock<HttpServletRequest> req, String url) {
         req.set("getServletPath", BASE_PATH);
         req.set("getPathInfo", url.substring(BASE_PATH.length()));
         req.set("getRequestURL", new StringBuffer(url));
-        req.set("getMethod", "DELETE");
-        req.set("getHeader", "application/xhtml");
+        req.set("getHeader", "application/xhtml"); // Accept !
         req.set( "getParameterMap", new HashMap<String, String[]>() );
+    }
 
-        Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
+
+    private StringWriter initRes(Mock<HttpServletResponse> res) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         res.set("getWriter", printWriter);
-
-        servlet.init(null);
-        servlet.service(req.instance(), res.instance());
-
-        assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
+        return stringWriter;
     }
 
 
-    @Slf4j
-    static class Mock<T> {
-        T t;
-        InvocationHandler handler;
-        Map<String, Object> vals = new HashMap<>();
-        boolean throwIfUnset = false;
-
-        public Mock(Class<T> clz) {
-            handler = new InvocationHandler() {
-                @Override
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    String key = method.getName();
-                    if (vals.containsKey(key)) {
-                        return vals.get(key);
-                    } else {
-                        log.info("INVOKE {}.{} => N/A", clz.getSimpleName(), method.getName());
-                        // maybe?
-                        // return null;
-                        if (throwIfUnset)
-                            throw new IllegalStateException("INVOKED: " + method.getName());
-                        else
-                            return null;
-                    }
-                }
-            };
-            t = (T) Proxy.newProxyInstance(clz.getClassLoader(), new Class[]{clz}, handler);
-        }
-
-        public T instance() {
-            return t;
-        }
-
-
-        public void set(String methodName, Object returnValue) {
-            vals.put(methodName, returnValue);
-        }
-
-        public Mock<T> throwIfUnset() {
-            throwIfUnset = true;
-            return this;
-        }
-    }
 }

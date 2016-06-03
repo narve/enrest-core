@@ -1,5 +1,7 @@
 package no.dv8.utils;
 
+import no.dv8.enrest.Exchange;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -12,13 +14,17 @@ import static no.dv8.functions.ServletFunctions.exMeansFalse;
 
 public class FuncList<T> {
 
-    private List<Pair<Predicate<T>, UnaryOperator<T>>> fork = new ArrayList<>();
+    private List<Pair<Predicate<T>, UnaryOperator<T>>> list = new ArrayList<>();
 
     public FuncList() {
     }
 
     public static <X> Predicate<X> always() {
         return x -> true;
+    }
+
+    public static Predicate<Exchange> ifEntity() {
+        return x -> x.getEntity() != null;
     }
 
     public UnaryOperator<T> forker() {
@@ -31,7 +37,7 @@ public class FuncList<T> {
 
     public T applyFirstMatch(T x, Function<T, String> messageSupplier) throws UnsupportedOperationException {
         Optional<Pair<Predicate<T>, UnaryOperator<T>>> handler =
-          fork
+          list
             .stream()
             .filter(p -> exMeansFalse(p.getKey()).test(x))
             .findFirst();
@@ -43,8 +49,8 @@ public class FuncList<T> {
     }
 
     public FuncList<T> add(String name, Predicate<T> condition, UnaryOperator<T> handler) {
-//        fork.add(new Pair<>(condition, hidex(name, handler)));
-        fork.add(new Pair<>(condition, handler));
+//        list.add(new Pair<>(condition, hidex(name, handler)));
+        list.add(new Pair<>(condition, handler));
         return this;
     }
 
@@ -57,14 +63,33 @@ public class FuncList<T> {
     }
 
     public UnaryOperator<T> all() {
-        return obj ->
-          fork
-            .stream()
-            .filter(x -> x.getKey().test(obj))
-            .map(p -> p.getValue())
-            .reduce(UnaryOperator.identity(),
-              (a, b) -> (x -> b.apply(a.apply(x)))
-            ).apply(obj);
+//        return obj ->
+//          list
+//            .stream()
+//            .filter(x -> x.getKey().test(obj))
+//            .map(p -> p.getValue())
+//            .reduce(UnaryOperator.identity(),
+//              (a, b) -> (x -> b.apply(a.apply(x)))
+//            ).apply(obj);
+
+        return obj -> {
+            T t = obj;
+            for (Pair<Predicate<T>, UnaryOperator<T>> pair : list) {
+                if (pair.getKey().test(t)) {
+                    t = pair.getValue().apply(t);
+                }
+            }
+            return t;
+        };
+
+//        return obj ->
+//          list
+//            .stream()
+//            .filter(x -> x.getKey().test(obj))
+//            .map( x -> x.getValue().apply(obj))
+//            .filter( o -> o != null )
+//            .reduce( (a,b) -> b )
+//            .orElse(null);
     }
 
 }
