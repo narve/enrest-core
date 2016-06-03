@@ -29,6 +29,10 @@ public interface Resource<T> {
         return null;
     }
 
+    default Mutator<T> deleter() {
+        return null;
+    }
+
     default List<QueryResource> queries() {
         return new ArrayList<>();
     }

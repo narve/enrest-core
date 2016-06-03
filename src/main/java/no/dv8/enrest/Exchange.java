@@ -6,6 +6,7 @@ import no.dv8.xhtml.generation.elements.p;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Exchange {
@@ -13,7 +14,7 @@ public class Exchange {
     public final HttpServletResponse res;
 
     private Object entity;
-    private List<a> links;
+    private List<a> links = new ArrayList<>();
 
     public Exchange(HttpServletRequest req, HttpServletResponse res) {
         this.req = req;

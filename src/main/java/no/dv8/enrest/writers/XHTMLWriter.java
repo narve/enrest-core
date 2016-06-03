@@ -18,7 +18,6 @@ import static java.util.stream.Collectors.toList;
 public class XHTMLWriter implements UnaryOperator<Exchange> {
 
     public <T> Element<?> toElement(T item, List<a> links) {
-
         div d = new div();
         d.add(new XHTMLSerialize<>().generateElement(item, 1));
         d.add(new div().clz("links").add(

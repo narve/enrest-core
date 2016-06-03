@@ -15,6 +15,6 @@ public class NotFoundHandler implements Predicate<Exchange>, UnaryOperator<Excha
 
     @Override
     public Exchange apply(Exchange x) {
-        return x.withEntity(new div().add(new h1("404 Not found: " + x.getFullPath())));
+        return x.withEntity(new div().add(new h1("404 Not found - no handler for: " + x.getFullPath())));
     }
 }

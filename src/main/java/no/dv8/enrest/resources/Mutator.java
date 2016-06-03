@@ -13,10 +13,10 @@ public interface Mutator<T> {
 
     default Element<?> getElement(PropsMapper.PropNode node) {
         input input = new input().text().name(node.getName()).id(node.getName()).value(node.getVal());
-        if( Number.class.isAssignableFrom(node.getPd().getPropertyType()) ) {
+        if (Number.class.isAssignableFrom(node.getPd().getPropertyType())) {
             input.type("number ");
             System.out.println("Number: " + node.getName());
-        } else if( node.getPd().getPropertyType().isPrimitive() )  {
+        } else if (node.getPd().getPropertyType().isPrimitive()) {
             input.type("number");
             System.out.println("Primitive: " + node.getName());
         } else {
@@ -27,15 +27,15 @@ public interface Mutator<T> {
 
     default List<Element<?>> inputs(T t) {
         return
-          new PropsMapper()
-            .props(t, true)
-            .stream()
-            .map(pd -> getElement(pd))
-            .collect(toList());
+                new PropsMapper()
+                        .props(t, true)
+                        .stream()
+                        .map(pd -> getElement(pd))
+                        .collect(toList());
     }
 
     default T setProps(T target, Map<String, String> req) {
-        return new PropsMapper().setProps( target, req );
+        return new PropsMapper().setProps(target, req);
     }
 
     default T create(T t) {
@@ -44,6 +44,10 @@ public interface Mutator<T> {
 
     default T update(T t) {
         throw new UnsupportedOperationException("update");
+    }
+
+    default void deleteById(String t) {
+        throw new UnsupportedOperationException("delete");
     }
 
 }

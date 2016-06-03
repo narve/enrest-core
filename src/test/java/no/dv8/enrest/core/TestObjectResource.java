@@ -22,6 +22,17 @@ public class TestObjectResource implements Resource<TestObject> {
             }
 
             @Override
+            public void deleteById(String id) {
+                TestObject t = locator()
+                        .apply(id)
+                        .orElseThrow( IllegalArgumentException::new );
+                boolean removed = objects.remove(t);
+                if( !removed ) {
+                    throw new IllegalStateException();
+                };
+            }
+
+            @Override
             public TestObject setProps(TestObject target, Map<String, String> req) {
                 return target;
             }
@@ -31,7 +42,11 @@ public class TestObjectResource implements Resource<TestObject> {
 
     @Override
     public Mutator<TestObject> updater() {
-        return null;
+        return creator();
+    }
+    @Override
+    public Mutator<TestObject> deleter() {
+        return creator();
     }
 
     public TestObjectResource() {

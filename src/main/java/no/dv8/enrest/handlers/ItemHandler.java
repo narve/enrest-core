@@ -25,10 +25,14 @@ public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
 
     @Override
     public Exchange apply(Exchange exchange) {
+        return handleIt(exchange);
+    }
+
+    public <T> Exchange handleIt( Exchange exchange ) {
         String itemClass = resources.urlCreator.type(exchange.getFullPath());
         String itemId = resources.urlCreator.id(exchange.getFullPath());
-        Resource<?> resource = resources.getByName(itemClass);
-        Optional<?> item = resource.locator().apply(itemId);
+        Resource<T> resource = (Resource<T>) resources.getByName(itemClass);
+        Optional<T> item = resource.locator().apply(itemId);
         if (!item.isPresent()) {
             throw new IllegalArgumentException("Not found: " + itemClass + "#" + itemId);
         }
@@ -39,13 +43,13 @@ public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
                 return exchange.withEntity(item.get());
             case "POST":
             case "PUT":
-//                return exchange.withEntity(executeUpdate(resource, item.get(), exchange.req));
-                return exchange.withEntity(resource.updater().update(exchange.getEntity()));
+                return exchange.withEntity(resource.updater().update(item.get()));
 
             default:
                 throw new UnsupportedOperationException(exchange.toString());
         }
     }
+
 //
 //    public Object executeUpdate(Resource<?> resource, Object item, HttpServletRequest req) {
 //
