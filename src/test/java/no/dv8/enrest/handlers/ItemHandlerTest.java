@@ -115,7 +115,18 @@ public class ItemHandlerTest {
     @Test
     public void testHTTPDELETE() throws ServletException {
         // Given:
+
+        Mock<HttpServletRequest> getReq = new Mock<>(HttpServletRequest.class)
+          .throwIfUnset();
+        initReq( getReq, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
+        getReq.set("getMethod", "GET");
+
+        Mock<HttpServletResponse> getRes = new Mock<>(HttpServletResponse.class);
+        initRes(getRes);
+
         assertThat(resource.locator().apply(test1.getId()), isPresent());
+        servlet.service(getReq.instance(), getRes.instance());
+
 
         // When:
         Mock<HttpServletRequest> deleteReq = new Mock<>(HttpServletRequest.class)
@@ -131,16 +142,14 @@ public class ItemHandlerTest {
         // Then
         assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
 
-        Mock<HttpServletRequest> getReq = new Mock<>(HttpServletRequest.class)
-          .throwIfUnset();
-        initReq( getReq, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
-        getReq.set("getMethod", "GET");
 
-        Mock<HttpServletResponse> getRes = new Mock<>(HttpServletResponse.class);
-        initRes(getRes);
-
-        servlet.service(getReq.instance(), getRes.instance());
-        assertThat( getRes.instance().getStatus(), equalTo( 404 ) );
+        try {
+            servlet.service(getReq.instance(), getRes.instance());
+            fail("Should've excepted");
+        } catch( RuntimeException e ) {
+            // check exception maybe?
+            //assertThat( getRes.instance().getStatus(), equalTo( 404 ) );
+        }
     }
 
     private void initReq(Mock<HttpServletRequest> req, String url) {

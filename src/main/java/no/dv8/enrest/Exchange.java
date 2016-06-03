@@ -22,7 +22,7 @@ public class Exchange {
     }
 
     public String getFullPath() {
-        return req.getServletPath() + "/" + (req.getPathInfo() == null ? "" : req.getPathInfo());
+        return req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
     }
 
     public Exchange finish() {
