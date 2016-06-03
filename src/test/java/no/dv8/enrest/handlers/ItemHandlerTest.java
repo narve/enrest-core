@@ -29,6 +29,8 @@ import static org.junit.Assert.fail;
 
 public class ItemHandlerTest {
 
+    public static final String BASE_PATH = "/unit-test/";
+
     @Test
     public void testDeleteOnResource() {
         // Given:
@@ -58,7 +60,7 @@ public class ItemHandlerTest {
         EnrestServlet servlet = new EnrestServlet() {
             @Override
             public ResourceRegistry createResources() {
-                ResourceRegistry resources = new ResourceRegistry("/unit-test/");
+                ResourceRegistry resources = new ResourceRegistry(BASE_PATH);
                 resources.resources().add(resource);
                 return resources;
             }
@@ -73,12 +75,17 @@ public class ItemHandlerTest {
 
 
         // When:
-        Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class);
-        req.set("getServletPath", "/unit-test/");
-        req.set("getPathInfo", "TestObject/" + test1.getId());
-        req.set("getRequestURL", new StringBuffer("/unit-test/TestObject/" + test1.getId()));
-        req.set("getMethod", "DELETE");
+        Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
+          .throwIfUnset();
+
+        String url = resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() );
+
+        req.set("getServletPath", BASE_PATH);
+        req.set("getPathInfo", url.substring(BASE_PATH.length()));
+        req.set("getRequestURL", new StringBuffer(url));
+        req.set("getMethod", "GET");
         req.set("getHeader", "application/xhtml");
+        req.set( "getParameterMap", new HashMap<String, String[]>() );
 
         Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
         StringWriter stringWriter = new StringWriter();
@@ -105,7 +112,7 @@ public class ItemHandlerTest {
         EnrestServlet servlet = new EnrestServlet() {
             @Override
             public ResourceRegistry createResources() {
-                ResourceRegistry resources = new ResourceRegistry("/unit-test/");
+                ResourceRegistry resources = new ResourceRegistry(BASE_PATH);
                 resources.resources().add(resource);
                 return resources;
             }
@@ -116,12 +123,16 @@ public class ItemHandlerTest {
         assertThat(resource.locator().apply(test1.getId()), isPresent());
 
         // When:
-        Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class);
-        req.set("getServletPath", "/unit-test/");
-        req.set("getPathInfo", "TestObject/" + test1.getId());
-        req.set("getRequestURL", new StringBuffer("/unit-test/TestObject/" + test1.getId()));
+        Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
+          .throwIfUnset();
+
+        String url = resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() );
+        req.set("getServletPath", BASE_PATH);
+        req.set("getPathInfo", url.substring(BASE_PATH.length()));
+        req.set("getRequestURL", new StringBuffer(url));
         req.set("getMethod", "DELETE");
         req.set("getHeader", "application/xhtml");
+        req.set( "getParameterMap", new HashMap<String, String[]>() );
 
         Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
         StringWriter stringWriter = new StringWriter();
@@ -130,10 +141,6 @@ public class ItemHandlerTest {
 
         servlet.init(null);
         servlet.service(req.instance(), res.instance());
-
-
-        fail(stringWriter.toString());
-
 
         assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
     }

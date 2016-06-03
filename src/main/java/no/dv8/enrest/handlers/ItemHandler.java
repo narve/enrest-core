@@ -44,6 +44,9 @@ public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
             case "POST":
             case "PUT":
                 return exchange.withEntity(resource.updater().update(item.get()));
+            case "DELETE":
+                resource.updater().deleteById(itemId);
+                return exchange;
 
             default:
                 throw new UnsupportedOperationException(exchange.toString());
