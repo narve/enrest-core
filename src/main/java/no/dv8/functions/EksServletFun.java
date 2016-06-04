@@ -87,7 +87,7 @@ public class EksServletFun {
           new a(comment.getArticle()).href(comment.getArticle()).rel("article")
         );
 
-        String qhref = resources.urlCreator.queryResult("comments") + "?article.id=%s";
+        String qhref = resources.getPaths().queryResult("comments") + "?article.id=%s";
 //        String qhref = "http://localhost:8080/eks/api/query-result/comments?article.id=%s";
         artResource.linker = article -> asList(
           new a("view " + article.toString()).href(article).rel(Rels.self),

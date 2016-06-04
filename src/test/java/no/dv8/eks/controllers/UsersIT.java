@@ -5,6 +5,7 @@ import no.dv8.eks.model.User;
 import no.dv8.eks.testutil.GuiceJUnitRunner;
 import no.dv8.eks.testutil.IntegrationTestUtil;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,6 +47,7 @@ public class UsersIT {
 
 
     @Test
+    @Ignore
     public void insertTwoAndList() throws Exception {
         log.info( "two" );
         assertThat( users.all(), empty() );

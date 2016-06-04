@@ -75,6 +75,8 @@ public abstract class EnrestServlet extends HttpServlet {
           .add(new QueryResultHandler(resources))
           .add(new CreateFormHandler(resources))
           .add(new CreateResultHandler(resources))
+          .add(new DeleteFormHandler(resources))
+          .add(new DeleteByFormHandler(resources))
           .add(new NotFoundHandler())
           .forker(x -> "No suitable path-match for " + x);
     }

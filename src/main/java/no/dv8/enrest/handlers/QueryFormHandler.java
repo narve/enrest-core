@@ -26,12 +26,12 @@ public class QueryFormHandler implements Predicate<Exchange>, UnaryOperator<Exch
 
     @Override
     public boolean test(Exchange x) {
-        return resources.urlCreator.isQueryForm(x.getFullPath());
+        return resources.getPaths().isQueryForm(x.getFullPath());
     }
 
     @Override
     public Exchange apply(Exchange exchange) {
-        String rel = resources.urlCreator.queryName(exchange.getFullPath());
+        String rel = resources.getPaths().queryName(exchange.getFullPath());
         QueryResource q = resources.queryForRel(rel);
         List<Element<?>> controls = q.params()
           .stream()
@@ -40,7 +40,7 @@ public class QueryFormHandler implements Predicate<Exchange>, UnaryOperator<Exch
         return exchange.withEntity(new form()
           .clz(rel)
           .get()
-          .action(resources.urlCreator.queryResult(rel))
+          .action(resources.getPaths().queryResult(rel))
           .add(
             new fieldset()
               .add(new legend(rel.toString()))

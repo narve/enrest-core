@@ -50,7 +50,7 @@ public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange
     @Override
     public Exchange apply(Exchange exchange) {
         Object q;
-        String type = resources.urlCreator.type(exchange.getFullPath());
+        String type = resources.getPaths().type(exchange.getFullPath());
         Optional<Resource<?>> resourceO = resources.findByName(type);
         if( !resourceO.isPresent() ) {
             return exchange;
@@ -66,14 +66,14 @@ public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange
             }
         } else {
             Map<String, String> vals = new Props().single(exchange.req.getParameterMap());
-            if( resources.urlCreator.isCreateResult(exchange.getFullPath())) {
+            if( resources.getPaths().isCreateResult(exchange.getFullPath())) {
                 try {
                     q = resource.clz().newInstance();
                 } catch (InstantiationException | IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                String id = resources.urlCreator.id(exchange.getFullPath());
+                String id = resources.getPaths().id(exchange.getFullPath());
                 q = resource
                   .locator()
                   .apply(id)
@@ -86,7 +86,7 @@ public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange
 
     @Override
     public boolean test(Exchange exchange) {
-        ResourcePaths urls = resources.urlCreator;
+        ResourcePaths urls = resources.getPaths();
         return urls.isCreateResult(exchange.getFullPath()) || urls.isItem(exchange.getFullPath());
     }
 }

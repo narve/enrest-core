@@ -13,10 +13,10 @@ import java.util.stream.Stream;
 public class ResourceRegistry {
 
     final List<Resource<?>> resources = new ArrayList<>();
-    public ResourcePaths urlCreator;
+    private ResourcePaths paths;
 
     public ResourceRegistry(String basePath) {
-        this.urlCreator = new ResourcePaths(basePath);
+        this.setPaths(new ResourcePaths(basePath));
     }
 
     public static String itemId(Object o) {
@@ -88,6 +88,14 @@ public class ResourceRegistry {
         log.info("Query name: {}", queryName);
         QueryResource qr = queryForRel( name );
         return qr.query(req);
+    }
+
+    public ResourcePaths getPaths() {
+        return paths;
+    }
+
+    public void setPaths(ResourcePaths paths) {
+        this.paths = paths;
     }
 //
 //    public ul toUL( Collection<a> result ) {

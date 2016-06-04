@@ -3,14 +3,16 @@ package no.dv8.enrest.core;
 import no.dv8.eks.model.Article;
 import no.dv8.eks.model.Comment;
 import no.dv8.eks.resources.BasicResource;
-import no.dv8.enrest.handlers.LinkHandler;
-import no.dv8.enrest.ResourceRegistry;
-import no.dv8.enrest.semantic.Rels;
 import no.dv8.enrest.Exchange;
+import no.dv8.enrest.ResourceRegistry;
+import no.dv8.enrest.handlers.LinkHandler;
+import no.dv8.enrest.semantic.Rels;
 import no.dv8.enrest.writers.XHTMLWriter;
 import no.dv8.xhtml.generation.elements.a;
 import no.dv8.xhtml.generation.support.Element;
 import org.junit.Test;
+
+import java.util.List;
 
 import static java.util.Arrays.asList;
 import static no.dv8.utils.OptionalMatcher.isPresent;
@@ -22,7 +24,7 @@ import static org.junit.Assert.fail;
 public class HtmlifyTest {
 
     ResourceRegistry resource() {
-        ResourceRegistry resources = new ResourceRegistry("");
+        ResourceRegistry resources = new ResourceRegistry("/");
         BasicResource<Article> artResource = BasicResource.create(resources, Article.class);
         BasicResource<Comment> commentResource = BasicResource.create(resources, Comment.class);
 
@@ -49,15 +51,15 @@ public class HtmlifyTest {
 
         assertThat(resource.locateByClz(Comment.class), isPresent());
 
-        Element<?> element = new XHTMLWriter().toElement(art, new LinkHandler(resource).apply(new Exchange(null, null)).getLinks());
+        List<a> links = new LinkHandler(resource)
+          .apply(new Exchange(null, null).withEntity(new Article()))
+          .getLinks();
 
-        Element<?> links = element.getChildren().get(element.getChildren().size() - 1);
-        assertThat(links.getChildren().size(), equalTo(3));
+        assertThat(links.size(), equalTo(3));
 
-        a link = (a) links.getChildren().get(links.getChildren().size() - 1);
+        a link = links.get(links.size() - 1);
         assertThat(link.href().toString(), containsString("comment/123"));
 
-        fail(element.toString());
     }
 
 }

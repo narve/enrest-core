@@ -5,6 +5,7 @@ import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.core.TestObject;
 import no.dv8.enrest.core.TestObjectResource;
 import no.dv8.enrest.resources.Resource;
+import no.dv8.xhtml.generation.elements.form;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,8 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.Optional;
 
+import static java.lang.String.valueOf;
 import static junit.framework.TestCase.assertTrue;
 import static no.dv8.utils.OptionalMatcher.isPresent;
 import static org.hamcrest.CoreMatchers.is;
@@ -23,7 +24,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class ItemHandlerTest {
+public class ServletTests {
 
     public static final String BASE_PATH = "/unit-test/";
 
@@ -72,7 +73,7 @@ public class ItemHandlerTest {
 
         Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
           .throwIfUnset();
-        initReq(req, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ));
+        initReq(req, resources.getPaths().viewItem( TestObject.class.getSimpleName(), test1.getId() ));
         req.set("getMethod", "GET");
 
         Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
@@ -83,7 +84,7 @@ public class ItemHandlerTest {
         // When:
         servlet.service(req.instance(), res.instance());
 
-        assertTrue( "not item: " + req.instance().getRequestURL(), resources.urlCreator.isItem( req.instance().getRequestURL().toString() ) );
+        assertTrue( "not item: " + req.instance().getRequestURL(), resources.getPaths().isItem( req.instance().getRequestURL().toString() ) );
 
         assertThat(stringWriter.toString(), containsString("stringval1"));
     }
@@ -99,7 +100,7 @@ public class ItemHandlerTest {
 
         Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
           .throwIfUnset();
-        initReq(req, resources.urlCreator.deleteForm( TestObject.class.getSimpleName(), test1.getId() ));
+        initReq(req, resources.getPaths().deleteForm( TestObject.class.getSimpleName(), test1.getId() ));
         req.set("getMethod", "GET");
 
         Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
@@ -108,7 +109,47 @@ public class ItemHandlerTest {
         // When:
         servlet.service(req.instance(), res.instance());
 
-        assertThat(stringWriter.toString(), containsString("stringval1"));
+        assertThat(stringWriter.toString(), containsString(test1.getId()));
+        assertThat(stringWriter.toString(), containsString("form"));
+    }
+
+
+
+    @Test
+    public void testHTTPDeleteByForm() throws ServletException {
+        // Given:
+        String pathToForm = resources.getPaths().deleteForm(TestObject.class.getSimpleName(), test1.getId());
+        form f = new DeleteFormHandler(resources).apply(new MockExchange().withFullPath( pathToForm )).getEntity();
+
+        Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
+          .throwIfUnset();
+        String action = valueOf(f.get("action"));
+        initReq(req, action);
+        req.set("getMethod", "POST");
+
+        Mock<HttpServletResponse> res = new Mock<>(HttpServletResponse.class);
+        StringWriter stringWriter = initRes(res);
+
+
+        // When:
+        servlet.service(req.instance(), res.instance());
+
+        // Then
+        assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
+        try {
+            Mock<HttpServletRequest> getReq = new Mock<>(HttpServletRequest.class)
+              .throwIfUnset();
+            initReq( getReq, resources.getPaths().viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
+            getReq.set("getMethod", "GET");
+
+            Mock<HttpServletResponse> getRes = new Mock<>(HttpServletResponse.class);
+            initRes(getRes);
+            servlet.service(getReq.instance(), getRes.instance());
+            fail("Should've excepted");
+        } catch( RuntimeException e ) {
+            // check exception maybe?
+            //assertThat( getRes.instance().getStatus(), equalTo( 404 ) );
+        }
     }
 
 
@@ -118,7 +159,7 @@ public class ItemHandlerTest {
 
         Mock<HttpServletRequest> getReq = new Mock<>(HttpServletRequest.class)
           .throwIfUnset();
-        initReq( getReq, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
+        initReq( getReq, resources.getPaths().viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
         getReq.set("getMethod", "GET");
 
         Mock<HttpServletResponse> getRes = new Mock<>(HttpServletResponse.class);
@@ -131,7 +172,7 @@ public class ItemHandlerTest {
         // When:
         Mock<HttpServletRequest> deleteReq = new Mock<>(HttpServletRequest.class)
           .throwIfUnset();
-        initReq( deleteReq, resources.urlCreator.viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
+        initReq( deleteReq, resources.getPaths().viewItem( TestObject.class.getSimpleName(), test1.getId() ) );
         deleteReq.set("getMethod", "DELETE");
 
         Mock<HttpServletResponse> deleteRes = new Mock<>(HttpServletResponse.class);
@@ -141,8 +182,6 @@ public class ItemHandlerTest {
 
         // Then
         assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
-
-
         try {
             servlet.service(getReq.instance(), getRes.instance());
             fail("Should've excepted");

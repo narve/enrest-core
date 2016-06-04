@@ -4,6 +4,7 @@ public class ResourcePaths {
     private final String pathToResource = "view-resource";
     private final String editPathToResource = "edit-resource";
     private final String deletePathToResource = "delete-resource";
+    private final String pathToDeleteResult = "delete-result";
     private final String pathToQueries = "queries";
     private final String pathToQueryResult = "query-result";
 
@@ -51,8 +52,16 @@ public class ResourcePaths {
         return pure( path ).startsWith(editPathToResource + "/" );
     }
 
+    public boolean isDeleteForm(String path) {
+        return pure( path ).startsWith(deletePathToResource + "/" );
+    }
+
     public boolean isQueryForm(String path) {
         return pure( path ).startsWith(pathToQueries + "/");
+    }
+
+    public boolean isDeleteFormResult(String path) {
+        return pure(path).startsWith(pathToDeleteResult);
     }
 
     public String queryName(String path) {
@@ -107,4 +116,9 @@ public class ResourcePaths {
     public String root() {
         return basePath;
     }
+
+    public String deleteFormResult(String simpleName, String id) {
+        return full( pathToDeleteResult + "/" + simpleName + "/" + id );
+    }
+
 }

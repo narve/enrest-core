@@ -5,7 +5,6 @@ import no.dv8.enrest.Exchange;
 import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
-import no.dv8.enrest.semantic.Rels;
 import no.dv8.utils.Props;
 import no.dv8.xhtml.generation.elements.form;
 import no.dv8.xhtml.generation.elements.input;
@@ -56,7 +55,7 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
         ul list = new ul();
         resources.resources()
           .stream()
-          .map(cr -> relToA(cr.getName(), resources.urlCreator.createForm(cr.getName())))
+          .map(cr -> relToA(cr.getName(), resources.getPaths().createForm(cr.getName())))
           .map(a -> new li().add(a))
           .forEach(list::add);
         return list;
@@ -64,14 +63,14 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
 
     @Override
     public boolean test(Exchange x) {
-        return resources.urlCreator.isCreateForm((x.getFullPath()));
+        return resources.getPaths().isCreateForm((x.getFullPath()));
     }
 
     @Override
     public Exchange apply(Exchange x) {
         try {
             String path = x.getFullPath();
-            String type = resources.urlCreator.type(path);
+            String type = resources.getPaths().type(path);
             Resource res = resources.locateByRel(type).get();
             Object obj = res.clz().newInstance();
             return x.withEntity(getForm(type, "create", res.creator().inputs(obj), "post"));
@@ -85,7 +84,7 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
           .addClz( name )
           .addClz( clz )
           .method(method)
-          .action(resources.urlCreator.createAction(name))
+          .action(resources.getPaths().createAction(name))
           .set("accept-charset", "utf-8")
           .set("enc-type", "application/x-www-form-urlencoded")
           .add(inputs)

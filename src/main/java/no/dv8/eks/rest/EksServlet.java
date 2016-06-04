@@ -66,7 +66,7 @@ public class EksServlet extends EnrestServlet {
           new a(comment.getArticle()).href(comment.getArticle()).rel("article")
         );
 
-        String qhref = resources.urlCreator.queryResult("comments") + "?article.id=%s";
+        String qhref = resources.getPaths().queryResult("comments") + "?article.id=%s";
         artResource.linker = article -> asList(
           new a("view " + article.toString()).href(article).rel(Rels.self),
           new a("edit " + article.toString()).href(article).rel(Rels.edit),

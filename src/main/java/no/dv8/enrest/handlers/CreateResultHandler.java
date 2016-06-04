@@ -16,13 +16,13 @@ public class CreateResultHandler implements Predicate<Exchange>, UnaryOperator<E
 
     @Override
     public boolean test(Exchange x) {
-        return resources.urlCreator.isCreateResult(x.getFullPath());
+        return resources.getPaths().isCreateResult(x.getFullPath());
     }
 
     @Override
     public Exchange apply(Exchange exchange) {
         Object obj;
-        String itemClass = resources.urlCreator.type(exchange.getFullPath());
+        String itemClass = resources.getPaths().type(exchange.getFullPath());
         Resource r = resources.getByName(itemClass);
         obj = new CreateFormHandler(resources).executeCreate(r, exchange.req);
         return exchange.withEntity(obj);    }

@@ -21,7 +21,7 @@ public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
 
     @Override
     public boolean test(Exchange x) {
-        return resources.urlCreator.isItem(x.getFullPath());
+        return resources.getPaths().isItem(x.getFullPath());
     }
 
     @Override
@@ -30,8 +30,8 @@ public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
     }
 
     public <T> Exchange handleIt( Exchange exchange ) {
-        String itemClass = resources.urlCreator.type(exchange.getFullPath());
-        String itemId = resources.urlCreator.id(exchange.getFullPath());
+        String itemClass = resources.getPaths().type(exchange.getFullPath());
+        String itemId = resources.getPaths().id(exchange.getFullPath());
         Resource<T> resource = (Resource<T>) resources.getByName(itemClass);
         Optional<T> item = resource.locator().apply(itemId);
         if (!item.isPresent()) {

@@ -32,8 +32,8 @@ public class IndexHandler implements Predicate<Exchange>, UnaryOperator<Exchange
 
     public List<a> basicLinks() {
         return asList(
-          new a("index").rel(index).href(resources.urlCreator.root()),
-          new a("self").rel(self).href(resources.urlCreator.root()),
+          new a("index").rel(index).href(resources.getPaths().root()),
+          new a("self").rel(self).href(resources.getPaths().root()),
           new a("profile").rel(profile).href("http://alps.io/spec/alps-xhtml-profiles/")
         );
     }
@@ -42,13 +42,13 @@ public class IndexHandler implements Predicate<Exchange>, UnaryOperator<Exchange
         return resources
           .queries()
           .stream()
-          .map(q -> relToA(q.getRel(), resources.urlCreator.query(q.getRel())))
+          .map(q -> relToA(q.getRel(), resources.getPaths().query(q.getRel())))
           .collect(toList());
     }
 
     @Override
     public boolean test(Exchange exchange) {
-        return resources.urlCreator.isRoot(exchange.getFullPath());
+        return resources.getPaths().isRoot(exchange.getFullPath());
     }
 
     @Override

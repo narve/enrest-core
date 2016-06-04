@@ -42,11 +42,11 @@ public class LinkHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
                 log.info("Converting link using {}", sub);
                 switch (link.getAttributes().getOrDefault("rel", "").toString()) {
                     case "edit":
-                        link.href(resources.urlCreator.editForm(resources.itemClass(link.href()), resources.itemId(link.href())));
+                        link.href(resources.getPaths().editForm(resources.itemClass(link.href()), resources.itemId(link.href())));
                         break;
                     case "self":
                     default:
-                        link.href(resources.urlCreator.viewItem(resources.itemClass(link.href()), resources.itemId(link.href())));
+                        link.href(resources.getPaths().viewItem(resources.itemClass(link.href()), resources.itemId(link.href())));
                         break;
                 }
             }

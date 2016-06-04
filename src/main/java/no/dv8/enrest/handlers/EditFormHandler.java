@@ -6,7 +6,6 @@ import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 import no.dv8.xhtml.generation.elements.form;
-import no.dv8.enrest.semantic.Rels;
 
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -26,18 +25,18 @@ public class EditFormHandler implements Predicate<Exchange>, UnaryOperator<Excha
 
     @Override
     public boolean test(Exchange x) {
-        return resources.urlCreator.isEditForm(x.getFullPath());
+        return resources.getPaths().isEditForm(x.getFullPath());
     }
 
     @Override
     public Exchange apply(Exchange exchange) {
-        String itemClass = resources.urlCreator.type(exchange.getFullPath());
-        String itemId = resources.urlCreator.id(exchange.getFullPath());
+        String itemClass = resources.getPaths().type(exchange.getFullPath());
+        String itemId = resources.getPaths().id(exchange.getFullPath());
         Resource<?> resource = resources.getByName(itemClass);
         Object item = resource.locator().apply(itemId).get();
         Mutator updater = resource.updater();
         form f = forms().getForm(itemClass, "edit", updater.inputs(item), "post");
-        f.action(resources.urlCreator.viewItem(resources.itemClass(item), resources.itemId(item)));
+        f.action(resources.getPaths().viewItem(resources.itemClass(item), resources.itemId(item)));
         return exchange.withEntity(f);
     }
 }
