@@ -7,6 +7,8 @@ import no.dv8.enrest.queries.SimpleQuery;
 import no.dv8.enrest.resources.Linker;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
+import no.dv8.enrest.semantic.Rels;
+import no.dv8.xhtml.generation.elements.a;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,22 +21,33 @@ public class BasicResource<T> implements Resource<T> {
     public final Class<T> clz;
     public final ResourceRegistry owner;
 
-    public Linker<T> linker = Linker.defaultLinker();
+    public Linker<T> linker = defaultLinker();
     public Function<String, Optional<T>> locator = s -> Optional.ofNullable(CRUD.create(clz()).getById(s));
     public Mutator<T> updater = crudMutator();
     public Mutator<T> creator = crudMutator();
+    public Mutator<T> deleter = crudMutator();
     public List<QueryResource> queries;
-
-    public static <T> BasicResource<T> create(ResourceRegistry owner, Class<T> clz ) {
-        return new BasicResource<>(owner, clz);
-    }
-
     public BasicResource(ResourceRegistry owner, Class<T> clz) {
         this.clz = clz;
         this.owner = owner;
         this.queries = new ArrayList<>(asList(
           new SimpleQuery<T>(clz.getSimpleName() + "Collection", s -> CRUD.create(clz()).all())
         ));
+    }
+
+    public static <T> BasicResource<T> create(ResourceRegistry owner, Class<T> clz) {
+        return new BasicResource<>(owner, clz);
+    }
+
+    public Linker<T> defaultLinker() {
+        return t -> asList(
+          new a("view " + t.toString()).href(t).rel(Rels.self),
+          new a("edit " + t.toString()).href(t).rel(Rels.edit),
+          new a("delete " + t.toString())
+            .rel(Rels.delete_form)
+            .href(owner.getPaths().deleteForm(t.getClass().getSimpleName(), owner.itemId(t))
+            )
+        );
     }
 
     @Override
@@ -63,6 +76,11 @@ public class BasicResource<T> implements Resource<T> {
     }
 
     @Override
+    public Mutator<T> deleter() {
+        return deleter;
+    }
+
+    @Override
     public String getName() {
         return clz.getSimpleName();
     }
@@ -83,6 +101,11 @@ public class BasicResource<T> implements Resource<T> {
             @Override
             public T update(T t) {
                 return CRUD.create(clz).update(t);
+            }
+
+            @Override
+            public void deleteById(String t) {
+                CRUD.create(clz).deleteById(t);
             }
         };
     }

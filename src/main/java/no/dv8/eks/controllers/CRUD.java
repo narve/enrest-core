@@ -5,6 +5,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import java.util.List;
+import java.util.Objects;
 
 public class CRUD<T> extends Controller<T> {
 
@@ -63,4 +64,15 @@ public class CRUD<T> extends Controller<T> {
         getEM().getTransaction().commit();
         return t;
     }
+
+    @Override
+    public void deleteById(String t) {
+        if (!getEM().getTransaction().isActive()) getEM().getTransaction().begin();
+        T e = getEM().find(clz, Long.parseLong(t));
+        Objects.requireNonNull(e, "Not found: " + clz.getSimpleName() + "#" + t);
+        getEM().remove(e);
+        getEM().getTransaction().commit();
+    }
+
+
 }

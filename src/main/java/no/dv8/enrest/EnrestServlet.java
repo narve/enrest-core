@@ -10,7 +10,6 @@ import no.dv8.utils.FuncList;
 import no.dv8.xhtml.generation.elements.p;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,12 +20,25 @@ import static no.dv8.utils.FuncList.always;
 import static no.dv8.utils.FuncList.ifEntity;
 
 @Slf4j
-public abstract class EnrestServlet extends HttpServlet {
+public class EnrestServlet extends HttpServlet {
 
+    public ResourceRegistry registry;
     private ServletConfig config;
-    private UnaryOperator<Exchange> handler;
+    public UnaryOperator<Exchange> handler;
 
-    public abstract ResourceRegistry createResources();
+    public EnrestServlet() {
+    }
+
+    public EnrestServlet(ResourceRegistry resourceRegistry) {
+        this.registry = resourceRegistry;
+        init(null);
+    }
+
+    public ResourceRegistry createResources() {
+        if( this.registry != null )
+            return registry;
+        throw new UnsupportedOperationException("abstract getMethod: createResources. Override, or provide resources in constructor" );
+    };
 
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res) {
@@ -47,26 +59,26 @@ public abstract class EnrestServlet extends HttpServlet {
     public void destroy() {
     }
 
-    UnaryOperator<Exchange> reqLogger() {
+    static UnaryOperator<Exchange> reqLogger() {
         return x -> {
-            log.info("Start of: {} {}", x.req.getMethod(), x.getFullPath());
+            log.info("Start of: {} {}", x.getMethod(), x.getFullPath());
             return x;
         };
     }
 
-    UnaryOperator<Exchange> finisher() {
+    static UnaryOperator<Exchange> finisher() {
         return x -> {
-            log.info("Done with {} {}", x.req.getMethod(), x.getFullPath());
+            log.info("Done with {} {}", x.getMethod(), x.getFullPath());
             x.finish();
             return x;
         };
     }
 
 
-    UnaryOperator<Exchange> mainFork(ResourceRegistry resources) {
+    public static UnaryOperator<Exchange> mainFork(ResourceRegistry resources) {
         return new FuncList<Exchange>()
           .add("test", x -> x.getFullPath().endsWith("/test"), x -> x.withEntity(new p("test")))
-          .add("static-files", x -> x.req.getPathInfo() != null && x.req.getPathInfo().startsWith("/_files" ), new FileHandler("/home/narve/dev", "/eks/_files"))
+          .add("static-files", x -> x.getPathInfo() != null && x.getPathInfo().startsWith("/_files" ), new FileHandler("/home/narve/dev", "/eks/_files"))
           .add(new EksAlps())
           .add(new IndexHandler(resources))
           .add(new ItemHandler(resources))
@@ -83,10 +95,13 @@ public abstract class EnrestServlet extends HttpServlet {
 
 
     @Override
-    public void init(ServletConfig config) throws ServletException {
+    public void init(ServletConfig config) {
         this.config = config;
-        ResourceRegistry resources = createResources();
-        handler = new FuncList<Exchange>()
+        handler = defaultChain(createResources());
+    }
+
+    public static UnaryOperator<Exchange> defaultChain(ResourceRegistry resources) {
+        return new FuncList<Exchange>()
           .add("req-logger", always(), reqLogger())
           .add(new EntityParser(resources))
           .add("main", always(), mainFork(resources))
@@ -96,7 +111,7 @@ public abstract class EnrestServlet extends HttpServlet {
           .all();
     }
 
-    UnaryOperator<Exchange> writer() {
+    public static UnaryOperator<Exchange> writer() {
         return new FuncList<Exchange>()
           .add("html", isJSON(), new JSONWriter())
           .add("html", isXHTML(), new XHTMLWriter())
@@ -104,17 +119,17 @@ public abstract class EnrestServlet extends HttpServlet {
           .forker(x -> "No suitable outputter for " + x);
     }
 
-    Predicate<Exchange> isXHTML() {
+    public static Predicate<Exchange> isXHTML() {
         return x -> {
-            String acc = x.req.getHeader("Accept");
+            String acc = x.getHeader("Accept");
             log.info(x + ": " + acc);
             return acc != null && acc.contains("html");
         };
     }
 
-    Predicate<Exchange> isJSON() {
+    public static Predicate<Exchange> isJSON() {
         return x -> {
-            String acc = x.req.getHeader("Accept");
+            String acc = x.getHeader("Accept");
             log.info(x + ": " + acc);
             return acc != null && acc.contains("json");
         };

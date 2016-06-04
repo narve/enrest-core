@@ -7,6 +7,7 @@ import no.dv8.eks.model.Comment;
 import no.dv8.eks.resources.BasicResource;
 import no.dv8.eks.resources.QuestionResource;
 import no.dv8.eks.resources.UserResource;
+import no.dv8.enrest.resources.Linker;
 import no.dv8.enrest.semantic.Rels;
 import no.dv8.enrest.EnrestServlet;
 import no.dv8.enrest.ResourceRegistry;
@@ -15,8 +16,10 @@ import no.dv8.enrest.queries.QueryResource;
 import no.dv8.xhtml.generation.elements.a;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -52,10 +55,10 @@ public class EksServlet extends EnrestServlet {
             }
 
             @Override
-            public Collection<?> query(HttpServletRequest req) {
+            public Collection<?> query(Map<String, String[]> parameters) {
                 return CRUD.create(Comment.class).getEM()
                   .createQuery("SELECT x FROM Comment x WHERE x.article.id = :articleId")
-                  .setParameter("articleId", Long.parseLong(req.getParameter("article.id")))
+                  .setParameter("articleId", Long.parseLong(parameters.get("article.id")[0]))
                   .getResultList();
             }
         };
@@ -67,11 +70,15 @@ public class EksServlet extends EnrestServlet {
         );
 
         String qhref = resources.getPaths().queryResult("comments") + "?article.id=%s";
-        artResource.linker = article -> asList(
-          new a("view " + article.toString()).href(article).rel(Rels.self),
-          new a("edit " + article.toString()).href(article).rel(Rels.edit),
-          new a("comments for " + article).href(format(qhref, article.getId())).rel("comments")
-        );
+        artResource.linker = article -> {
+            List<a> links = new ArrayList<>();
+            links.addAll( artResource.defaultLinker().links(article));
+            links.addAll(
+            asList(
+              new a("comments for " + article).href(format(qhref, article.getId())).rel("comments")
+            ));
+            return links;
+        };
         return resources;
     }
 

@@ -38,7 +38,7 @@ public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
             throw new IllegalArgumentException("Not found: " + itemClass + "#" + itemId);
         }
 
-        switch (exchange.req.getMethod().toUpperCase()) {
+        switch (exchange.getMethod().toUpperCase()) {
             case "GET":
                 return exchange.withEntity(item.get());
             case "POST":

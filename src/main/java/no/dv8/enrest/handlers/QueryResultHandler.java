@@ -25,7 +25,7 @@ public class QueryResultHandler implements Predicate<Exchange>, UnaryOperator<Ex
 
     @Override
     public Exchange apply(Exchange exchange) {
-        Collection<?> objects = resources.executeQuery(this.resources.getPaths().queryName(exchange.getFullPath()), exchange.req);
+        Collection<?> objects = resources.executeQuery(this.resources.getPaths().queryName(exchange.getFullPath()), exchange.getParameterMap());
         ul ul = new ul();
         objects.forEach(o -> ul.add(new li().add(linkToObject(o))));
         return exchange.withEntity(ul);

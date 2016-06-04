@@ -35,20 +35,14 @@ public class ServletTests {
 
     @Before
     public void beforeTest() throws ServletException {
-        resource = new TestObjectResource();
+        resources = new ResourceRegistry(BASE_PATH);
+        resource = new TestObjectResource(resources);
+        resources.resources().add(resource);
         test1 = new TestObject();
         test1.setStringValue("stringval1");
         resource.creator().create(test1);
-        servlet = new EnrestServlet() {
-            @Override
-            public ResourceRegistry createResources() {
-                ResourceRegistry resources = new ResourceRegistry(BASE_PATH);
-                resources.resources().add(resource);
-                return resources;
-            }
-        };
+        servlet = new EnrestServlet(resources);
         servlet.init(null);
-        resources = servlet.createResources();
     }
 
     @Test

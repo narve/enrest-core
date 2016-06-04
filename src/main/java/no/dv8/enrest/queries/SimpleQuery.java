@@ -5,6 +5,7 @@ import no.dv8.enrest.semantic.Names;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
@@ -24,8 +25,8 @@ public class SimpleQuery<T> implements QueryResource {
     }
 
     @Override
-    public Collection<?> query(HttpServletRequest req) {
-        String term = req.getParameter(Names.search.toString());
+    public Collection<?> query(Map<String, String[]> parameters) {
+        String term = parameters.get(Names.search.toString())[0];
         return func.apply(term);
     }
 

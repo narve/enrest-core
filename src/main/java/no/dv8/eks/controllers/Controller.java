@@ -35,4 +35,6 @@ public abstract class Controller<T> {
     }
 
     public abstract T update(T question);
+
+    public abstract void deleteById(String t);
 }

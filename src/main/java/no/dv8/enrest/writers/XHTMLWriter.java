@@ -35,12 +35,13 @@ public class XHTMLWriter implements UnaryOperator<Exchange> {
         } else {
             result = toElement(entity, exchange.getLinks());
         }
-        String title = exchange.req.getPathInfo();
+        String title = exchange.getPathInfo();
 
-        exchange.res.setContentType("text/html");
-        exchange.res.setCharacterEncoding("utf-8");
+        exchange = exchange
+          .withContentType("text/html")
+          .withCharacterEncoding("utf-8");
         try {
-            PrintWriter writer = exchange.res.getWriter();
+            PrintWriter writer = exchange.getWriter();
             writer.print(EksHTML.complete(result, title).toString());
             writer.close();
             return exchange;

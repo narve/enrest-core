@@ -45,7 +45,10 @@ public class LinkHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
                         link.href(resources.getPaths().editForm(resources.itemClass(link.href()), resources.itemId(link.href())));
                         break;
                     case "self":
+                        link.href(resources.getPaths().viewItem(resources.itemClass(link.href()), resources.itemId(link.href())));
+                        break;
                     default:
+                        log.warn( "Unsupported rel " + link.getAttributes().get( "rel"));
                         link.href(resources.getPaths().viewItem(resources.itemClass(link.href()), resources.itemId(link.href())));
                         break;
                 }

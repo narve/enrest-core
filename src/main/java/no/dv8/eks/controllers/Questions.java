@@ -60,4 +60,11 @@ public class Questions extends Controller<Question> {
         return question;
     }
 
+    @Override
+    public void deleteById(String t) {
+        getEM().getTransaction().begin();
+        getEM().remove(em.find(Question.class, t));
+        getEM().getTransaction().commit();
+    }
+
 }

@@ -73,10 +73,10 @@ public class EksServletFun {
             }
 
             @Override
-            public Collection<?> query(HttpServletRequest req) {
+            public Collection<?> query(Map<String, String[]> parameters ) {
                 return CRUD.create(Comment.class).getEM()
                   .createQuery("SELECT x FROM Comment x WHERE x.article.id = :articleId")
-                  .setParameter("articleId", Long.parseLong(req.getParameter("article.id")))
+                  .setParameter("articleId", Long.parseLong(parameters.get("article.id")[0]))
                   .getResultList();
             }
         };

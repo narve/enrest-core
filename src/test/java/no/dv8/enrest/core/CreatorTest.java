@@ -1,5 +1,6 @@
 package no.dv8.enrest.core;
 
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Resource;
 import no.dv8.xhtml.generation.support.Element;
 import org.junit.Test;
@@ -13,7 +14,8 @@ import static org.junit.Assert.assertThat;
 public class CreatorTest {
 
     public Resource<TestObject> resource() {
-        return new TestObjectResource();
+        ResourceRegistry resources = new ResourceRegistry("/");
+        return new TestObjectResource(resources);
     }
 
 

@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 //@RunWith(WeldJUnit4Runner.class)
 @Slf4j
 @RunWith(GuiceJUnitRunner.class)
+@Ignore
 public class UsersIT {
 
     @Inject

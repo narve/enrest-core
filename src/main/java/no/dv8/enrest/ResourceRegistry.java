@@ -82,12 +82,12 @@ public class ResourceRegistry {
           });
     }
 
-    public Collection<?> executeQuery(String name, HttpServletRequest req) {
+    public Collection<?> executeQuery(String name, Map<String, String[]> parameters) {
         log.info("Executing query {}", name);
         String queryName = name.replaceAll("\\-", "\\_");
         log.info("Query name: {}", queryName);
         QueryResource qr = queryForRel( name );
-        return qr.query(req);
+        return qr.query(parameters);
     }
 
     public ResourcePaths getPaths() {

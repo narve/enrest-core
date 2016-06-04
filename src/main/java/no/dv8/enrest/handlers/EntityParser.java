@@ -12,6 +12,7 @@ import no.dv8.utils.Props;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Optional;
@@ -28,15 +29,15 @@ public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange
     }
 
 
-    private <T> T propMapFromJson(Class<T> clz, HttpServletRequest req) throws IOException {
+    private <T> T propMapFromJson(Class<T> clz, InputStream req) throws IOException {
         String s = readBody(req);
         T o = new Gson().fromJson(s, clz);
         log.info("Parsed JSON: {}", o);
         return o;
     }
 
-    private String readBody(HttpServletRequest req) throws IOException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(req.getInputStream()))) {
+    private String readBody(InputStream req) throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(req))) {
             String s;
             StringBuilder sb = new StringBuilder();
             while ((s = br.readLine()) != null) {
@@ -57,15 +58,15 @@ public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange
         }
         Resource<?> resource = resourceO.get();
         Mutator mutator = resource.creator();
-        String contentType = exchange.header("Content-Type");
+        String contentType = exchange.getHeader("Content-Type");
         if (contentType != null && contentType.contains("json")) {
             try {
-                q = propMapFromJson(resource.clz(), exchange.req);
+                q = propMapFromJson(resource.clz(), exchange.getInputStream());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         } else {
-            Map<String, String> vals = new Props().single(exchange.req.getParameterMap());
+            Map<String, String> vals = new Props().single(exchange.getParameterMap());
             if( resources.getPaths().isCreateResult(exchange.getFullPath())) {
                 try {
                     q = resource.clz().newInstance();

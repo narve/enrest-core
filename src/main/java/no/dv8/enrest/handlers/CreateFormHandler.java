@@ -34,11 +34,11 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
         return new input().text().id(r).name(r).placeholder(r.toString());
     }
 
-    public Object executeCreate(Resource<?> resource, HttpServletRequest req) {
+    public Object executeCreate(Resource<?> resource, Map<String, String[]> parameters) {
         Mutator cr = resource.creator();
         Object createResult;
         try {
-            Map<String, String> vals = new Props().single(req.getParameterMap());
+            Map<String, String> vals = new Props().single(parameters);
             createResult = cr.setProps(resource.clz().newInstance(), vals);
             createResult = cr.create(createResult);
             return createResult;

@@ -14,18 +14,19 @@ public class JSONWriter implements UnaryOperator<Exchange> {
     @Override
     public Exchange apply(Exchange exchange) {
 //        Element<?> result = (Element<?>) (exchange.getEntity());
-        String title = exchange.req.getPathInfo();
+        String title = exchange.getPathInfo();
 
-        exchange.res.setContentType("application/json");
-        exchange.res.setCharacterEncoding("utf-8");
+        exchange =
+          exchange.withContentType("application/json")
+            .withCharacterEncoding("utf-8");
         try {
             Gson gson = gson();
 //            JsonObject linkObj = new JsonObject();
 //            exchange.getLinks().forEach( linkObj.add( elementSerializer().serialize()))
             JsonArray links = gson.toJsonTree(exchange.getLinks()).getAsJsonArray();
-            PrintWriter writer = exchange.res.getWriter();
+            PrintWriter writer = exchange.getWriter();
             JsonObject s = gson.toJsonTree(exchange.getEntity()).getAsJsonObject();
-            s.add( "_links", links);
+            s.add("_links", links);
             writer.write(s.toString());
             writer.close();
             return exchange;

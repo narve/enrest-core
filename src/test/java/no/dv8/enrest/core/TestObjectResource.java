@@ -1,12 +1,14 @@
 package no.dv8.enrest.core;
 
+import no.dv8.eks.resources.BasicResource;
+import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Mutator;
 import no.dv8.enrest.resources.Resource;
 
 import java.util.*;
 import java.util.function.Function;
 
-public class TestObjectResource implements Resource<TestObject> {
+public class TestObjectResource extends BasicResource<TestObject> { //implements Resource<TestObject> {
 
     List<TestObject> objects = new ArrayList<>();
 
@@ -49,7 +51,8 @@ public class TestObjectResource implements Resource<TestObject> {
         return creator();
     }
 
-    public TestObjectResource() {
+    public TestObjectResource(ResourceRegistry owner) {
+        super(owner, TestObject.class);
         objects.add(new TestObject("123", "val1231"));
         objects.add(new TestObject("12345", "val12345"));
     }

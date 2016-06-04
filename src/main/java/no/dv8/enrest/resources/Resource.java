@@ -38,7 +38,7 @@ public interface Resource<T> {
     }
 
     default Linker<T> linker() {
-        return t -> emptyList();
+        return Linker.defaultLinker();
 //        return item -> asList(
 //          new a( "Edit " + item.toString()).href( editUrlForItem(item)).rel( "edit")
 //        )
