@@ -52,7 +52,7 @@ public class HtmlifyTest {
         assertThat(resource.locateByClz(Comment.class), isPresent());
 
         List<a> links = new LinkHandler(resource)
-          .apply(new Exchange(null, null).withEntity(new Article()))
+          .apply(new Exchange(null, null).withOutEntity(new Article()))
           .getLinks();
 
         assertThat(links.size(), equalTo(3));

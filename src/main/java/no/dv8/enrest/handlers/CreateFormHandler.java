@@ -73,7 +73,7 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
             String type = resources.getPaths().type(path);
             Resource res = resources.locateByRel(type).get();
             Object obj = res.clz().newInstance();
-            return x.withEntity(getForm(type, "create", res.creator().inputs(obj), "post"));
+            return x.withOutEntity(getForm(type, "create", res.creator().inputs(obj), "post"));
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -89,12 +89,6 @@ public class CreateFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
           .set("enc-type", "application/x-www-form-urlencoded")
           .add(inputs)
           .add(new Custom( "button" ).set( "type", "submit").add( ""+name));
-
-//          .add(new fieldset()
-//            .add(new legend(name))
-//            .add( inputs )
-//            .add(new input().submit().value(name)
-//            ));
     }
 
 }

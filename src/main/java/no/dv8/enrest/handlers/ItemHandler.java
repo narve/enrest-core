@@ -40,13 +40,13 @@ public class ItemHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
 
         switch (exchange.getMethod().toUpperCase()) {
             case "GET":
-                return exchange.withEntity(item.get());
+                return exchange.withOutEntity(item.get());
             case "POST":
             case "PUT":
-                return exchange.withEntity(resource.updater().update(item.get()));
+                return exchange.withOutEntity(resource.updater().update(item.get()));
             case "DELETE":
-                resource.updater().deleteById(itemId);
-                return exchange.withEntity(null).withStatus(HttpURLConnection.HTTP_NO_CONTENT );
+                resource.deleter().accept(itemId);
+                return exchange.withOutEntity(null).withStatus(HttpURLConnection.HTTP_NO_CONTENT );
 //                return exchange.withEntity(null).withStatus(HttpURLConnection.HTTP_NO_CONTENT );
 
             default:

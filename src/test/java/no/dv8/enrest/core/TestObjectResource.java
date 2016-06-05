@@ -3,9 +3,9 @@ package no.dv8.enrest.core;
 import no.dv8.eks.resources.BasicResource;
 import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.resources.Mutator;
-import no.dv8.enrest.resources.Resource;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class TestObjectResource extends BasicResource<TestObject> { //implements Resource<TestObject> {
@@ -24,17 +24,6 @@ public class TestObjectResource extends BasicResource<TestObject> { //implements
             }
 
             @Override
-            public void deleteById(String id) {
-                TestObject t = locator()
-                        .apply(id)
-                        .orElseThrow( IllegalArgumentException::new );
-                boolean removed = objects.remove(t);
-                if( !removed ) {
-                    throw new IllegalStateException();
-                };
-            }
-
-            @Override
             public TestObject setProps(TestObject target, Map<String, String> req) {
                 return target;
             }
@@ -47,8 +36,16 @@ public class TestObjectResource extends BasicResource<TestObject> { //implements
         return creator();
     }
     @Override
-    public Mutator<TestObject> deleter() {
-        return creator();
+    public Consumer<String> deleter() {
+        return id -> {
+            TestObject t = locator()
+              .apply(id)
+              .orElseThrow( IllegalArgumentException::new );
+            boolean removed = objects.remove(t);
+            if( !removed ) {
+                throw new IllegalStateException();
+            };
+        };
     }
 
     public TestObjectResource(ResourceRegistry owner) {

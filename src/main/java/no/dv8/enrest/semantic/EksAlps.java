@@ -76,6 +76,6 @@ public class EksAlps implements Predicate<Exchange>, UnaryOperator<Exchange> {
 
     @Override
     public Exchange apply(Exchange exchange) {
-        return exchange.withEntity(new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100));
+        return exchange.withOutEntity(new XHTMLSerialize<>().generateElement(new EksAlps().alps(), 100));
     }
 }

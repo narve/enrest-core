@@ -82,7 +82,7 @@ public class EntityParser implements Predicate<Exchange>, UnaryOperator<Exchange
             }
             q = mutator.setProps(q, vals);
         }
-        return exchange.withEntity(q);
+        return exchange.withInEntity(q);
     }
 
     @Override

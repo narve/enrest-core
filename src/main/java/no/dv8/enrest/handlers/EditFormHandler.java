@@ -37,6 +37,6 @@ public class EditFormHandler implements Predicate<Exchange>, UnaryOperator<Excha
         Mutator updater = resource.updater();
         form f = forms().getForm(itemClass, "edit", updater.inputs(item), "post");
         f.action(resources.getPaths().viewItem(resources.itemClass(item), resources.itemId(item)));
-        return exchange.withEntity(f);
+        return exchange.withOutEntity(f);
     }
 }

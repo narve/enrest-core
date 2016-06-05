@@ -37,7 +37,7 @@ public class QueryFormHandler implements Predicate<Exchange>, UnaryOperator<Exch
           .stream()
           .map(p -> new input().type(p.getHtmlType()).name(p.getName()).id(p.getName()))
           .collect(toList());
-        return exchange.withEntity(new form()
+        return exchange.withOutEntity(new form()
           .clz(rel)
           .get()
           .action(resources.getPaths().queryResult(rel))

@@ -80,7 +80,7 @@ public class FileHandler implements UnaryOperator<Exchange> {
     public Exchange apply(Exchange exchange) {
         try {
             String p = URLDecoder.decode( new URL( exchange.getFullPath().toString()).getFile(), "utf-8");
-            return exchange.withEntity( dirs(p));
+            return exchange.withOutEntity( dirs(p));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

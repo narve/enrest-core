@@ -46,8 +46,4 @@ public interface Mutator<T> {
         throw new UnsupportedOperationException("update");
     }
 
-    default void deleteById(String t) {
-        throw new UnsupportedOperationException("delete");
-    }
-
 }

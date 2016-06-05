@@ -6,6 +6,7 @@ import no.dv8.xhtml.generation.elements.a;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
@@ -29,7 +30,7 @@ public interface Resource<T> {
         return null;
     }
 
-    default Mutator<T> deleter() {
+    default Consumer<String> deleter() {
         return null;
     }
 
@@ -39,10 +40,6 @@ public interface Resource<T> {
 
     default Linker<T> linker() {
         return Linker.defaultLinker();
-//        return item -> asList(
-//          new a( "Edit " + item.toString()).href( editUrlForItem(item)).rel( "edit")
-//        )
-//        );
     }
 
 }

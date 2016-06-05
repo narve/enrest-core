@@ -25,7 +25,7 @@ public class JSONWriter implements UnaryOperator<Exchange> {
 //            exchange.getLinks().forEach( linkObj.add( elementSerializer().serialize()))
             JsonArray links = gson.toJsonTree(exchange.getLinks()).getAsJsonArray();
             PrintWriter writer = exchange.getWriter();
-            JsonObject s = gson.toJsonTree(exchange.getEntity()).getAsJsonObject();
+            JsonObject s = gson.toJsonTree(exchange.getOutEntity()).getAsJsonObject();
             s.add("_links", links);
             writer.write(s.toString());
             writer.close();

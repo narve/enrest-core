@@ -13,6 +13,7 @@ import no.dv8.xhtml.generation.elements.a;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
@@ -25,7 +26,7 @@ public class BasicResource<T> implements Resource<T> {
     public Function<String, Optional<T>> locator = s -> Optional.ofNullable(CRUD.create(clz()).getById(s));
     public Mutator<T> updater = crudMutator();
     public Mutator<T> creator = crudMutator();
-    public Mutator<T> deleter = crudMutator();
+    public Consumer<String> deleter = crudDeleter();
     public List<QueryResource> queries;
     public BasicResource(ResourceRegistry owner, Class<T> clz) {
         this.clz = clz;
@@ -76,7 +77,7 @@ public class BasicResource<T> implements Resource<T> {
     }
 
     @Override
-    public Mutator<T> deleter() {
+    public Consumer<String> deleter() {
         return deleter;
     }
 
@@ -88,6 +89,10 @@ public class BasicResource<T> implements Resource<T> {
     @Override
     public List<QueryResource> queries() {
         return queries;
+    }
+
+    public Consumer<String> crudDeleter() {
+        return s -> CRUD.create(clz).deleteById(s);
     }
 
     public Mutator<T> crudMutator() {
@@ -103,10 +108,6 @@ public class BasicResource<T> implements Resource<T> {
                 return CRUD.create(clz).update(t);
             }
 
-            @Override
-            public void deleteById(String t) {
-                CRUD.create(clz).deleteById(t);
-            }
         };
     }
 

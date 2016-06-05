@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import static no.dv8.utils.FuncList.always;
-import static no.dv8.utils.FuncList.ifEntity;
+import static no.dv8.utils.FuncList.ifOutEntity;
 
 @Slf4j
 public class EnrestServlet extends HttpServlet {
@@ -77,7 +77,7 @@ public class EnrestServlet extends HttpServlet {
 
     public static UnaryOperator<Exchange> mainFork(ResourceRegistry resources) {
         return new FuncList<Exchange>()
-          .add("test", x -> x.getFullPath().endsWith("/test"), x -> x.withEntity(new p("test")))
+          .add("test", x -> x.getFullPath().endsWith("/test"), x -> x.withOutEntity(new p("test")))
           .add("static-files", x -> x.getPathInfo() != null && x.getPathInfo().startsWith("/_files" ), new FileHandler("/home/narve/dev", "/eks/_files"))
           .add(new EksAlps())
           .add(new IndexHandler(resources))
@@ -105,8 +105,8 @@ public class EnrestServlet extends HttpServlet {
           .add("req-logger", always(), reqLogger())
           .add(new EntityParser(resources))
           .add("main", always(), mainFork(resources))
-          .add("linker", ifEntity(), new LinkHandler(resources))
-          .add("writer", ifEntity(), writer())
+          .add("linker", ifOutEntity(), new LinkHandler(resources))
+          .add("writer", ifOutEntity(), writer())
           .add("res-logger", always(), finisher())
           .all();
     }

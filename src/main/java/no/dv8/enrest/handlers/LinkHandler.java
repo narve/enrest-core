@@ -24,8 +24,8 @@ public class LinkHandler implements Predicate<Exchange>, UnaryOperator<Exchange>
 
     @Override
     public Exchange apply(Exchange exchange) {
-        Objects.requireNonNull( exchange.getEntity(), "Cant handle links for NULL" );
-        Object item = exchange.getEntity();
+        Objects.requireNonNull( exchange.getOutEntity(), "Cant handle links for NULL" );
+        Object item = exchange.getOutEntity();
 //        Resource resource = resources.locateByClz(item.getClass()).orElseThrow( () -> new UnsupportedOperationException("No resource for " + item.getClass()));
         Optional<Resource<?>> resourceOpt = resources.locateByClz(item.getClass());;
         if( !resourceOpt.isPresent() ) {

@@ -23,8 +23,8 @@ public class FuncList<T> {
         return x -> true;
     }
 
-    public static Predicate<Exchange> ifEntity() {
-        return x -> x.getEntity() != null;
+    public static Predicate<Exchange> ifOutEntity() {
+        return x -> x.getOutEntity() != null;
     }
 
     public UnaryOperator<T> forker() {

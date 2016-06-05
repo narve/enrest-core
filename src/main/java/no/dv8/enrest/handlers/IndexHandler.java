@@ -68,6 +68,6 @@ public class IndexHandler implements Predicate<Exchange>, UnaryOperator<Exchange
               .add(new h1("Creators"))
               .add(new CreateFormHandler(resources).creatorForms())
           );
-        return exchange.withEntity(d);
+        return exchange.withOutEntity(d);
     }
 }

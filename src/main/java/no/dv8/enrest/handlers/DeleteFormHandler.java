@@ -28,7 +28,7 @@ public class DeleteFormHandler implements Predicate<Exchange>, UnaryOperator<Exc
           .add(
             new input().text().readonly().value( itemId )
           ).add( new input().submit() );
-        return exchange.withEntity(f);
+        return exchange.withOutEntity(f);
     }
 
     @Override

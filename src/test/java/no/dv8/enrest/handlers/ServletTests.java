@@ -51,7 +51,7 @@ public class ServletTests {
         assertThat( resource.locator().apply(test1.getId()), isPresent());
 
         // When
-        resource.deleter().deleteById(test1.getId());
+        resource.deleter().accept(test1.getId());
 
         // Then
         assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
@@ -113,7 +113,7 @@ public class ServletTests {
     public void testHTTPDeleteByForm() throws ServletException {
         // Given:
         String pathToForm = resources.getPaths().deleteForm(TestObject.class.getSimpleName(), test1.getId());
-        form f = new DeleteFormHandler(resources).apply(new MockExchange().withFullPath( pathToForm )).getEntity();
+        form f = new DeleteFormHandler(resources).apply(new MockExchange().withFullPath( pathToForm )).getOutEntity();
 
         Mock<HttpServletRequest> req = new Mock<>(HttpServletRequest.class)
           .throwIfUnset();

@@ -1,8 +1,6 @@
 package no.dv8.enrest;
 
-import no.dv8.functions.ServletFunctions;
 import no.dv8.xhtml.generation.elements.a;
-import no.dv8.xhtml.generation.elements.p;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +15,8 @@ public class Exchange {
     private final HttpServletRequest req;
     private final HttpServletResponse res;
 
-    private Object entity;
+    private Object inEntity;
+    private Object outEntity;
     private List<a> links = new ArrayList<>();
 
     public Exchange(HttpServletRequest req, HttpServletResponse res) {
@@ -43,13 +42,23 @@ public class Exchange {
         return getMethod() + " " + getFullPath();
     }
 
-    public <T> T getEntity() {
-        return (T) entity;
+    public <T> T getInEntity() {
+        return (T) inEntity;
     }
 
 
-    public Exchange withEntity(Object test) {
-        this.entity = test;
+    public Exchange withInEntity(Object entity) {
+        this.inEntity = entity;
+        return this;
+    }
+
+    public <T> T getOutEntity() {
+        return (T) outEntity;
+    }
+
+
+    public Exchange withOutEntity(Object entity) {
+        this.outEntity = entity;
         return this;
     }
 

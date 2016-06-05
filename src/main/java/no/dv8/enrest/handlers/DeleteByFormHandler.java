@@ -25,8 +25,8 @@ public class DeleteByFormHandler implements Predicate<Exchange>, UnaryOperator<E
         String itemClass = resources.getPaths().type(exchange.getFullPath());
         String itemId = resources.getPaths().id(exchange.getFullPath());
         Resource<T> resource = (Resource<T>) resources.getByName(itemClass);
-        resource.updater().deleteById(itemId);
-        return exchange.withEntity(null).withStatus(HttpURLConnection.HTTP_NO_CONTENT );
+        resource.deleter().accept(itemId);
+        return exchange.withStatus(HttpURLConnection.HTTP_NO_CONTENT );
     }
 
     @Override

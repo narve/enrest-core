@@ -28,7 +28,7 @@ public class XHTMLWriter implements UnaryOperator<Exchange> {
 
     @Override
     public Exchange apply(Exchange exchange) {
-        Object entity = exchange.getEntity();
+        Object entity = exchange.getOutEntity();
         Element<?> result;
         if (entity instanceof Element) {
             result = (Element<?>) entity;

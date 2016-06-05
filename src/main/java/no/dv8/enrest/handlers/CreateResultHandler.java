@@ -25,5 +25,5 @@ public class CreateResultHandler implements Predicate<Exchange>, UnaryOperator<E
         String itemClass = resources.getPaths().type(exchange.getFullPath());
         Resource r = resources.getByName(itemClass);
         obj = new CreateFormHandler(resources).executeCreate(r, exchange.getParameterMap());
-        return exchange.withEntity(obj);    }
+        return exchange.withOutEntity(obj);    }
 }

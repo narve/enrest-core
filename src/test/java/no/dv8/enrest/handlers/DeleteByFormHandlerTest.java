@@ -51,7 +51,7 @@ public class DeleteByFormHandlerTest {
           .withMethod("GET");
         MockExchange apply = (MockExchange) handler.apply(x);
 
-        form f = apply.getEntity();
+        form f = apply.getOutEntity();
         assertThat(f.get("action"), equalTo(resources.getPaths().deleteFormResult(TestObject.class.getSimpleName(), test1.getId())));
     }
 
@@ -83,7 +83,7 @@ public class DeleteByFormHandlerTest {
           .withMethod("GET");
         MockExchange apply = (MockExchange) handler.apply(x);
 
-        form f = apply.getEntity();
+        form f = apply.getOutEntity();
         assertThat(f, nullValue());
 
         assertThat(resource.locator().apply(test1.getId()), not(isPresent()));
