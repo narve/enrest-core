@@ -8,6 +8,8 @@ import org.junit.runners.Parameterized;
 import java.util.Collection;
 
 import static java.util.Arrays.asList;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.runners.Parameterized.Parameters;
@@ -53,13 +55,23 @@ public class ResourcePathsTest {
     @Test
     public void type() throws Exception {
         ResourcePaths rp = new ResourcePaths(basePath);
-        assertThat(rp.id( basePath + "view-resource/thetype/456" ), equalTo( "456" ) );
+        String url = rp.viewItem("thetype", "456");
+        assertThat(rp.id( url), equalTo( "456" ) );
+        assertThat(rp.type( url), equalTo( "thetype" ) );
     }
 
     @Test
     public void id() throws Exception {
         ResourcePaths rp = new ResourcePaths(basePath);
         assertThat(rp.id( basePath + "view-resource/thetype/456" ), equalTo( "456" ) );
+    }
+
+    @Test
+    public void queryResult() throws Exception {
+        ResourcePaths rp = new ResourcePaths(basePath);
+        String url = basePath + "query-result/ArticleCollection?search=asdf";
+        assertFalse(rp.isItem( url ));
+        assertTrue( rp.isQueryResult(url));
     }
 
 }

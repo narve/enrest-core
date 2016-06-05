@@ -2,6 +2,7 @@ package no.dv8.enrest.handlers;
 
 import no.dv8.enrest.EnrestServlet;
 import no.dv8.enrest.ResourceRegistry;
+import no.dv8.enrest.core.MockExchange;
 import no.dv8.enrest.core.TestObject;
 import no.dv8.enrest.core.TestObjectResource;
 import no.dv8.enrest.resources.Resource;

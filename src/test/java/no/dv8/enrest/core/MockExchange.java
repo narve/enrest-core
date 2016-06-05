@@ -1,4 +1,4 @@
-package no.dv8.enrest.handlers;
+package no.dv8.enrest.core;
 
 import no.dv8.enrest.Exchange;
 

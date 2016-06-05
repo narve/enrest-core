@@ -1,7 +1,13 @@
 package no.dv8.enrest;
 
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ResourcePaths {
-    private final String pathToResource = "view-resource";
+
+    private final String pathToResource = "";
     private final String editPathToResource = "edit-resource";
     private final String deletePathToResource = "delete-resource";
     private final String pathToDeleteResult = "delete-result";
@@ -10,7 +16,6 @@ public class ResourcePaths {
 
     private final String pathToCreators = "create-forms";
     private final String pathToCreateResult = "create-result";
-
 
     private final String basePath;
 
@@ -36,16 +41,33 @@ public class ResourcePaths {
     }
 
     public String type(String path) {
-        return pure( path ).split( "/" )[1];
+        if( isItem(path)) {
+            return pure( path ).split( "/" )[0];
+        } else {
+            return pure(path).split("/")[1];
+        }
     }
 
     public String id(String path) {
-        String s = pure( path ).split("/")[2];
-        return s;
+        if( isItem(path)) {
+            return pure( path ).split( "/" )[1];
+        } else {
+            return pure(path).split("/")[2];
+        }
     }
 
     public boolean isItem(String path ) {
-        return pure( path ).startsWith(pathToResource + "/" );
+//        return pure( path ).startsWith(pathToResource + "/" );
+//        if( isQ)
+        if( isQueryResult(path)) {
+            return false;
+        }
+        String p = pure(path);
+        Matcher m = Pattern.compile( pathToResource + "([^/]+)/([^/])+" ).matcher(p);
+        if( m.matches() ) {
+            return true;
+        }
+        return false;
     }
 
     public boolean isEditForm(String path) {

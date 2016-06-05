@@ -43,7 +43,9 @@ public class ResourceRegistry {
     }
 
     public <T> Resource<?> getByName(String itemType) {
-        return locate(r -> r.getName().equalsIgnoreCase(itemType), "type='" + itemType + "'").get();
+        return
+          locate(r -> r.getName().equalsIgnoreCase(itemType), "type='" + itemType + "'")
+          .orElseThrow(()-> new NoSuchElementException("No resource for '" + itemType + "'"));
     }
 
     public Optional<Resource<?>> findByName(String itemType) {
