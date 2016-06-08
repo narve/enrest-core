@@ -21,7 +21,7 @@ public abstract class ModelBase implements Serializable {
 
     @Override
     public String toString() {
-        return "ModelBase{" +
+        return getClass().getSimpleName() +"{" +
           "id=" + id +
           '}';
     }

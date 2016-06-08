@@ -26,7 +26,7 @@ public class SimpleQuery<T> implements QueryResource {
 
     @Override
     public Collection<?> query(Map<String, String[]> parameters) {
-        String term = parameters.get(Names.search.toString())[0];
+        String term = parameters.getOrDefault(Names.search.toString(), new String[]{null})[0];
         return func.apply(term);
     }
 

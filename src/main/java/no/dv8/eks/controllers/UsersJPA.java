@@ -1,13 +1,12 @@
 package no.dv8.eks.controllers;
 
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.dv8.eks.model.Question;
 import no.dv8.eks.model.User;
 
 import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,15 +20,20 @@ public class UsersJPA {
     @PersistenceContext
     static EntityManager em;
 
+    public UsersJPA() {
+    }
+
+    public UsersJPA(EntityManager em) {
+        log.info("Created! em={}", em);
+        this.em = em;
+    }
+
     EntityManager getEM() {
-        if( em == null ) {
+        if (em == null) {
             EntityManager myEM = Persistence.createEntityManagerFactory("Eks").createEntityManager();
             setEM(myEM);
         }
         return em;
-    }
-
-    public UsersJPA() {
     }
 
     public void setEM(EntityManager em) {
@@ -49,17 +53,12 @@ public class UsersJPA {
             return collect.get(0);
     }
 
-    public UsersJPA(EntityManager em) {
-        log.info( "Created! em={}", em );
-        this.em = em;
-    }
-
-//    @Override
+    //    @Override
     public Class<User> getClz() {
         return User.class;
     }
 
-    public User insert(User u ) {
+    public User insert(User u) {
         getEM().getTransaction().begin();
         getEM().persist(u);
         getEM().getTransaction().commit();
@@ -67,13 +66,13 @@ public class UsersJPA {
     }
 
     public List<User> all() {
-        return getEM().createQuery( "SELECT x FROM User x", User.class ).getResultList();
+        return getEM().createQuery("SELECT x FROM User x", User.class).getResultList();
     }
 
     public List<User> search(String s) {
         return all()
           .stream()
-          .filter(t -> t.toString().toLowerCase().contains(s.toLowerCase()))
+          .filter(t -> s == null || t.toString().toLowerCase().contains(s.toLowerCase()))
           .collect(toList());
     }
 

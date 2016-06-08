@@ -79,6 +79,7 @@ public class EnrestServlet extends HttpServlet {
         return new FuncList<Exchange>()
           .add("test", x -> x.getFullPath().endsWith("/test"), x -> x.withOutEntity(new p("test")))
           .add("static-files", x -> x.getPathInfo() != null && x.getPathInfo().startsWith("/_files" ), new FileHandler("/home/narve/dev", "/eks/_files"))
+          .add("swagger", x -> x.getPathInfo() != null && x.getPathInfo().startsWith("/swagger.json" ), new SwaggerHandler(resources))
           .add(new EksAlps())
           .add(new IndexHandler(resources))
           .add(new ItemHandler(resources))
@@ -103,6 +104,7 @@ public class EnrestServlet extends HttpServlet {
     public static UnaryOperator<Exchange> defaultChain(ResourceRegistry resources) {
         return new FuncList<Exchange>()
           .add("req-logger", always(), reqLogger())
+          .add("req-logger", always(), cors())
           .add(new EntityParser(resources))
           .add("main", always(), mainFork(resources))
           .add("linker", ifOutEntity(), new LinkHandler(resources))
@@ -119,6 +121,10 @@ public class EnrestServlet extends HttpServlet {
           .forker(x -> "No suitable outputter for " + x);
     }
 
+    public static UnaryOperator<Exchange> cors() {
+        return x -> x.withHeader( "Access-Control-Allow-Origin", "*" );
+    }
+
     public static Predicate<Exchange> isXHTML() {
         return x -> {
             String acc = x.getHeader("Accept");
@@ -129,6 +135,9 @@ public class EnrestServlet extends HttpServlet {
 
     public static Predicate<Exchange> isJSON() {
         return x -> {
+            if( x.getContentType() != null && x.getContentType().contains( "json" ) ) {
+                return true;
+            }
             String acc = x.getHeader("Accept");
             log.info(x + ": " + acc);
             return acc != null && acc.contains("json");

@@ -59,7 +59,7 @@ public class UserResource implements Resource<User> {
 
     @Override
     public Function<String, Optional<User>> locator() {
-        return s -> Optional.of( users().getById(s));
+        return s -> Optional.ofNullable( users().getById(s));
     }
 
     @Override

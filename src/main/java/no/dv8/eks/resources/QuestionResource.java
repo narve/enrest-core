@@ -71,7 +71,7 @@ public class QuestionResource implements Resource<Question> {
 
     @Override
     public String getName() {
-        return Types.question_add.toString();
+        return Types.question.toString();
     }
 
     @Override

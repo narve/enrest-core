@@ -105,6 +105,10 @@ public class Exchange {
         res.setContentType(s);
     }
 
+    public String getContentType() {
+        return res.getContentType();
+    }
+
     public Exchange withCharacterEncoding(String s) {
         setCharacterEncoding(s);
         return this;
@@ -124,5 +128,10 @@ public class Exchange {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Exchange withHeader(String name, String value ) {
+        res.setHeader( name, value );
+        return this;
     }
 }

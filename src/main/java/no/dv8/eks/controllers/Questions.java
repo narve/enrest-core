@@ -49,7 +49,7 @@ public class Questions extends Controller<Question> {
     }
 
     public List<Question> search(String s) {
-        return all().stream().filter(t -> t.toString().toLowerCase().contains(s.toLowerCase())).collect(toList());
+        return all().stream().filter(t -> s == null || t.toString().toLowerCase().contains(s.toLowerCase())).collect(toList());
     }
 
     @Override
