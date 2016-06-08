@@ -3,6 +3,7 @@ package no.dv8.enrest.handlers;
 import no.dv8.enrest.Exchange;
 import no.dv8.enrest.ResourceRegistry;
 import no.dv8.enrest.queries.QueryResource;
+import no.dv8.utils.Maps;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,11 +25,11 @@ public class SwaggerHandler implements UnaryOperator<Exchange> {
     }
 
     Map<String, Object> swagger() {
-        return mapOf(
+        return Maps.mapOf(
           "swagger", "2.0",
           "info", infoObject(),
           "host", "localhost:8080",
-          "produces", "text/html",
+          "produces", asList( "text/html", "application/json" ),
           "basePath", "/eks/",
           "paths", paths()
         );
@@ -55,19 +56,19 @@ public class SwaggerHandler implements UnaryOperator<Exchange> {
     }
 
     private Map<String, Object> queryResponse(QueryResource q) {
-        return mapOf(
+        return Maps.mapOf(
           "get", opResponses()
         );
     }
 
     private Map<String, Object> itemResponse(QueryResource q) {
-        return mapOf(
+        return Maps.mapOf(
           "parameters", asList(
-            mapOf(
+            Maps.mapOf(
               "name", "id",
               "in", "path",
               "type", "string",
-              "items", mapOf(
+              "items", Maps.mapOf(
                 "type", "string"
               )
             )
@@ -77,29 +78,22 @@ public class SwaggerHandler implements UnaryOperator<Exchange> {
     }
 
     private Map<String, Object> opResponses() {
-        return mapOf(
-          "200", mapOf(
+        return Maps.mapOf(
+          "200", Maps.mapOf(
             "description", "200 ok?"
           ),
-          "default", mapOf(
+          "default", Maps.mapOf(
             "description", "default ok?"
           )
         );
     }
 
     private Map<String, Object> infoObject() {
-        return mapOf(
+        return Maps.mapOf(
           "title", "the title",
           "description", "the description comes here",
           "version", "0.0.1-SNAPSHOT"
         );
     }
 
-    private Map<String, Object> mapOf(Object... pairs) {
-        Map<String, Object> m = new HashMap<>();
-        for (int i = 0; i < pairs.length; i += 2) {
-            m.put(pairs[i].toString(), pairs[i + 1]);
-        }
-        return m;
-    }
 }

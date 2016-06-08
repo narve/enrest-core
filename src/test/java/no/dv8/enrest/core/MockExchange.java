@@ -110,4 +110,10 @@ public class MockExchange extends Exchange {
     public Map<String, String[]> getParameterMap() {
         return parameters;
     }
+
+    public Exchange withHeader(String name, String value ) {
+        headers.put( name, value );
+        return this;
+    }
+
 }
