@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HttpServer.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -30,7 +31,10 @@ namespace HttpServer
         public void ConfigureServices(IServiceCollection services)
         {
             // services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                // .AddMicrosoftIdentityWebApi(Configuration.GetSection("AzureAdB2C"));
+            // .AddMicrosoftIdentityWebApi(Configuration.GetSection("AzureAdB2C"));
+
+            services.AddMvc(options => { options.OutputFormatters.Insert(0, new HtmlOutputFormatter()); });
+
 
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "HttpServer", Version = "v1" }); });
