@@ -1,13 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Data.Common;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using DatabaseSchemaReader.DataSchema;
-using DV8.Html.Serialization;
+using DV8.Html.Elements;
+using DV8.Html.Utils;
+using HttpServer.DbUtil;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
+
+// ReSharper disable UnusedMember.Global
 
 namespace HttpServer.Controllers
 {
@@ -17,25 +21,103 @@ namespace HttpServer.Controllers
     public class IndexController
     {
         private readonly ILogger<IndexController> _logger;
+        private readonly IDbInspector _dbInspector;
+        private readonly IDbConnectionProvider _dbConnectionProvider;
 
-        public IndexController(ILogger<IndexController> logger) => _logger = logger;
+        public IndexController(ILogger<IndexController> logger, IDbInspector dbInspector, IDbConnectionProvider dbConnectionProvider)
+        {
+            _logger = logger;
+            _dbInspector = dbInspector;
+            _dbConnectionProvider = dbConnectionProvider;
+        }
+
+        [HttpGet("favicon.ico")]
+        [AllowAnonymous]
+        public ActionResult GetFavIcon()
+        {
+            const string svg = @"
+<svg
+  xmlns=""http://www.w3.org/2000/svg""
+  viewBox=""0 0 16 16"">
+
+  <text x=""0"" y=""14"">🦄</text>
+</svg>
+";
+            return new ContentResult { Content = svg };
+        }
+
+        [HttpGet("{table}/{id}")]
+        public async Task<object> GetById(string table, string id)
+        {
+            var sql = $"select * from {table} where id = @id";
+            var d = await _dbConnectionProvider.Get().QuerySingleAsync(sql, new { id });
+            return d;
+        }
 
         [HttpGet("{table}")]
         public async Task<object> GetForType(string table)
         {
             var sql = $"select * from {table}";
-            IEnumerable<dynamic> rs = await GetConnection().QueryAsync(sql);
-
-            var rs2 = rs.Cast<IDictionary<string, object>>().ToList();
-
-
+            var rs = await _dbConnectionProvider.Get().QueryAsync(sql);
+            var rs2 = rs
+                .Cast<IDictionary<string, object>>()
+                .Select(objects => Prettify(table, objects))
+                .ToList();
             return rs2;
         }
 
-        [HttpGet]
-        public async Task<object> Get()
+        public IDictionary<string, object> Prettify(string table, IDictionary<string, object> dict)
         {
-            var conn = GetConnection();
+            return dict
+                .Select(kvp => KeyValuePair.Create(ColumnToTitle(kvp.Key), DbValueToElement(table, kvp)))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        }
+
+        public object DbValueToElement(string table, KeyValuePair<string, object> keyValuePair)
+        {
+            if (_dbInspector.IsFk(table, keyValuePair.Key))
+            {
+                var trg = _dbInspector.GetFkTarget(table, keyValuePair.Key);
+                return new A
+                {
+                    Text = trg + "#" + keyValuePair.Value,
+                    Href = "/" + trg + "/" + keyValuePair.Value,
+                };
+            }
+
+            var t = keyValuePair.Value?.GetType();
+            if (t != null && t != typeof(string) && t != typeof(long) && t != typeof(int))
+            {
+                return keyValuePair.Value?.ToString();
+            }
+
+            return keyValuePair.Value;
+        }
+
+        private string ColumnToTitle(string argKey)
+        {
+            return argKey.UppercaseFirst();
+        }
+
+        private A Link(DatabaseTable t) =>
+            new()
+            {
+                Href = t.Name,
+                Text = $"{t.Name} {t.Description} {t.NetName} [{t.SchemaOwner}/{t.DatabaseSchema}]",
+            };
+
+        [HttpGet]
+        public object Get() =>
+            _dbInspector.GetSchema().Tables
+                .Where(t => !"information_schema".Equals(t.SchemaOwner, StringComparison.OrdinalIgnoreCase))
+                .Where(t => !"auth".Equals(t.SchemaOwner, StringComparison.OrdinalIgnoreCase))
+                .Where(t => "public".Equals(t.SchemaOwner, StringComparison.OrdinalIgnoreCase))
+                .Select(Link);
+
+        // [HttpGet]
+        public async Task<object> GetOld()
+        {
+            // var conn = GetConnection();
 
             var fkSql = @"-- noinspection SqlResolveForFile
             
@@ -72,12 +154,12 @@ namespace HttpServer.Controllers
 
             foreach (var sql in sqls)
             {
-                IEnumerable<dynamic> rs = await conn.QueryAsync(sql.Value);
-                var rs2 = rs.Cast<IDictionary<string, object>>(); 
-                var rs3 = rs2
-                    .Select(x => x.Keys.Distinct().Select(k => KeyValuePair.Create(k, x[k])).ToDictionary(x2 => x2.Key, x2 => x2.Key == "sql" ? "sql!" : x2.Value))
-                    .ToList();
-                res.Add(sql.Key, rs2);
+                // IEnumerable<dynamic> rs = await conn.QueryAsync(sql.Value);
+                // var rs2 = rs.Cast<IDictionary<string, object>>(); 
+                // var rs3 = rs2
+                //     .Select(x => x.Keys.Distinct().Select(k => KeyValuePair.Create(k, x[k])).ToDictionary(x2 => x2.Key, x2 => x2.Key == "sql" ? "sql!" : x2.Value))
+                //     .ToList();
+                // res.Add(sql.Key, rs2);
             }
 
 
@@ -86,24 +168,5 @@ namespace HttpServer.Controllers
             // return new object[] { tables, res};
             return res;
         }
-
-        private DatabaseSchema GetSchema()
-        {
-            DbConnection conn = GetConnection();
-            var dbReader = new DatabaseSchemaReader.DatabaseReader(conn);
-            //Then load the schema (this will take a little time on moderate to large database structures)
-            DatabaseSchema schema = dbReader.ReadAll();
-
-            //The structure is identical for all providers (and the full framework).
-            foreach (var table in schema.Tables)
-            {
-                //do something with your model
-            }
-
-            return schema;
-        }
-
-        private static DbConnection GetConnection() =>
-            new SqliteConnection("Data Source=c:\\Development\\sample.db");
     }
 }

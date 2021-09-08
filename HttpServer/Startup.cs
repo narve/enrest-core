@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HttpServer.DbUtil;
 using HttpServer.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -34,6 +35,9 @@ namespace HttpServer
             // .AddMicrosoftIdentityWebApi(Configuration.GetSection("AzureAdB2C"));
 
             services.AddMvc(options => { options.OutputFormatters.Insert(0, new HtmlOutputFormatter()); });
+            
+            services.AddScoped<IDbInspector, DbInspector>();
+            services.AddScoped<IDbConnectionProvider, DbConnectionProvider>();
 
 
             services.AddControllers();

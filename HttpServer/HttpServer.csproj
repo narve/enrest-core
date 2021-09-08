@@ -8,17 +8,23 @@
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.0.90" />
         <PackageReference Include="DatabaseSchemaReader" Version="2.7.10" />
-        <PackageReference Include="DV8.Html" Version="1.1.5" />
+        <PackageReference Include="DV8.Html" Version="1.1.6" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="5.0.9" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.9" />
-        <PackageReference Include="Microsoft.Identity.Web" Version="1.1.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="1.16.1" />
+        <PackageReference Include="Npgsql" Version="5.0.7" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="DatabaseMetaData" />
+      <Folder Include="HtmlGenerators" />
     </ItemGroup>
 
 </Project>
