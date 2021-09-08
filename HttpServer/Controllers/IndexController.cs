@@ -115,58 +115,58 @@ namespace HttpServer.Controllers
                 .Select(Link);
 
         // [HttpGet]
-        public async Task<object> GetOld()
-        {
-            // var conn = GetConnection();
-
-            var fkSql = @"-- noinspection SqlResolveForFile
-            
-            SELECT 
-                m.name
-                , p.*
-            FROM
-                sqlite_master m
-                JOIN pragma_foreign_key_list(m.name) p ON m.name != p.""table""
-                        WHERE m.type = 'table'
-                        ORDER BY m.name
-                            ;";
-
-            var infoSql = @"-- noinspection SqlResolveForFile
-            
-            SELECT 
-              *
-            FROM 
-              sqlite_master AS m
-            JOIN 
-              pragma_table_info(m.name) AS p
-            ORDER BY 
-              m.name, 
-              p.cid";
-
-            var sqls = new Dictionary<string, string>
-            {
-                { "Foreign keys", fkSql },
-                { "Info", infoSql },
-            };
-
-            var res = new Dictionary<string, object>();
-
-
-            foreach (var sql in sqls)
-            {
-                // IEnumerable<dynamic> rs = await conn.QueryAsync(sql.Value);
-                // var rs2 = rs.Cast<IDictionary<string, object>>(); 
-                // var rs3 = rs2
-                //     .Select(x => x.Keys.Distinct().Select(k => KeyValuePair.Create(k, x[k])).ToDictionary(x2 => x2.Key, x2 => x2.Key == "sql" ? "sql!" : x2.Value))
-                //     .ToList();
-                // res.Add(sql.Key, rs2);
-            }
-
-
-            // res.Add("Meta", GetSchema());
-
-            // return new object[] { tables, res};
-            return res;
-        }
+        // public async Task<object> GetOld()
+        // {
+        //     // var conn = GetConnection();
+        //
+        //     var fkSql = @"-- noinspection SqlResolveForFile
+        //     
+        //     SELECT 
+        //         m.name
+        //         , p.*
+        //     FROM
+        //         sqlite_master m
+        //         JOIN pragma_foreign_key_list(m.name) p ON m.name != p.""table""
+        //                 WHERE m.type = 'table'
+        //                 ORDER BY m.name
+        //                     ;";
+        //
+        //     var infoSql = @"-- noinspection SqlResolveForFile
+        //     
+        //     SELECT 
+        //       *
+        //     FROM 
+        //       sqlite_master AS m
+        //     JOIN 
+        //       pragma_table_info(m.name) AS p
+        //     ORDER BY 
+        //       m.name, 
+        //       p.cid";
+        //
+        //     var sqls = new Dictionary<string, string>
+        //     {
+        //         { "Foreign keys", fkSql },
+        //         { "Info", infoSql },
+        //     };
+        //
+        //     var res = new Dictionary<string, object>();
+        //
+        //
+        //     foreach (var sql in sqls)
+        //     {
+        //         // IEnumerable<dynamic> rs = await conn.QueryAsync(sql.Value);
+        //         // var rs2 = rs.Cast<IDictionary<string, object>>(); 
+        //         // var rs3 = rs2
+        //         //     .Select(x => x.Keys.Distinct().Select(k => KeyValuePair.Create(k, x[k])).ToDictionary(x2 => x2.Key, x2 => x2.Key == "sql" ? "sql!" : x2.Value))
+        //         //     .ToList();
+        //         // res.Add(sql.Key, rs2);
+        //     }
+        //
+        //
+        //     // res.Add("Meta", GetSchema());
+        //
+        //     // return new object[] { tables, res};
+        //     return res;
+        // }
     }
 }

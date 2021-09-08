@@ -18,6 +18,10 @@ namespace HttpServer
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((ctx, cfg) =>
+                {
+                    cfg.AddJsonFile("appsettings.local.json", true);
+                })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }

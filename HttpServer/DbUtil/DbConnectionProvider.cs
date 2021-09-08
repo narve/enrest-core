@@ -1,13 +1,20 @@
 ﻿using System;
 using System.Data;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 
 namespace HttpServer.DbUtil
 {
     public class DbConnectionProvider : IDbConnectionProvider
     {
+        private readonly IConfiguration _configuration;
         private IDbConnection _connection;
+
+        public DbConnectionProvider(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
 
         void IDisposable.Dispose() => _connection?.Dispose();
 
@@ -20,16 +27,10 @@ namespace HttpServer.DbUtil
         private IDbConnection CreateConnection() =>
             PgConnection();
 
-        private IDbConnection PgConnection()
-        {
-            // var s = "postgres://postgres:[YOUR-PASSWORD]@db.xupzhicrqmyvtgztrmjb.supabase.co:6543/postgres";
-            // var s = "postgres://postgres:ur4MKwGTXtW9Eat@db.xupzhicrqmyvtgztrmjb.supabase.co:6543/postgres";
-            var s = "Host=db.xupzhicrqmyvtgztrmjb.supabase.co;Username=postgres;Password=ur4MKwGTXtW9Eat;Database=postgres";
-
-            return new NpgsqlConnection(s);
-        }
+        private IDbConnection PgConnection() =>
+            new NpgsqlConnection(_configuration.GetConnectionString("SupabaseEdna"));
 
         private IDbConnection SqliteConnection() =>
-            new SqliteConnection("Data Source=c:\\Development\\sample.db");
+            new SqliteConnection(_configuration.GetConnectionString("SqliteSample"));
     }
 }
