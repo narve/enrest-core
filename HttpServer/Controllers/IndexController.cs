@@ -49,7 +49,11 @@ namespace HttpServer.Controllers
         [HttpGet("{table}/{id}")]
         public async Task<object> GetById(string table, string id)
         {
-            var sql = $"select * from {table} where id = @id";
+            var t = _dbInspector.GetSchema().FindTableByName(table);
+            var idColName = t.PrimaryKey.Columns.Single();
+            var idCol = t.FindColumn(idColName);
+            var idExp = idCol.DataType.IsString ? idColName : $"cast ({idCol.Name} as varchar)";
+            var sql = $"select * from {table} where {idExp} = @id";
             var d = await _dbConnectionProvider.Get().QuerySingleAsync(sql, new { id });
             return d;
         }
@@ -85,11 +89,11 @@ namespace HttpServer.Controllers
                 };
             }
 
-            var t = keyValuePair.Value?.GetType();
-            if (t != null && t != typeof(string) && t != typeof(long) && t != typeof(int))
-            {
-                return keyValuePair.Value?.ToString();
-            }
+            // var t = keyValuePair.Value?.GetType();
+            // if (t != null && t != typeof(string) && t != typeof(long) && t != typeof(int))
+            // {
+            //     return keyValuePair.Value?.ToString();
+            // }
 
             return keyValuePair.Value;
         }
@@ -103,7 +107,7 @@ namespace HttpServer.Controllers
             new()
             {
                 Href = t.Name,
-                Text = $"{t.Name} {t.Description} {t.NetName} [{t.SchemaOwner}/{t.DatabaseSchema}]",
+                Text = $"{t.Name.UppercaseFirst()} {t.Description}",
             };
 
         [HttpGet]
