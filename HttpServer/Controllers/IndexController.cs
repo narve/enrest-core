@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -7,9 +9,14 @@ using DatabaseSchemaReader.DataSchema;
 using DV8.Html.Elements;
 using DV8.Html.Utils;
 using HttpServer.DbUtil;
+using HttpServer.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+
+// ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable UnusedMember.Global
 
@@ -23,27 +30,30 @@ namespace HttpServer.Controllers
         private readonly ILogger<IndexController> _logger;
         private readonly IDbInspector _dbInspector;
         private readonly IDbConnectionProvider _dbConnectionProvider;
+        private readonly FormCreator _formsCreator;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly DbMutator _dbMutator;
 
-        public IndexController(ILogger<IndexController> logger, IDbInspector dbInspector, IDbConnectionProvider dbConnectionProvider)
+        public IndexController(ILogger<IndexController> logger, IDbInspector dbInspector, IDbConnectionProvider dbConnectionProvider,
+            FormCreator formsCreator, IHttpContextAccessor httpContextAccessor, DbMutator dbMutator)
         {
             _logger = logger;
             _dbInspector = dbInspector;
             _dbConnectionProvider = dbConnectionProvider;
+            _formsCreator = formsCreator;
+            _httpContextAccessor = httpContextAccessor;
+            _dbMutator = dbMutator;
         }
 
-        [HttpGet("favicon.ico")]
-        [AllowAnonymous]
-        public ActionResult GetFavIcon()
+        [HttpPost("{table}")]
+        public async Task<RedirectResult> CreateObject(string table)
         {
-            const string svg = @"
-<svg
-  xmlns=""http://www.w3.org/2000/svg""
-  viewBox=""0 0 16 16"">
-
-  <text x=""0"" y=""14"">🦄</text>
-</svg>
-";
-            return new ContentResult { Content = svg };
+            var collection = _httpContextAccessor.HttpContext.Request.Form;
+            var kvpa = collection.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value)).ToList();
+            _logger.LogInformation("Should insert into {table} values {values}", table, kvpa.JoinToString());
+            var inserted = await _dbMutator.InsertRow(table, kvpa);
+            _logger.LogInformation("Insert into {table}: {values}", table, inserted.DictToString());
+            return new RedirectResult("/" + table + "/" + inserted["id"], false, false);
         }
 
         [HttpGet("{table}/{id}")]
@@ -55,20 +65,68 @@ namespace HttpServer.Controllers
             var idExp = idCol.DataType.IsString ? idColName : $"cast ({idCol.Name} as varchar)";
             var sql = $"select * from {table} where {idExp} = @id";
             var d = await _dbConnectionProvider.Get().QuerySingleAsync(sql, new { id });
+            d._links = GetLinksForItem(table, d);
             return d;
         }
 
-        [HttpGet("{table}")]
-        public async Task<object> GetForType(string table)
+        private A[] GetLinksForItem(string table, IDictionary<string, object> o)
         {
-            var sql = $"select * from {table}";
-            var rs = await _dbConnectionProvider.Get().QueryAsync(sql);
-            var rs2 = rs
+            // var dict = (IDictionary<string, object>)o; 
+            return _dbInspector.GetSchema().Tables
+                .SelectMany(t => t.ForeignKeys)
+                .Where(fk => fk.RefersToTable == table)
+                .Select(fk => GetFkLink(fk, o))
+                .ToArray();
+        }
+
+        private A GetFkLink(DatabaseConstraint fk, IDictionary<string, object> o)
+        {
+            var filter = fk.Columns.Select(c => $"{c}={o["id"]}").JoinToString(",");
+            return new A("/" + fk.TableName + "?" + filter);
+        }
+
+        [HttpGet("{table}")]
+        public async Task<object> GetResultForTable(string table)
+        {
+            IQueryCollection query = _httpContextAccessor.HttpContext.Request.Query;
+            // Dictionary<string,string?> dict = query.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.SingleOrDefault());
+            
+            var parameters = new SortedDictionary<string, object>();
+            var where = ""; 
+            // if (query.Any())
+            // {
+            //     where += " WHERE ";
+            // }
+            // foreach (var kvp in query)
+            // {
+            //     where += kvp.Key + "=@" + kvp.Key;
+            //     parameters.Add(kvp.Key, kvp.Value);
+            // }
+            
+            
+            
+            
+            var sql = $"select * from {table}{where}";
+            var rs = await _dbConnectionProvider.Get().QueryAsync(sql, parameters);
+            object[] rs2 = rs
                 .Cast<IDictionary<string, object>>()
                 .Select(objects => Prettify(table, objects))
-                .ToList();
-            return rs2;
+                .ToArray();
+            return new SearchResult { Items = rs2, Links = LinksForTable(table) };
         }
+
+        [HttpGet("forms/create/{table}")]
+        public async Task<IHtmlElement> GetCreateForm(string table)
+        {
+            return await _formsCreator.GetCreateForm(table);
+        }
+
+
+        private A[] LinksForTable(string table) =>
+            new[]
+            {
+                new A($"/forms/create/{table}", $"Create-form for {table}", "create form")
+            };
 
         public IDictionary<string, object> Prettify(string table, IDictionary<string, object> dict)
         {
@@ -88,12 +146,6 @@ namespace HttpServer.Controllers
                     Href = "/" + trg + "/" + keyValuePair.Value,
                 };
             }
-
-            // var t = keyValuePair.Value?.GetType();
-            // if (t != null && t != typeof(string) && t != typeof(long) && t != typeof(int))
-            // {
-            //     return keyValuePair.Value?.ToString();
-            // }
 
             return keyValuePair.Value;
         }

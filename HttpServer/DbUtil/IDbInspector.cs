@@ -1,7 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using DatabaseSchemaReader.DataSchema;
-using static System.String;
 using static System.StringComparison;
 
 namespace HttpServer.DbUtil
