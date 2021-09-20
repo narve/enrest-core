@@ -28,12 +28,14 @@ namespace HttpServer.DbUtil
             var schema = dbReader.ReadAll();
 
             var colSql =
-                "SELECT table_name, column_name, is_identity, identity_generation, is_generated, is_updatable from information_schema.columns"; // where table_name = 'item'
+                "SELECT table_name, column_name, is_identity, identity_generation, is_generated, is_updatable " +
+                "from information_schema.columns where table_schema = 'public'";
             IEnumerable<dynamic> cols = conn.Query(colSql).ToList();
+            var tabs = cols.Select(x => x.table_name).ToHashSet();
 
             foreach (var table in schema.Tables)
             {
-                var tabs = new[] { "item", "location" };
+                // var tabs = new[] { "item", "location" };
                 if (!tabs.Contains(table.Name))
                     continue;
 

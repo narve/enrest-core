@@ -28,7 +28,13 @@ namespace HttpServer.DbUtil
         string GetId(string table, IDictionary<string, object> item) =>
             item[GetPkColumn(table).Name]?.ToString();
 
+        
+        
+        
         string GetTitle(string tab, IDictionary<string, object> dictionary) =>
-            dictionary["title"]?.ToString() ?? dictionary["name"]?.ToString() ?? GetId(tab, dictionary);
+            dictionary["title"]?.ToString() ?? 
+            dictionary["name"]?.ToString() ?? 
+            dictionary["handle"]?.ToString() ?? 
+            GetId(tab, dictionary);
     }
 }

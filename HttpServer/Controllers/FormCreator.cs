@@ -43,6 +43,10 @@ namespace HttpServer.Controllers
             return new Form
             {
                 rel = "edit",
+                ExAttributes = new Dictionary<string, string>()
+                {
+                    { "enctype", "multipart/form-data" }
+                },
                 Action = "/" + table + "/" + id,
                 Method = HttpMethod.Post,
                 Clz = $"edit {table}",
@@ -57,11 +61,13 @@ namespace HttpServer.Controllers
 
         private async Task<IHtmlElement[]> GetInputFields(DatabaseTable tableInfo, IDictionary<string, object> dict = null)
         {
-            return await Task.WhenAll(tableInfo.Columns
+            var tasks = tableInfo.Columns
                 .Where(ApplicableForMutation)
-                .Select(async col => await GetFormForField(col, dict))
-                .ToArray()
-            );
+                .Select(col => GetFormForField(col, dict).GetAwaiter().GetResult())
+                .ToArray();
+            // return await Task.WhenAll(tasks
+            // );
+            return tasks;
         }
 
         private bool ApplicableForMutation(DatabaseColumn arg) =>
@@ -72,6 +78,15 @@ namespace HttpServer.Controllers
             if (col.IsForeignKey)
             {
                 return await GetSelector(col);
+            }
+
+            if (col.DbDataType == "bytea")
+            {
+                return new Input
+                {
+                    Name = col.Name,
+                    InputType = "file",
+                };
             }
 
             var value = dictionary?[col.Name]?.ToString();
@@ -91,9 +106,9 @@ namespace HttpServer.Controllers
 
         private async Task<ImmutableSortedDictionary<string, string>> GetSelectorRows(DatabaseTable otherTable)
         {
-            var select = $"select id, name from {otherTable}";
+            var select = $"select * from {otherTable}";
             var rows = await _connectionProvider.Get().QueryAsync(select);
-            var items = rows.Cast<IDictionary<string, object>>()
+            var items = rows.Cast<IDictionary<string, object>>().ToList()
                 .Select(x => KeyValuePair.Create(_dbInspector.GetId(otherTable.Name, x), _dbInspector.GetTitle(otherTable.Name, x)))
                 .ToImmutableSortedDictionary();
             return items;

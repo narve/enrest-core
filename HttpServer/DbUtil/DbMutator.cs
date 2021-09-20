@@ -44,7 +44,7 @@ namespace HttpServer.DbUtil
             return ins;
         }
 
-        public async Task<IDictionary<string, object>> UpdateRow(string table, string id, IEnumerable<KeyValuePair<string, StringValues>> formValues)
+        public async Task<IDictionary<string, object>> UpdateRow(string table, string id, IEnumerable<KeyValuePair<string, object>> formValues)
         {
             var conn = _connectionProvider.Get();
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
@@ -53,13 +53,14 @@ namespace HttpServer.DbUtil
             foreach (var kvp in formValues)
             {
                 var columnInfo = tableInfo.FindColumn(kvp.Key);
-                parameters.Add(kvp.Key, Coerce(columnInfo, kvp.Value.SingleOrDefault()));
+                // parameters.Add(kvp.Key, Coerce(columnInfo, kvp.Value.SingleOrDefault()));
+                parameters.Add(kvp.Key, Coerce(columnInfo, kvp.Value));
             }
 
+            var colNames = parameters.Keys.Where(x => Regex.IsMatch(x, "^[\\w]+$")).ToList();
             var pk = _dbInspector.GetPkColumn(table);
             parameters.Add(pk.Name, Coerce(pk, id));
 
-            var colNames = parameters.Keys.Where(x => Regex.IsMatch(x, "^[\\w]+$")).ToList();
 
             var sql = new[]
             {
@@ -73,10 +74,11 @@ namespace HttpServer.DbUtil
             return obj;
         }
 
-        public object Coerce(DatabaseColumn columnInfo, string value)
+        public object Coerce(DatabaseColumn columnInfo, object value)
         {
             if (value == null) return null;
-            if (columnInfo.DataType.IsInt) return int.Parse(value);
+            if (value is string nullString && string.IsNullOrEmpty(nullString)) return null;
+            if (columnInfo.DataType.IsInt && value is string intString) return int.Parse(intString);
             return value;
         }
 

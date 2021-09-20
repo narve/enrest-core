@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -10,7 +11,9 @@ using HttpServer.DbUtil;
 using HttpServer.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -56,10 +59,42 @@ namespace HttpServer.Controllers
 
 
         [HttpPost(ILinkManager.PostExistingItem)]
+        [DisableFormValueModelBinding]
         public async Task<RedirectResult> UpdateObject(string table, string id)
         {
-            var collection = _httpContextAccessor.HttpContext.Request.Form;
-            var kvpa = collection.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value)).ToList();
+            var request = _httpContextAccessor.HttpContext.Request;
+            var boundary = MultipartRequestHelper.GetBoundary(MediaTypeHeaderValue.Parse(request.ContentType));
+            MultipartReader reader = new MultipartReader(boundary, request.BodyReader.AsStream());
+
+            var kvpa = new List<KeyValuePair<string, object>>();
+
+            // var list = new List<MultipartSection?>();
+            var next = await reader.ReadNextSectionAsync();
+            while (next != null)
+            {
+                // list.Add(next);
+
+                var disp = next.ContentDisposition;
+                var isString = !disp.Contains("filename=");
+                var name = disp.Split("; ")[1].Split("=")[1].Replace("\"", "");
+
+                if (isString)
+                {
+                    using var streamReader = new StreamReader(next.Body);
+                    var str = await streamReader.ReadToEndAsync();
+                    kvpa.Add(KeyValuePair.Create<string, object>(name, str));
+                }
+                else
+                {
+                    await using var memoryStream = new MemoryStream();
+                    await next.Body.CopyToAsync(memoryStream);
+                    var bytes = memoryStream.ToArray();
+                    kvpa.Add(KeyValuePair.Create<string, object>(name, bytes));
+                }
+
+                next = await reader.ReadNextSectionAsync();
+            }
+
             _logger.LogInformation("Should update {table}#{id} values {values}", table, id, kvpa.JoinToString());
             var upd = await _dbMutator.UpdateRow(table, id, kvpa);
             _logger.LogInformation("Updated {table}#{id}: {values}", table, id, upd.DictToString());
@@ -150,32 +185,41 @@ namespace HttpServer.Controllers
         public IDictionary<string, object> Prettify(string table, IDictionary<string, object> dict)
         {
             return dict
-                .Select(kvp => KeyValuePair.Create(ColumnToTitle(kvp.Key), DbValueToElement(table, kvp)))
+                .Select(kvp => KeyValuePair.Create(ColumnToTitle(kvp.Key), DbValueToElement(table, dict, kvp)))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
-        public object DbValueToElement(string table, KeyValuePair<string, object> keyValuePair)
+        public object DbValueToElement(string table, IDictionary<string, object> obj, KeyValuePair<string, object> kvp)
         {
-            if (_dbInspector.IsFk(table, keyValuePair.Key))
+            if (_dbInspector.IsFk(table, kvp.Key))
             {
-                var trg = _dbInspector.GetFkTarget(table, keyValuePair.Key);
+                var trg = _dbInspector.GetFkTarget(table, kvp.Key);
                 return new A
                 {
-                    Text = trg + "#" + keyValuePair.Value,
-                    Href = _linkManager.LinkToItem(trg, keyValuePair.Value),
+                    Text = trg + "#" + kvp.Value,
+                    Href = _linkManager.LinkToItem(trg, kvp.Value),
                 };
             }
 
-            if (_dbInspector.GetPkColumn(table).Name == keyValuePair.Key)
+            if (_dbInspector.GetPkColumn(table).Name == kvp.Key)
             {
                 return new A
                 {
-                    Text = keyValuePair.Value.ToString(),
-                    Href = _linkManager.LinkToItem(table, keyValuePair.Value),
+                    Text = kvp.Value.ToString(),
+                    Href = _linkManager.LinkToItem(table, kvp.Value),
                 };
             }
 
-            return keyValuePair.Value;
+            // if (_dbInspector.IsLob(table, kvp.Key))
+            // {
+            //     return new A
+            //     {
+            //         Text = kvp.Value.ToString(),
+            //         Href = _linkManager.LinkToLob(table, kvp.Value),
+            //     };
+            // }
+
+            return kvp.Value;
         }
 
         private string ColumnToTitle(string argKey)
