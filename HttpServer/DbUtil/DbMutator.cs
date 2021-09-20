@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
 using DatabaseSchemaReader.DataSchema;
-using Microsoft.Extensions.Primitives;
 
 namespace HttpServer.DbUtil
 {
@@ -19,20 +19,13 @@ namespace HttpServer.DbUtil
             _connectionProvider = connectionProvider;
         }
 
-        public async Task<IDictionary<string, object>> InsertRow(string table, IEnumerable<KeyValuePair<string, StringValues>> formValues)
+        public async Task<IDictionary<string, object>> InsertRow(string table, List<KeyValuePair<string, object>> formValues)
         {
+            CheckColumnNames(table, formValues);
             var conn = _connectionProvider.Get();
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
-
-            var parameters = new SortedDictionary<string, object>();
-            foreach (var kvp in formValues)
-            {
-                var columnInfo = tableInfo.FindColumn(kvp.Key);
-                parameters.Add(kvp.Key, Coerce(columnInfo, kvp.Value.SingleOrDefault()));
-            }
-
+            var parameters = ToDbParameters(formValues, tableInfo);
             var colNames = parameters.Keys.Where(x => Regex.IsMatch(x, "^[\\w]+$")).ToList();
-
             var sql = new[]
             {
                 $"INSERT INTO {table}",
@@ -40,24 +33,17 @@ namespace HttpServer.DbUtil
                 $"VALUES ({colNames.Select(x => "@" + x).JoinToString()}) " +
                 $"RETURNING {table}.*"
             }.JoinToString(" \r\n");
-            var ins = await conn.QuerySingleAsync(sql, parameters, null);
+            var ins = await conn.QuerySingleAsync(sql, parameters);
             return ins;
         }
 
-        public async Task<IDictionary<string, object>> UpdateRow(string table, string id, IEnumerable<KeyValuePair<string, object>> formValues)
+        public async Task<IDictionary<string, object>> UpdateRow(string table, string id, List<KeyValuePair<string, object>> formValues)
         {
+            CheckColumnNames(table, formValues);
+            var colNames = formValues.Select(kvp => kvp.Key).ToList();
             var conn = _connectionProvider.Get();
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
-
-            var parameters = new SortedDictionary<string, object>();
-            foreach (var kvp in formValues)
-            {
-                var columnInfo = tableInfo.FindColumn(kvp.Key);
-                // parameters.Add(kvp.Key, Coerce(columnInfo, kvp.Value.SingleOrDefault()));
-                parameters.Add(kvp.Key, Coerce(columnInfo, kvp.Value));
-            }
-
-            var colNames = parameters.Keys.Where(x => Regex.IsMatch(x, "^[\\w]+$")).ToList();
+            var parameters = ToDbParameters(formValues, tableInfo);
             var pk = _dbInspector.GetPkColumn(table);
             parameters.Add(pk.Name, Coerce(pk, id));
 
@@ -70,8 +56,27 @@ namespace HttpServer.DbUtil
                 $"WHERE id = @id " +
                 $"RETURNING {table}.*"
             }.JoinToString(" \r\n");
-            var obj = await conn.QuerySingleAsync(sql, parameters, null);
+            var obj = await conn.QuerySingleAsync(sql, parameters);
             return obj;
+        }
+
+        private void CheckColumnNames(string table, List<KeyValuePair<string, object>> formValues)
+        {
+            if (formValues.Any(kvp => !Regex.IsMatch(kvp.Key, "^[\\w]+$")))
+                throw new ArgumentException(nameof(formValues));
+        }
+
+
+        private SortedDictionary<string, object> ToDbParameters(IEnumerable<KeyValuePair<string, object>> formValues, DatabaseTable tableInfo)
+        {
+            var parameters = new SortedDictionary<string, object>();
+            foreach (var (key, value) in formValues)
+            {
+                var columnInfo = tableInfo.FindColumn(key);
+                parameters.Add(key, Coerce(columnInfo, value));
+            }
+
+            return parameters;
         }
 
         public object Coerce(DatabaseColumn columnInfo, object value)
@@ -92,6 +97,14 @@ namespace HttpServer.DbUtil
             var dyn = await _connectionProvider.Get().QuerySingleAsync(sql, new { id });
             var dict = (IDictionary<string, object>)dyn;
             return dict;
+        }
+
+        public async Task<byte[]> GetBytes(string table, string id, string column)
+        {
+            var pk = _dbInspector.GetPkColumn(table);
+            var sql = $"SELECT {column} FROM {table} WHERE {pk.Name} = @id";
+            var rs = await _connectionProvider.Get().QuerySingleAsync<byte[]>(sql, new { id = Coerce(pk, id) });
+            return rs;
         }
     }
 }

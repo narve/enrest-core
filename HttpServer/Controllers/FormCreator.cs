@@ -28,6 +28,10 @@ namespace HttpServer.Controllers
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
             return new Form
             {
+                ExAttributes = new Dictionary<string, string>()
+                {
+                    { "enctype", "multipart/form-data" }
+                },
                 rel = "Create",
                 Action = "/" + table,
                 Method = HttpMethod.Post,
@@ -42,11 +46,11 @@ namespace HttpServer.Controllers
             var id = _dbInspector.GetId(table, item);
             return new Form
             {
-                rel = "edit",
                 ExAttributes = new Dictionary<string, string>()
                 {
                     { "enctype", "multipart/form-data" }
                 },
+                rel = "edit",
                 Action = "/" + table + "/" + id,
                 Method = HttpMethod.Post,
                 Clz = $"edit {table}",
@@ -65,8 +69,6 @@ namespace HttpServer.Controllers
                 .Where(ApplicableForMutation)
                 .Select(col => GetFormForField(col, dict).GetAwaiter().GetResult())
                 .ToArray();
-            // return await Task.WhenAll(tasks
-            // );
             return tasks;
         }
 
@@ -80,7 +82,7 @@ namespace HttpServer.Controllers
                 return await GetSelector(col);
             }
 
-            if (col.DbDataType == "bytea")
+            if (_dbInspector.IsLob(col))
             {
                 return new Input
                 {

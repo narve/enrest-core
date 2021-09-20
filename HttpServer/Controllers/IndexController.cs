@@ -47,10 +47,10 @@ namespace HttpServer.Controllers
         }
 
         [HttpPost(ILinkManager.PostNewItem)]
+        [DisableFormValueModelBinding]
         public async Task<RedirectResult> CreateObject(string table)
         {
-            var collection = _httpContextAccessor.HttpContext.Request.Form;
-            var kvpa = collection.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value)).ToList();
+            var kvpa = await ExtractFormValues();
             _logger.LogInformation("Should insert into {table} values {values}", table, kvpa.JoinToString());
             var inserted = await _dbMutator.InsertRow(table, kvpa);
             _logger.LogInformation("Inserted into {table}: {values}", table, inserted.DictToString());
@@ -62,21 +62,27 @@ namespace HttpServer.Controllers
         [DisableFormValueModelBinding]
         public async Task<RedirectResult> UpdateObject(string table, string id)
         {
+            var kvpa = await ExtractFormValues();
+
+            _logger.LogInformation("Should update {table}#{id} values {values}", table, id, kvpa.JoinToString());
+            var upd = await _dbMutator.UpdateRow(table, id, kvpa);
+            _logger.LogInformation("Updated {table}#{id}: {values}", table, id, upd.DictToString());
+            return new RedirectResult($"/{table}/{id}", false, false);
+        }
+
+        private async Task<List<KeyValuePair<string, object>>> ExtractFormValues()
+        {
             var request = _httpContextAccessor.HttpContext.Request;
             var boundary = MultipartRequestHelper.GetBoundary(MediaTypeHeaderValue.Parse(request.ContentType));
             MultipartReader reader = new MultipartReader(boundary, request.BodyReader.AsStream());
-
             var kvpa = new List<KeyValuePair<string, object>>();
 
-            // var list = new List<MultipartSection?>();
             var next = await reader.ReadNextSectionAsync();
             while (next != null)
             {
-                // list.Add(next);
-
-                var disp = next.ContentDisposition;
-                var isString = !disp.Contains("filename=");
-                var name = disp.Split("; ")[1].Split("=")[1].Replace("\"", "");
+                var disposition = next.ContentDisposition;
+                var isString = !disposition.Contains("filename=");
+                var name = disposition.Split("; ")[1].Split("=")[1].Replace("\"", "");
 
                 if (isString)
                 {
@@ -95,10 +101,7 @@ namespace HttpServer.Controllers
                 next = await reader.ReadNextSectionAsync();
             }
 
-            _logger.LogInformation("Should update {table}#{id} values {values}", table, id, kvpa.JoinToString());
-            var upd = await _dbMutator.UpdateRow(table, id, kvpa);
-            _logger.LogInformation("Updated {table}#{id}: {values}", table, id, upd.DictToString());
-            return new RedirectResult($"/{table}/{id}", false, false);
+            return kvpa;
         }
 
         [HttpGet(ILinkManager.GetItemById)]
@@ -168,6 +171,16 @@ namespace HttpServer.Controllers
             return await _formsCreator.GetCreateForm(table);
         }
 
+        [HttpGet(ILinkManager.DownloadLob)]
+        public async Task<FileContentResult> DownloadLob(string table, string id, string field)
+        {
+            var bytes = await _dbMutator.GetBytes(table, id, field);
+            return new FileContentResult(bytes, "application/jpg")
+            {
+                FileDownloadName = "attachment.jpg",
+            };
+        }
+
         [HttpGet(ILinkManager.GetEditForm)]
         public async Task<IHtmlElement> GetEditForm(string table, string id)
         {
@@ -189,7 +202,7 @@ namespace HttpServer.Controllers
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
-        public object DbValueToElement(string table, IDictionary<string, object> obj, KeyValuePair<string, object> kvp)
+        private object DbValueToElement(string table, IDictionary<string, object> obj, KeyValuePair<string, object> kvp)
         {
             if (_dbInspector.IsFk(table, kvp.Key))
             {
@@ -210,14 +223,14 @@ namespace HttpServer.Controllers
                 };
             }
 
-            // if (_dbInspector.IsLob(table, kvp.Key))
-            // {
-            //     return new A
-            //     {
-            //         Text = kvp.Value.ToString(),
-            //         Href = _linkManager.LinkToLob(table, kvp.Value),
-            //     };
-            // }
+            if (_dbInspector.IsLob(table, kvp.Key))
+            {
+                return new A
+                {
+                    Text = "Download " + kvp.Key,
+                    Href = _linkManager.LinkToLob(table, _dbInspector.GetId(table, obj), kvp.Key),
+                };
+            }
 
             return kvp.Value;
         }
