@@ -41,6 +41,7 @@ namespace HttpServer
             services.AddSingleton<IDbInspector, DbInspector>();
             services.AddSingleton<FormCreator>();
             services.AddSingleton<DbMutator>();
+            services.AddSingleton<ILinkManager, LinkManager>();
             services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>();
 
             services.AddControllers();

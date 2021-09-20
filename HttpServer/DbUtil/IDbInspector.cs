@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using DatabaseSchemaReader.DataSchema;
 using static System.StringComparison;
 
@@ -8,16 +9,26 @@ namespace HttpServer.DbUtil
     {
         DatabaseSchema GetSchema();
 
-        bool IsFk(string table, string key) => 
-            GetFk(table, key) != null; 
-        
+        bool IsFk(string table, string key) =>
+            GetFk(table, key) != null;
+
         DatabaseConstraint GetFk(string table, string key) =>
             GetSchema().Tables
-                .SingleOrDefault(x => x.Name.Equals(table, OrdinalIgnoreCase))
+                .Single(x => x.Name.Equals(table, OrdinalIgnoreCase))
                 .ForeignKeys
                 .SingleOrDefault(fk => fk.Columns.Single().Equals(key, OrdinalIgnoreCase));
 
-        string GetFkTarget(string table, string key) => 
+        string GetFkTarget(string table, string key) =>
             GetFk(table, key).RefersToTable;
+
+        DatabaseColumn GetPkColumn(string table) =>
+            GetSchema().FindTableByName(table).PrimaryKeyColumn;
+
+
+        string GetId(string table, IDictionary<string, object> item) =>
+            item[GetPkColumn(table).Name]?.ToString();
+
+        string GetTitle(string tab, IDictionary<string, object> dictionary) =>
+            dictionary["title"]?.ToString() ?? dictionary["name"]?.ToString() ?? GetId(tab, dictionary);
     }
 }
