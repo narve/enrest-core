@@ -24,9 +24,9 @@ namespace HttpServer.Controllers
     // [Authorize]
     [ApiController]
     [Route("/")]
-    public class IndexController
+    public class ApiController
     {
-        private readonly ILogger<IndexController> _logger;
+        private readonly ILogger<ApiController> _logger;
         private readonly IDbInspector _dbInspector;
         private readonly IDbConnectionProvider _dbConnectionProvider;
         private readonly FormCreator _formsCreator;
@@ -34,7 +34,7 @@ namespace HttpServer.Controllers
         private readonly DbMutator _dbMutator;
         private readonly ILinkManager _linkManager;
 
-        public IndexController(ILogger<IndexController> logger, IDbInspector dbInspector, IDbConnectionProvider dbConnectionProvider,
+        public ApiController(ILogger<ApiController> logger, IDbInspector dbInspector, IDbConnectionProvider dbConnectionProvider,
             FormCreator formsCreator, IHttpContextAccessor httpContextAccessor, DbMutator dbMutator, ILinkManager linkManager)
         {
             _logger = logger;
@@ -125,6 +125,13 @@ namespace HttpServer.Controllers
             var editLinks = new[]
             {
                 new A(_linkManager.LinkToEditForm(table, id), $"Form for editing '{table}'#{id}", "create form")
+                {
+                    Itemscope = true,
+                },
+                new A(_linkManager.LinkToItem(table, id), _dbInspector.GetTitle(table, o), "self")
+                {
+                    Itemscope = true,
+                },
             };
 
             return fkLinks.Concat(editLinks).ToArray();
@@ -133,7 +140,10 @@ namespace HttpServer.Controllers
         private A GetFkLink(string sourceTable, DatabaseConstraint fk, IDictionary<string, object> o)
         {
             var filters = fk.Columns.Select(c => KeyValuePair.Create<string, object>(c, _dbInspector.GetId(sourceTable, o)));
-            return new A(_linkManager.LinkToQuery(fk.TableName, filters));
+            return new A(_linkManager.LinkToQuery(fk.TableName, filters))
+            {
+                Itemscope = true,
+            };
         }
 
         [HttpGet(ILinkManager.GetItemsOfType)]
@@ -193,6 +203,9 @@ namespace HttpServer.Controllers
             new[]
             {
                 new A(_linkManager.LinkToCreateForm(table), $"Form for adding a '{table}'", "create form")
+                {
+                    Itemscope = true,
+                }
             };
 
         public IDictionary<string, object> Prettify(string table, IDictionary<string, object> dict)
@@ -211,6 +224,11 @@ namespace HttpServer.Controllers
                 {
                     Text = trg + "#" + kvp.Value,
                     Href = _linkManager.LinkToItem(trg, kvp.Value),
+                    Subs = new Span(trg + "###" + kvp.Value)
+                    {
+                        Itemscope = true,
+                        // Itemtype = kvp.Key,
+                    }.ToArray()
                 };
             }
 
@@ -220,6 +238,7 @@ namespace HttpServer.Controllers
                 {
                     Text = kvp.Value.ToString(),
                     Href = _linkManager.LinkToItem(table, kvp.Value),
+                    Itemscope = false,
                 };
             }
 
@@ -229,6 +248,7 @@ namespace HttpServer.Controllers
                 {
                     Text = "Download " + kvp.Key,
                     Href = _linkManager.LinkToLob(table, _dbInspector.GetId(table, obj), kvp.Key),
+                    Itemscope = true,
                 };
             }
 

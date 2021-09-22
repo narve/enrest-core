@@ -60,6 +60,9 @@ namespace HttpServer
 
             app.UseHttpsRedirection();
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.UseRouting();
 
             // app.UseAuthentication();
