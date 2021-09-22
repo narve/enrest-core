@@ -9,11 +9,23 @@
 
 <h1>Hello there!</h1>
 
+<style>
+    .two-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 10px;
+    }
+    pre, .pre {
+        outline: 2px red solid;
+    }
+</style>
 
-
-<pre style="outline: 2px red solid; min-height: 5em; max-width: 80%" id="enrest-sink-json"></pre>
-<pre style="outline: 2px red solid; min-height: 5em; max-width: 80%" id="enrest-sink-html-source"></pre>
-<div style="outline: 2px red solid; min-height: 5em; max-width: 80%" id="enrest-sink-html"></div>
+<div class="two-columns">
+    <pre  id="enrest-sink-json"></pre>
+    <pre style="outline: 2px red solid; min-height: 5em; flex: 1;" id="enrest-sink-html-json"></pre>
+</div>
+<pre id="enrest-sink-html-source"></pre>
+<div class="pre" id="enrest-sink-html"></div>
 
 </body>
 </html>

@@ -43,14 +43,15 @@ function toObject(e) {
     } else if (e.tagName === 'A') {
         itemType = 'link';
     } else {
-        throw 'No item type';
+        itemType = 'string';
+        // throw 'No item type';
     }
 
     log(`Processing ${e.tagName} of type ${itemType}`);
 
     const isArray = itemType.indexOf('List') >= 0;
     if (itemType === 'string') {
-        throw 'fix';
+        return e.textContent;
     } else if (itemType === 'link') {
         return {
             href: e.href,
@@ -124,6 +125,11 @@ function log(msg, toReturn) {
 }
 
 function showObject(o) {
+    document.getElementById("enrest-sink-html-json").textContent = JSON.stringify(o, null, 2);
+    // log('shown, hopefully');
+}
+
+function showObject2(o) {
     document.getElementById("enrest-sink-json").textContent = JSON.stringify(o, null, 2);
     // log('shown, hopefully');
 }
@@ -151,6 +157,9 @@ function init() {
         .then(t => parseHtml(t))
         .then(o => log('Got object:', o))
         .then(o => showObject(o))
+        .then(() => fetch(url, {headers: {'accept': 'application/json'}}))
+        .then(r => r.json())
+        .then(o => showObject2(o))
         .catch(e => log('Failed: ' + e, e))
         .finally(() => log('done fetching'));
 }
