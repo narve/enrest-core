@@ -222,7 +222,7 @@ namespace HttpServer.Controllers
                 var trg = _dbInspector.GetFkTarget(table, kvp.Key);
                 return new A
                 {
-                    Text = trg + "#" + kvp.Value,
+                    // Text = trg + "#" + kvp.Value,
                     Href = _linkManager.LinkToItem(trg, kvp.Value),
                     Subs = new Span(kvp.Value?.ToString())
                     {

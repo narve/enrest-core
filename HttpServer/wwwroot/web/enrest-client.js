@@ -68,10 +68,7 @@ function toAny(element) {
     if (arrayItems.length > 0 && propItems.length > 0) {
         log("  propItems: ", propItems.map(describeElement).join(";"));
         log("  arrayItems: ", arrayItems.map(describeElement).join(";"));
-        throw "ArrayOrObject? Source=" + describeElement(element) + "; "
-            // + "PropItems=" + propItems.map(describeElement).join(";") 
-            // + " <|||> ArrayItems=" + arrayItems.map(describeElement).join(";")
-            ;
+        throw "ArrayOrObject? Source=" + describeElement(element) + "; ";
     }
 
     if (arrayItems.length > 0) {
@@ -81,24 +78,6 @@ function toAny(element) {
     } else {
         return toString(element);
     }
-    //
-    // let actual;
-    // if (element.hasAttribute('itemscope')) {
-    //     log('toAny: Found itemscope, type=', element.attributes['itemtype']?.value);
-    //     actual = element;
-    // } else if (element.children.length === 1 && element.children[0].hasAttribute('itemscope')) {
-    //     actual = element.children[0];
-    //     log('toAny: Found itemscope in child, type=', actual.attributes['itemtype']?.value);
-    // } else {
-    //     const desc = findDescendants(element, x => x.hasAttribute('itemscope'));
-    //     if (desc.length === 1) {
-    //         log(`toAny: Found ${desc.length} descendant(s), assuming simple prop: `, element);
-    //         return toAny(desc[0]);
-    //     }
-    //     log('toAny: Found nothing, assuming simple prop: ', element);
-    //     actual = element;
-    // }
-    // return actual.hasAttribute('itemscope') ? toObject(actual) : toString(actual);
 }
 
 
@@ -117,20 +96,13 @@ function log(msg, toReturn) {
     return toReturn;
 }
 
-function showObject(o) {
-    document.getElementById("enrest-sink-html-json").textContent = JSON.stringify(o, null, 2);
-    // log('shown, hopefully');
-}
-
-function showObject2(o) {
-    document.getElementById("enrest-sink-json").textContent = JSON.stringify(o, null, 2);
-    // log('shown, hopefully');
+function showObject(o, id) {
+    document.getElementById(id).textContent = JSON.stringify(o, null, 2);
 }
 
 function showHtml(o) {
     document.getElementById("enrest-sink-html-source").textContent = o;
     document.getElementById("enrest-sink-html").innerHTML = o;
-    // log('shown, hopefully');
     return o;
 }
 
@@ -149,10 +121,10 @@ function init() {
         .then(t => showHtml(t))
         .then(t => parseHtml(t))
         .then(o => log('Got object:', o))
-        .then(o => showObject(o))
+        .then(o => showObject(o, "enrest-sink-html-json"))
         .then(() => fetch(url, {headers: {'accept': 'application/json'}}))
         .then(r => r.json())
-        // .then(o => showObject2(o))
+        .then(o => showObject(o, "enrest-sink-json"))
         .catch(e => log('Failed: ' + e, e))
         .finally(() => log('done fetching'));
 }
