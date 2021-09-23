@@ -224,9 +224,9 @@ namespace HttpServer.Controllers
                 {
                     Text = trg + "#" + kvp.Value,
                     Href = _linkManager.LinkToItem(trg, kvp.Value),
-                    Subs = new Span(trg + "###" + kvp.Value)
+                    Subs = new Span(kvp.Value?.ToString())
                     {
-                        Itemscope = true,
+                        Itemscope = false,
                         // Itemtype = kvp.Key,
                     }.ToArray()
                 };

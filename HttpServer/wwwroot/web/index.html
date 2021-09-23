@@ -4,28 +4,30 @@
     <meta charset="UTF-8">
     <title>EnrestWeb</title>
     <script src="enrest-client.js" defer></script>
+
+
+    <style>
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 10px;
+        }
+        pre, .pre {
+            outline: 2px red solid;
+        }
+    </style>
+
 </head>
 <body>
 
 <h1>Hello there!</h1>
 
-<style>
-    .two-columns {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-gap: 10px;
-    }
-    pre, .pre {
-        outline: 2px red solid;
-    }
-</style>
-
 <div class="two-columns">
-    <pre  id="enrest-sink-json"></pre>
-    <pre style="outline: 2px red solid; min-height: 5em; flex: 1;" id="enrest-sink-html-json"></pre>
+<!--    <pre id="enrest-sink-json"></pre>-->
+    <pre id="enrest-sink-html-json"></pre>
+    <pre id="enrest-sink-html-source"></pre>
+    <div class="pre" id="enrest-sink-html"></div>
 </div>
-<pre id="enrest-sink-html-source"></pre>
-<div class="pre" id="enrest-sink-html"></div>
 
 </body>
 </html>

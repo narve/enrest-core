@@ -5,6 +5,18 @@ const propValAttrs = [
     'src',
 ];
 
+const itemprop = 'itemprop';
+const itemtype = 'itemtype';
+const itemscope = 'itemscope';
+
+const attrIsPresent = attr => element => element.hasAttribute(attr);
+
+function describeElement(element) {
+    const attrs = [itemprop, itemscope, itemtype].map(a => a + "=" + element.attributes[a]?.value).join(",");
+    return `${element.tagName} (${attrs})`;
+}
+
+
 function toString(e) {
     if (e.hasAttribute('content'))
         throw 'content: ' + e;
@@ -21,98 +33,79 @@ function toString(e) {
     return e.textContent.trim();
 }
 
-function findDescendants(element, matcher, list = []) {
+function findDescendants(element, matcher, list = [], stopper) {
     for (let child of element.children) {
         if (matcher(child)) {
             list.push(child);
+        } else if (stopper && stopper(child)) {
+            // Don't recurse
         } else {
-            findDescendants(child, matcher, list);
+            findDescendants(child, matcher, list, stopper);
         }
     }
     return list;
 }
 
-function toObject(e) {
-    if (!e.hasAttribute('itemscope')) {
-        throw 'no itemscope for ' + e.tagName + " " + Array.from(e.attributes).map(a => a.name + "=" + a.value).join(",");
+function toObject(element) {
+    log(`toObject: processing ${describeElement(element)}`);
+
+    const itemProps = findDescendants(element, attrIsPresent(itemprop));
+    const object = {
+        type: element.attributes[itemtype].value,
+    };
+    for (let child of itemProps) {
+        object[child.attributes[itemprop].value] = toAny(child);
     }
-
-    let itemType;
-    if (e.hasAttribute('itemtype')) {
-        itemType = e.attributes['itemtype'].value;
-    } else if (e.tagName === 'A') {
-        itemType = 'link';
-    } else {
-        itemType = 'string';
-        // throw 'No item type';
-    }
-
-    log(`Processing ${e.tagName} of type ${itemType}`);
-
-    const isArray = itemType.indexOf('List') >= 0;
-    if (itemType === 'string') {
-        return e.textContent;
-    } else if (itemType === 'link') {
-        return {
-            href: e.href,
-            rel: e.rel,
-            clz: e.className,
-            text: e.textContent.trim(),
-        };
-    } else if (isArray) {
-        const items = findDescendants(e, c => c.hasAttribute('itemscope'));
-        log(` => Produced an array of type ${itemType}: `, items);
-        const res = [];
-        res.type = e.attributes['itemtype'].value;
-        for (let element of items) {
-            res.push(toAny(element));
-        }
-        return res;
-    } else {
-        const itemPropElements = findDescendants(e, c => c.hasAttribute('itemprop'));
-
-        let propNames = itemPropElements.map(e => e.attributes['itemprop'].value).join("; ");
-
-        const object = {
-            type: itemType,
-        };
-        for (let child of itemPropElements) {
-            object[child.attributes['itemprop'].value] = toAny(child);
-        }
-        log(` => Produced an object of type ${itemType}: `, {propNames, object});
-        return object;
-    }
+    return object;
 }
 
-function toAny(e) {
-    let actual;
-    if (e.hasAttribute('itemscope')) {
-        log('toAny: Found itemscope, type=', e.attributes['itemtype']?.value);
-        actual = e;
-    } else if (e.children.length === 1 && e.children[0].hasAttribute('itemscope')) {
-        actual = e.children[0];
-        log('toAny: Found itemscope in child, type=', actual.attributes['itemtype']?.value);
-    } else {
-        const desc = findDescendants(e, x => x.hasAttribute('itemscope'));
-        if (desc.length === 1) {
-            log(`toAny: Found ${desc.length} descendant(s), assuming simple prop: `, e);
-            return toAny(desc[0]);
-        }
-        log('toAny: Found nothing, assuming simple prop: ', e);
-        actual = e;
+
+function toAny(element) {
+    log('toAny: processing: ' + describeElement(element));
+    const propItems = findDescendants(element, attrIsPresent(itemprop), [], attrIsPresent(itemscope));
+    const arrayItems = findDescendants(element, attrIsPresent(itemscope), [], attrIsPresent(itemprop));
+
+    if (arrayItems.length > 0 && propItems.length > 0) {
+        log("  propItems: ", propItems.map(describeElement).join(";"));
+        log("  arrayItems: ", arrayItems.map(describeElement).join(";"));
+        throw "ArrayOrObject? Source=" + describeElement(element) + "; "
+            // + "PropItems=" + propItems.map(describeElement).join(";") 
+            // + " <|||> ArrayItems=" + arrayItems.map(describeElement).join(";")
+            ;
     }
-    return actual.hasAttribute('itemscope') ? toObject(actual) : toString(actual);
+
+    if (arrayItems.length > 0) {
+        return arrayItems.map(e => toAny(e));
+    } else if (propItems.length > 0) {
+        return toObject(element);
+    } else {
+        return toString(element);
+    }
+    //
+    // let actual;
+    // if (element.hasAttribute('itemscope')) {
+    //     log('toAny: Found itemscope, type=', element.attributes['itemtype']?.value);
+    //     actual = element;
+    // } else if (element.children.length === 1 && element.children[0].hasAttribute('itemscope')) {
+    //     actual = element.children[0];
+    //     log('toAny: Found itemscope in child, type=', actual.attributes['itemtype']?.value);
+    // } else {
+    //     const desc = findDescendants(element, x => x.hasAttribute('itemscope'));
+    //     if (desc.length === 1) {
+    //         log(`toAny: Found ${desc.length} descendant(s), assuming simple prop: `, element);
+    //         return toAny(desc[0]);
+    //     }
+    //     log('toAny: Found nothing, assuming simple prop: ', element);
+    //     actual = element;
+    // }
+    // return actual.hasAttribute('itemscope') ? toObject(actual) : toString(actual);
 }
 
 
 function parseHtml(s) {
     const document = new DOMParser().parseFromString(s, 'text/html');
-    // TODO: Mark top-level api element with something. 
-    // const dataElements = Array.from(document.querySelectorAll("[itemtype='http://dv8.no/SearchResult']"));
-    const dataElements = findDescendants(document, e => e.hasAttribute('itemscope'));
-    const dataObjects = dataElements.map(e => toObject(e));
-    log(`Done parsing ${dataObjects.length} object(s): `, dataObjects);
-    return dataObjects;
+    return findDescendants(document, e => e.hasAttribute('itemscope'))
+        .map(e => toAny(e));
 }
 
 
@@ -159,7 +152,7 @@ function init() {
         .then(o => showObject(o))
         .then(() => fetch(url, {headers: {'accept': 'application/json'}}))
         .then(r => r.json())
-        .then(o => showObject2(o))
+        // .then(o => showObject2(o))
         .catch(e => log('Failed: ' + e, e))
         .finally(() => log('done fetching'));
 }
