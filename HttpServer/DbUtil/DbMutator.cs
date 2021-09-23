@@ -47,7 +47,6 @@ namespace HttpServer.DbUtil
             var pk = _dbInspector.GetPkColumn(table);
             parameters.Add(pk.Name, Coerce(pk, id));
 
-
             var sql = new[]
             {
                 $"UPDATE {table}",

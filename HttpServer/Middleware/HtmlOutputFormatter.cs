@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using DV8.Html.Elements;
 using DV8.Html.Serialization;
+using HttpServer.DbUtil;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
 namespace HttpServer.Middleware
@@ -23,7 +23,9 @@ namespace HttpServer.Middleware
         public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             var ser = new HtmlSerializerRegistry();
-            ser.Add(o => o is IDictionary<string, object>, o => new GenDictSerializer().Serialize(o, 3, ser));
+            var sp = context.HttpContext.RequestServices;
+            var creator = new ItemSerializer(sp.GetRequiredService<IDbInspector>(), sp.GetRequiredService<ILinkManager>());
+            ser.Add(o => o is IDictionary<string, object>, o => creator.Serialize((IDictionary<string, object>)o, 3, ser));
             HtmlSerializerRegistry.AddDefaults(ser);
             var htmlElements = ser.Serialize(context.Object, 2, ser);
             foreach (var element in htmlElements)

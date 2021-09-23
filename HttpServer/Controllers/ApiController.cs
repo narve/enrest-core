@@ -108,17 +108,23 @@ namespace HttpServer.Controllers
         public async Task<IDictionary<string, object>> GetById(string table, string id)
         {
             var dict = await _dbMutator.GetById(table, id);
-            var toReturn = Prettify(table, dict);
-            toReturn["_links"] = GetLinksForItem(table, dict);
-            return toReturn;
+            dict["_links"] = GetLinksForItem(table, dict);
+            return dict;
         }
 
-        private A[] GetLinksForItem(string table, IDictionary<string, object> o)
+        private IHtmlElement GetLinksForItem(string table, IDictionary<string, object> o)
         {
-            var fkLinks = _dbInspector.GetSchema().Tables
-                .SelectMany(t => t.ForeignKeys)
+            var allFks = _dbInspector.GetSchema().Tables
+                .SelectMany(t => t.ForeignKeys).ToList();
+            
+            var incomingFkLinks = allFks
                 .Where(fk => fk.RefersToTable == table)
-                .Select(fk => GetFkLink(table, fk, o))
+                .Select(fk => GetInFkLink(table, fk, o))
+                .ToArray();
+
+            var outgoingFkLinks = allFks
+                .Where(c => c.TableName == table)
+                .Select(fk => GetOutFkLink(table, fk, o))
                 .ToArray();
 
             var id = _dbInspector.GetId(table, o);
@@ -134,13 +140,40 @@ namespace HttpServer.Controllers
                 },
             };
 
-            return fkLinks.Concat(editLinks).ToArray();
+            var links = incomingFkLinks.Concat(editLinks).Concat(outgoingFkLinks)
+                .Select(l => new Li(l))
+                .Cast<IHtmlElement>()
+                .ToArray();
+            return new Ul
+            {
+                Itemprop = "_links",
+                Subs = links,
+            };
         }
 
-        private A GetFkLink(string sourceTable, DatabaseConstraint fk, IDictionary<string, object> o)
+        private A GetInFkLink(string sourceTable, DatabaseConstraint fk, IDictionary<string, object> o)
         {
-            var filters = fk.Columns.Select(c => KeyValuePair.Create<string, object>(c, _dbInspector.GetId(sourceTable, o)));
+            var filters = fk.Columns
+                .Select(c => KeyValuePair.Create(c, (object)_dbInspector.GetId(sourceTable, o)));
             return new A(_linkManager.LinkToQuery(fk.TableName, filters))
+            {
+                Itemscope = true,
+            };
+        }
+
+        private A GetOutFkLink(string sourceTable, DatabaseConstraint fk, IDictionary<string, object> o)
+        {
+            var filters = fk.Columns
+                .Select((t, i) => KeyValuePair.Create(fk.ReferencedColumns(_dbInspector.GetSchema()).ToList()[i], o[t]))
+                .ToList();
+            if (filters.Count == 1)
+            {
+                return new A(_linkManager.LinkToItem(fk.RefersToTable, filters.Single().Value))
+                {
+                    Itemscope = true,
+                };
+            }
+            return new A(_linkManager.LinkToQuery(fk.RefersToTable, filters))
             {
                 Itemscope = true,
             };
@@ -150,18 +183,18 @@ namespace HttpServer.Controllers
         public async Task<object> GetResultForTable(string table)
         {
             IQueryCollection query = _httpContextAccessor.HttpContext.Request.Query;
-            var parameters = new SortedDictionary<string, object>();
             var where = "";
             if (query.Any())
             {
                 where += " WHERE ";
             }
 
-            foreach (var kvp in query)
+            var parameters = new SortedDictionary<string, object>();
+            foreach (var (key, value) in query)
             {
-                where += kvp.Key + "=@" + kvp.Key;
-                var colSpec = _dbInspector.GetSchema().FindTableByName(table).FindColumn(kvp.Key);
-                parameters.Add(kvp.Key, _dbMutator.Coerce(colSpec, kvp.Value));
+                where += key + "=@" + key;
+                var colSpec = _dbInspector.GetSchema().FindTableByName(table).FindColumn(key);
+                parameters.Add(key, _dbMutator.Coerce(colSpec, value.SingleOrDefault()));
             }
 
 
@@ -169,10 +202,19 @@ namespace HttpServer.Controllers
             var rs = await _dbConnectionProvider.Get().QueryAsync(sql, parameters);
             var rs2 = rs
                 .Cast<IDictionary<string, object>>()
-                .Select(item => Prettify(table, item))
+                .Select(d => AddSelfLink(table, d))
                 .Cast<object>()
                 .ToArray();
             return new SearchResult { Items = rs2, Links = LinksForTable(table) };
+        }
+
+        private IDictionary<string, object> AddSelfLink(string table, IDictionary<string, object> d)
+        {
+            d["_links"] = new[]
+            {
+                new A(_linkManager.LinkToItem(table, _dbInspector.GetId(table, d)), "self", "self")
+            };
+            return d;
         }
 
         [HttpGet(ILinkManager.GetCreateForm)]
@@ -207,58 +249,6 @@ namespace HttpServer.Controllers
                     Itemscope = true,
                 }
             };
-
-        public IDictionary<string, object> Prettify(string table, IDictionary<string, object> dict)
-        {
-            return dict
-                .Select(kvp => KeyValuePair.Create(ColumnToTitle(kvp.Key), DbValueToElement(table, dict, kvp)))
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        }
-
-        private object DbValueToElement(string table, IDictionary<string, object> obj, KeyValuePair<string, object> kvp)
-        {
-            if (_dbInspector.IsFk(table, kvp.Key))
-            {
-                var trg = _dbInspector.GetFkTarget(table, kvp.Key);
-                return new A
-                {
-                    // Text = trg + "#" + kvp.Value,
-                    Href = _linkManager.LinkToItem(trg, kvp.Value),
-                    Subs = new Span(kvp.Value?.ToString())
-                    {
-                        Itemscope = false,
-                        // Itemtype = kvp.Key,
-                    }.ToArray()
-                };
-            }
-
-            if (_dbInspector.GetPkColumn(table).Name == kvp.Key)
-            {
-                return new A
-                {
-                    Text = kvp.Value.ToString(),
-                    Href = _linkManager.LinkToItem(table, kvp.Value),
-                    Itemscope = false,
-                };
-            }
-
-            if (_dbInspector.IsLob(table, kvp.Key))
-            {
-                return new A
-                {
-                    Text = "Download " + kvp.Key,
-                    Href = _linkManager.LinkToLob(table, _dbInspector.GetId(table, obj), kvp.Key),
-                    Itemscope = true,
-                };
-            }
-
-            return kvp.Value;
-        }
-
-        private string ColumnToTitle(string argKey)
-        {
-            return argKey.UppercaseFirst();
-        }
 
         private A Link(DatabaseTable t) =>
             new()

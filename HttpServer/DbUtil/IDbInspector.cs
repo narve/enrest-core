@@ -26,7 +26,7 @@ namespace HttpServer.DbUtil
 
 
         string GetId(string table, IDictionary<string, object> item) =>
-            item[GetPkColumn(table).Name]?.ToString();
+            item[GetPkColumn(table).Name].ToString();
 
 
         string GetTitle(string tab, IDictionary<string, object> dictionary) =>
@@ -37,7 +37,12 @@ namespace HttpServer.DbUtil
 
         bool IsLob(DatabaseColumn col) => col.DbDataType == "bytea";
 
-        bool IsLob(string table, string kvpKey) =>
-            IsLob(GetSchema().FindTableByName(table).FindColumn(kvpKey));
+        bool IsLob(string table, string kvpKey)
+        {
+            var c = GetColumn(table, kvpKey);
+            return c != null && IsLob(c);
+        }
+
+        DatabaseColumn GetColumn(string table, string kvpKey) => GetSchema().FindTableByName(table).FindColumn(kvpKey);
     }
 }

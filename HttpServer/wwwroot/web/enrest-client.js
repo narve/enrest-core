@@ -13,11 +13,11 @@ const attrIsPresent = attr => element => element.hasAttribute(attr);
 
 function describeElement(element) {
     const attrs = [itemprop, itemscope, itemtype].map(a => a + "=" + element.attributes[a]?.value).join(",");
-    return `${element.tagName} (${attrs})`;
+    return `${element.tagName}(${attrs})`;
 }
 
 
-function toString(e) {
+function toStringOrObject(e) {
     if (e.hasAttribute('content'))
         throw 'content: ' + e;
     for (const attr of propValAttrs) {
@@ -30,6 +30,11 @@ function toString(e) {
     const contentHolder = e.querySelector('[content]');
     if (contentHolder)
         return contentHolder.attributes['content'].value;
+
+    if (e.tagName === 'A') {
+        return {type: "link", href: e.href, rel: e.rel, text: e.textContent?.trim()};
+    }
+
     return e.textContent.trim();
 }
 
@@ -66,8 +71,8 @@ function toAny(element) {
     const arrayItems = findDescendants(element, attrIsPresent(itemscope), [], attrIsPresent(itemprop));
 
     if (arrayItems.length > 0 && propItems.length > 0) {
-        log("  propItems: ", propItems.map(describeElement).join(";"));
-        log("  arrayItems: ", arrayItems.map(describeElement).join(";"));
+        log("  propItems: ", propItems.map(describeElement).join("; "));
+        log("  arrayItems: ", arrayItems.map(describeElement).join("; "));
         throw "ArrayOrObject? Source=" + describeElement(element) + "; ";
     }
 
@@ -76,7 +81,7 @@ function toAny(element) {
     } else if (propItems.length > 0) {
         return toObject(element);
     } else {
-        return toString(element);
+        return toStringOrObject(element);
     }
 }
 
@@ -97,7 +102,9 @@ function log(msg, toReturn) {
 }
 
 function showObject(o, id) {
-    document.getElementById(id).textContent = JSON.stringify(o, null, 2);
+    document.getElementById(id).textContent =
+        "--- " + id + "---\r\n" +
+        JSON.stringify(o, null, 2);
 }
 
 function showHtml(o) {
@@ -120,7 +127,7 @@ function init() {
         // .then(t => log('Got text: ' + t, t))
         .then(t => showHtml(t))
         .then(t => parseHtml(t))
-        .then(o => log('Got object:', o))
+        // .then(o => log('Got object:', o))
         .then(o => showObject(o, "enrest-sink-html-json"))
         .then(() => fetch(url, {headers: {'accept': 'application/json'}}))
         .then(r => r.json())

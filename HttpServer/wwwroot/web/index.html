@@ -7,14 +7,21 @@
 
 
     <style>
+
+        a::before {
+            content: "[" attr(rel) "]";
+        }
+
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-gap: 10px;
         }
 
-        pre, .pre {
+        pre, .box {
             outline: 2px red solid;
+            margin-top: 2px;
+            padding-top: 2px;
         }
     </style>
 
@@ -27,7 +34,7 @@
     <pre id="enrest-sink-json"></pre>
     <pre id="enrest-sink-html-json"></pre>
     <pre id="enrest-sink-html-source"></pre>
-    <div class="pre" id="enrest-sink-html"></div>
+    <div class="box" id="enrest-sink-html"></div>
 </div>
 
 </body>
