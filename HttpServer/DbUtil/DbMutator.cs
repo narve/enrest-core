@@ -62,7 +62,7 @@ namespace HttpServer.DbUtil
         private void CheckColumnNames(string table, List<KeyValuePair<string, object>> formValues)
         {
             if (formValues.Any(kvp => !Regex.IsMatch(kvp.Key, "^[\\w]+$")))
-                throw new ArgumentException(nameof(formValues));
+                throw new ArgumentException($"Not legal for '{table}'", nameof(formValues));
         }
 
 
@@ -103,6 +103,16 @@ namespace HttpServer.DbUtil
             var pk = _dbInspector.GetPkColumn(table);
             var sql = $"SELECT {column} FROM {table} WHERE {pk.Name} = @id";
             var rs = await _connectionProvider.Get().QuerySingleAsync<byte[]>(sql, new { id = Coerce(pk, id) });
+            return rs;
+        }
+
+        public async Task<int> DeleteRow(string table, string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                throw new ArgumentException();
+            var col = _dbInspector.GetPkColumn(table); 
+            var sql = $"DELETE FROM {table} WHERE {col.Name} = @id";
+            var rs = await _connectionProvider.Get().ExecuteAsync(sql, new {id = Coerce(col, id)});
             return rs;
         }
     }

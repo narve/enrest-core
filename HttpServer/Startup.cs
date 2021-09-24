@@ -45,6 +45,9 @@ namespace HttpServer
             // services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             // .AddMicrosoftIdentityWebApi(Configuration.GetSection("AzureAdB2C"));
 
+            // services.AddSingleton<ILinkMangler, GuidMangler>();
+            services.AddSingleton<ILinkMangler, NoMangler>();
+            
             services.AddMvc(options =>
             {
                 options.OutputFormatters.Insert(0, new HtmlOutputFormatter());
@@ -79,6 +82,8 @@ namespace HttpServer
             app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
+
+            app.UseMiddleware<LinkManglerMiddleware>();
 
             app.UseDefaultFiles();
             app.UseStaticFiles();

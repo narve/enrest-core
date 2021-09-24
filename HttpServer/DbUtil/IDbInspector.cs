@@ -33,7 +33,9 @@ namespace HttpServer.DbUtil
             dictionary["title"]?.ToString() ??
             dictionary["name"]?.ToString() ??
             dictionary["handle"]?.ToString() ??
-            GetId(tab, dictionary);
+            GetTitle(tab, GetId(tab, dictionary));
+
+        string GetTitle(string tab, string id) => tab + "#" + id;
 
         bool IsLob(DatabaseColumn col) => col.DbDataType == "bytea";
 

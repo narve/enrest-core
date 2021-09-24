@@ -54,7 +54,7 @@ namespace HttpServer.Controllers
             _logger.LogInformation("Should insert into {table} values {values}", table, kvpa.JoinToString());
             var inserted = await _dbMutator.InsertRow(table, kvpa);
             _logger.LogInformation("Inserted into {table}: {values}", table, inserted.DictToString());
-            return new RedirectResult("/" + table + "/" + _dbInspector.GetId(table, inserted), false, false);
+            return new RedirectResult(_linkManager.LinkToItem(table, _dbInspector.GetId(table, inserted)), false, false);
         }
 
 
@@ -116,7 +116,7 @@ namespace HttpServer.Controllers
         {
             var allFks = _dbInspector.GetSchema().Tables
                 .SelectMany(t => t.ForeignKeys).ToList();
-            
+
             var incomingFkLinks = allFks
                 .Where(fk => fk.RefersToTable == table)
                 .Select(fk => GetInFkLink(table, fk, o))
@@ -130,17 +130,21 @@ namespace HttpServer.Controllers
             var id = _dbInspector.GetId(table, o);
             var editLinks = new[]
             {
+                new A(_linkManager.LinkToItem(table, id), _dbInspector.GetTitle(table, o), "self")
+                {
+                    Itemscope = true,
+                },
                 new A(_linkManager.LinkToEditForm(table, id), $"Form for editing '{table}'#{id}", "create form")
                 {
                     Itemscope = true,
                 },
-                new A(_linkManager.LinkToItem(table, id), _dbInspector.GetTitle(table, o), "self")
+                new A(_linkManager.LinkToDeleteForm(table, id), "Form for deleting " + _dbInspector.GetTitle(table, o), "delete")
                 {
                     Itemscope = true,
                 },
             };
 
-            var links = incomingFkLinks.Concat(editLinks).Concat(outgoingFkLinks)
+            var links = editLinks.Concat(outgoingFkLinks).Concat(incomingFkLinks)
                 .Select(l => new Li(l))
                 .Cast<IHtmlElement>()
                 .ToArray();
@@ -154,8 +158,12 @@ namespace HttpServer.Controllers
         private A GetInFkLink(string sourceTable, DatabaseConstraint fk, IDictionary<string, object> o)
         {
             var filters = fk.Columns
-                .Select(c => KeyValuePair.Create(c, (object)_dbInspector.GetId(sourceTable, o)));
-            return new A(_linkManager.LinkToQuery(fk.TableName, filters))
+                .Select(c => KeyValuePair.Create(c, (object)_dbInspector.GetId(sourceTable, o)))
+                .ToList();
+            var name = $"Search '{fk.TableName}' where {filters.Select(kvp => kvp.Key + $"=" + kvp.Value).JoinToString()}";
+            var rel = fk.TableName;
+            var url = _linkManager.LinkToQuery(fk.TableName, filters);
+            return new A(url, name, rel)
             {
                 Itemscope = true,
             };
@@ -168,11 +176,14 @@ namespace HttpServer.Controllers
                 .ToList();
             if (filters.Count == 1)
             {
-                return new A(_linkManager.LinkToItem(fk.RefersToTable, filters.Single().Value))
+                var id = filters.Single().Value;
+                var title = _dbInspector.GetTitle(fk.RefersToTable, id.ToString());
+                return new A(_linkManager.LinkToItem(fk.RefersToTable, id), title, fk.RefersToTable)
                 {
                     Itemscope = true,
                 };
             }
+
             return new A(_linkManager.LinkToQuery(fk.RefersToTable, filters))
             {
                 Itemscope = true,
@@ -238,6 +249,23 @@ namespace HttpServer.Controllers
         {
             var dict = await _dbMutator.GetById(table, id);
             return await _formsCreator.GetEditForm(table, dict);
+        }
+
+        [HttpGet(ILinkManager.GetDeleteForm)]
+        public async Task<IHtmlElement> GetDeleteForm(string table, string id)
+        {
+            var dict = await _dbMutator.GetById(table, id);
+            return await _formsCreator.GetDeleteForm(table, id);
+        }
+
+
+        [HttpPost(ILinkManager.DeleteAction)]
+        public async Task<RedirectResult> DeleteAction(string table, string id)
+        {
+            var del = await _dbMutator.DeleteRow(table, id);
+            if (del != 1)
+                throw new Exception();
+            return new RedirectResult(_linkManager.LinkToQuery(table));
         }
 
 

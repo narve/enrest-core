@@ -16,11 +16,13 @@ namespace HttpServer.Controllers
     {
         private readonly IDbInspector _dbInspector;
         private readonly IDbConnectionProvider _connectionProvider;
+        private readonly ILinkManager _linkManager;
 
-        public FormCreator(IDbInspector dbInspector, IDbConnectionProvider connectionProvider)
+        public FormCreator(IDbInspector dbInspector, IDbConnectionProvider connectionProvider, ILinkManager linkManager)
         {
             _dbInspector = dbInspector;
             _connectionProvider = connectionProvider;
+            _linkManager = linkManager;
         }
 
         public async Task<IHtmlElement> GetCreateForm(string table)
@@ -33,12 +35,22 @@ namespace HttpServer.Controllers
                     { "enctype", "multipart/form-data" }
                 },
                 rel = "Create",
-                Action = "/" + table,
+                Action = _linkManager.LinkToCreateAction(table),
                 Method = HttpMethod.Post,
                 Clz = $"create {table}",
                 Subs = (await GetInputFields(tableInfo)).Concat(GetSubmit(tableInfo)).ToArray()
             };
         }
+
+        public async Task<IHtmlElement> GetDeleteForm(string table, string id) =>
+            new Form
+            {
+                Method = HttpMethod.Post,
+                Clz = "delete " + table,
+                Action = _linkManager.LinkToDeleteAction(table, id),
+                Text = "Delete " + _dbInspector.GetTitle(table, id),
+                Subs = Form.Submit("Delete").ToArray(),
+            };
 
         public async Task<IHtmlElement> GetEditForm(string table, IDictionary<string, object> item)
         {
@@ -51,7 +63,7 @@ namespace HttpServer.Controllers
                     { "enctype", "multipart/form-data" }
                 },
                 rel = "edit",
-                Action = "/" + table + "/" + id,
+                Action = _linkManager.LinkToEditAction(table, id),
                 Method = HttpMethod.Post,
                 Clz = $"edit {table}",
                 Subs = (await GetInputFields(tableInfo, item)).Concat(GetSubmit(tableInfo)).ToArray()
