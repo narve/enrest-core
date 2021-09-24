@@ -87,6 +87,7 @@ function toAny(element) {
 
 
 function parseHtml(s) {
+    log('parsing: ' + s);
     const document = new DOMParser().parseFromString(s, 'text/html');
     return findDescendants(document, e => e.hasAttribute('itemscope'))
         .map(e => toAny(e));
@@ -101,16 +102,19 @@ function log(msg, toReturn) {
     return toReturn;
 }
 
-function showObject(o, id) {
-    document.getElementById(id).textContent =
-        "--- " + id + "---\r\n" +
-        JSON.stringify(o, null, 2);
-}
+const setJson = (o, id) => 
+    setText(JSON.stringify(o, null, 2), id);
 
-function showHtml(o) {
-    document.getElementById("enrest-sink-html-source").textContent = o;
-    document.getElementById("enrest-sink-html").innerHTML = o;
-    return o;
+const setText = (t, id) =>
+    document.getElementById(id).textContent = "--- " + id + " ---\r\n" + t;
+
+const setHtml = (h, id) => 
+    document.getElementById(id).innerHTML = h; 
+
+const showHtml = h => {
+    setText(h, "enrest-sink-html-source");
+    document.getElementById("enrest-sink-html").innerHTML = h;
+    return h;
 }
 
 function init() {
@@ -122,16 +126,16 @@ function init() {
             "Accept": "text/html",
         }
     })
-        // .then(r => log('Got response!', r))
+        .then(r => log('Got response!', r))
         .then(r => r.text())
-        // .then(t => log('Got text: ' + t, t))
+        .then(t => log('Got text: ' + t, t))
         .then(t => showHtml(t))
         .then(t => parseHtml(t))
         // .then(o => log('Got object:', o))
-        .then(o => showObject(o, "enrest-sink-html-json"))
+        .then(o => setJson(o, "enrest-sink-html-json"))
         .then(() => fetch(url, {headers: {'accept': 'application/json'}}))
         .then(r => r.json())
-        .then(o => showObject(o, "enrest-sink-json"))
+        .then(o => setJson(o, "enrest-sink-json"))
         .catch(e => log('Failed: ' + e, e))
         .finally(() => log('done fetching'));
 }

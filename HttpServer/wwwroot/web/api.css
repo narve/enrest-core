@@ -1,15 +1,25 @@
 a::before {
+    /*content: "[" attr(rel) "]";*/
+}
+a:hover {
     content: "[" attr(rel) "]";
 }
 
-.two-columns {
+.boxes {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-gap: 10px;
 }
 
-pre, .box {
-    outline: 2px red solid;
+.boxes div {
+    font-family: monospace; 
+    max-width: 100%;
+    outline: 2px darkslategray groove;
     margin-top: 2px;
     padding-top: 2px;
+    overflow: hidden;
+    white-space: pre-wrap;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
