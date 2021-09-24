@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using DV8.Html.Serialization;
+using DV8.Html.Utils;
 using HttpServer.DbUtil;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -12,10 +13,14 @@ namespace HttpServer.Middleware
 {
     public class HtmlOutputFormatter : TextOutputFormatter
     {
+        public static readonly MediaTypeHeaderValue[] HtmlMediaTypes = new []
+        {
+            MediaTypeHeaderValue.Parse("text/html"),
+            MediaTypeHeaderValue.Parse("application/html"),
+        };
         public HtmlOutputFormatter()
         {
-            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/html"));
-            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/html"));
+            HtmlMediaTypes.ForEach(t => SupportedMediaTypes.Add(t));
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
         }
