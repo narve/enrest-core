@@ -283,6 +283,7 @@ namespace HttpServer.Controllers
             {
                 Href = _linkManager.LinkToQuery(t.Name),
                 Text = $"{t.Name.UppercaseFirst()} {t.Description}",
+                rel = t.Name,
             };
 
         [HttpGet]

@@ -1,0 +1,15 @@
+a::before {
+    content: "[" attr(rel) "]";
+}
+
+.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+}
+
+pre, .box {
+    outline: 2px red solid;
+    margin-top: 2px;
+    padding-top: 2px;
+}
