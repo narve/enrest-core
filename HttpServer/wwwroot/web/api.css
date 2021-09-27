@@ -12,14 +12,31 @@ a:hover {
 }
 
 .boxes div {
-    font-family: monospace; 
-    max-width: 100%;
     outline: 2px darkslategray groove;
     margin-top: 2px;
     padding-top: 2px;
+}
+
+form fieldset {
+    display: grid; 
+    grid-template-columns: 1fr 1fr;
+    /*display: block;*/
+}
+
+form fieldset label span {
+    /*display: inline-block;*/
+    /*width: 10em;*/
+}
+
+.boxes div:not(.html) {
+    font-family: monospace;
     overflow: hidden;
     white-space: pre-wrap;
     text-overflow: ellipsis;
     word-wrap: break-word;
     overflow-wrap: break-word;
+}
+
+.html {
+    white-space: normal;
 }

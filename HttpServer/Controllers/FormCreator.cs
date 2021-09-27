@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Dapper;
 using DatabaseSchemaReader.DataSchema;
 using DV8.Html.Elements;
+using DV8.Html.Support;
+using DV8.Html.Utils;
 using HttpServer.DbUtil;
 
 // ReSharper disable CoVariantArrayConversion
@@ -25,10 +27,22 @@ namespace HttpServer.Controllers
             _linkManager = linkManager;
         }
 
+        public Form Pimp(string title, Form form)
+        {
+            form.Subs = new[]
+            {
+                new Fieldset()
+                {
+                    Subs = new Legend(title).ToArray().Concat(form.Subs).ToArray(),
+                }
+            };
+            return form;
+        }
+
         public async Task<IHtmlElement> GetCreateForm(string table)
         {
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
-            return new Form
+            return Pimp( $"Create new '{table}'", new Form
             {
                 ExAttributes = new Dictionary<string, string>()
                 {
@@ -38,25 +52,27 @@ namespace HttpServer.Controllers
                 Action = _linkManager.LinkToCreateAction(table),
                 Method = HttpMethod.Post,
                 Clz = $"create {table}",
-                Subs = (await GetInputFields(tableInfo)).Concat(GetSubmit(tableInfo)).ToArray()
-            };
+                Subs = 
+                        (await GetInputFields(tableInfo))
+                        .Concat(GetSubmit(tableInfo))
+                        .ToArray()
+            });
         }
 
-        public async Task<IHtmlElement> GetDeleteForm(string table, string id) =>
+        public async Task<Form> GetDeleteForm(string table, string id) => Pimp($"Delete '{table}' # {id}",
             new Form
             {
                 Method = HttpMethod.Post,
                 Clz = "delete " + table,
                 Action = _linkManager.LinkToDeleteAction(table, id),
-                Text = "Delete " + _dbInspector.GetTitle(table, id),
                 Subs = Form.Submit("Delete").ToArray(),
-            };
+            });
 
         public async Task<IHtmlElement> GetEditForm(string table, IDictionary<string, object> item)
         {
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
             var id = _dbInspector.GetId(table, item);
-            return new Form
+            return Pimp($"Edit '{table}' # {id}", new Form
             {
                 ExAttributes = new Dictionary<string, string>()
                 {
@@ -66,20 +82,33 @@ namespace HttpServer.Controllers
                 Action = _linkManager.LinkToEditAction(table, id),
                 Method = HttpMethod.Post,
                 Clz = $"edit {table}",
-                Subs = (await GetInputFields(tableInfo, item)).Concat(GetSubmit(tableInfo)).ToArray()
-            };
+                Subs = (await GetInputFields(tableInfo))
+                            .Concat(GetSubmit(tableInfo))
+                            .ToArray()
+            });
         }
 
         private IEnumerable<IHtmlElement> GetSubmit(DatabaseTable tableInfo)
         {
-            return new[] { Form.Submit($"Save {tableInfo.Name}") };
+            return new IHtmlElement[] { new Label(), Form.Submit($"Save {tableInfo.Name}") };
         }
 
         private async Task<IHtmlElement[]> GetInputFields(DatabaseTable tableInfo, IDictionary<string, object> dict = null)
         {
             var tasks = tableInfo.Columns
                 .Where(ApplicableForMutation)
-                .Select(col => GetFormForField(col, dict).GetAwaiter().GetResult())
+                .Select(col => GetFormField(col, dict).GetAwaiter().GetResult())
+                .SelectMany(f => new IHtmlElement[]
+                {
+                    new Label()
+                    {
+                        For = f.Id,
+                        Text = f.Name,
+                    },
+                    f,
+                })
+                // .Select(f => f.Labelize(f.Name))
+                // .Select(f => new Div(f))
                 .ToArray();
             return tasks;
         }
@@ -87,7 +116,7 @@ namespace HttpServer.Controllers
         private bool ApplicableForMutation(DatabaseColumn arg) =>
             !arg.IsComputed && !arg.IsAutoNumber;
 
-        private async Task<IHtmlElement> GetFormForField(DatabaseColumn col, IDictionary<string, object> dictionary)
+        private async Task<IFormElement> GetFormField(DatabaseColumn col, IDictionary<string, object> dictionary)
         {
             if (col.IsForeignKey)
             {
@@ -98,6 +127,7 @@ namespace HttpServer.Controllers
             {
                 return new Input
                 {
+                    Id = col.Name,
                     Name = col.Name,
                     InputType = "file",
                 };
@@ -107,12 +137,13 @@ namespace HttpServer.Controllers
             return Input.ForString(col.Name, value);
         }
 
-        private async Task<IHtmlElement> GetSelector(DatabaseColumn col)
+        private async Task<IFormElement> GetSelector(DatabaseColumn col)
         {
             var otherTable = col.ForeignKeyTable;
             var rows = await GetSelectorRows(otherTable);
             return new Select
             {
+                Id = col.Name,
                 Name = col.Name,
                 Subs = rows.Select(r => new Option(r.Key, r.Value)).ToArray(),
             };

@@ -254,7 +254,7 @@ namespace HttpServer.Controllers
         [HttpGet(ILinkManager.GetDeleteForm)]
         public async Task<IHtmlElement> GetDeleteForm(string table, string id)
         {
-            var dict = await _dbMutator.GetById(table, id);
+            // var dict = await _dbMutator.GetById(table, id);
             return await _formsCreator.GetDeleteForm(table, id);
         }
 
@@ -292,6 +292,19 @@ namespace HttpServer.Controllers
                 .Where(t => !"information_schema".Equals(t.SchemaOwner, StringComparison.OrdinalIgnoreCase))
                 .Where(t => !"auth".Equals(t.SchemaOwner, StringComparison.OrdinalIgnoreCase))
                 .Where(t => "public".Equals(t.SchemaOwner, StringComparison.OrdinalIgnoreCase))
-                .Select(Link);
+                .Select(Link)
+                .Concat(SystemLinks());
+
+        [HttpGet("reload-db")]
+        public object RefreshDatabaseInformation()
+        {
+            (_dbInspector as DbInspector).ReloadSchema();;
+            return "Done. "; 
+        }
+        private IEnumerable<IHtmlElement> SystemLinks() =>
+            new IHtmlElement[]
+            {
+                new A("/reload-db", "Refresh database information"),
+            };
     }
 }

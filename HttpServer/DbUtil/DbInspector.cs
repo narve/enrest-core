@@ -21,6 +21,8 @@ namespace HttpServer.DbUtil
             return _schema;
         }
 
+        public void ReloadSchema() => _schema = LoadSchema();
+
         public DatabaseSchema LoadSchema()
         {
             var conn = _connectionProvider.Get();

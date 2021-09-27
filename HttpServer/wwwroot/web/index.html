@@ -7,19 +7,41 @@
 
 
     <link rel="stylesheet" href="api.css">
-
+<!--    <script src="https://unpkg.com/@supabase/supabase-js"></script>-->
+<!--    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>-->
 
 </head>
 <body>
 
 <h1>Hello there!</h1>
 
+<script defer>
+    // import { createClient } from '@supabase/supabase-js'; 
+    import supabase from '@supabase/supabase-js';
+    // createClient()
+    function signIn() {
+        signInWithGithub()
+            .then(x => console.log( 'done?', x));
+    }
+    async function signInWithGithub() {
+        console.log( "logging in...");
+        const {user, session, error} = await supabase.auth.signIn({provider: 'github'});
+        console.log({user, session, error});
+    }
+</script>
+
+<button onclick="signIn()">Login with Github</button>
+
 <div class="boxes">
     <div id="enrest-sink-json"></div>
     <div id="enrest-sink-html-json"></div>
     <div id="enrest-sink-html-source"></div>
-    <div id="enrest-sink-html"></div>
+    <div class="html" id="enrest-sink-html"></div>
 </div>
 
 </body>
 </html>
+
+
+
+<time datetime="2002-1234T01239" >2 days ago, Monday, blal</time>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using HttpServer.Controllers;
 using HttpServer.DbUtil;
@@ -46,6 +47,7 @@ namespace HttpServer
             // .AddMicrosoftIdentityWebApi(Configuration.GetSection("AzureAdB2C"));
 
             // services.AddSingleton<ILinkMangler, GuidMangler>();
+            
             services.AddSingleton<ILinkMangler, NoMangler>();
             
             services.AddMvc(options =>
@@ -53,10 +55,16 @@ namespace HttpServer
                 options.OutputFormatters.Insert(0, new HtmlOutputFormatter());
                 options.RespectBrowserAcceptHeader = true; // false by default
                 Outputs = options.OutputFormatters;
+            }).AddJsonOptions(opts =>
+            {
+                opts.JsonSerializerOptions.IgnoreNullValues = true;
+                // opts.JsonSerializerOptions.Converters.Add(new JsonLinkConverter());
+                // opts.JsonSerializerOptions.Converters.Add(new JsonLinksConverter());
             });
             
 
             services.AddHttpContextAccessor();
+            // services.AddSingleton<IDbInspector>(new DbInspector(new DbConnectionProvider(Configuration)));
             services.AddSingleton<IDbInspector, DbInspector>();
             services.AddSingleton<FormCreator>();
             services.AddSingleton<DbMutator>();
@@ -66,6 +74,8 @@ namespace HttpServer
             services.AddControllers();
             services.AddTransient<ProblemDetailsFactory, CustomProblemDetailsFactory>();            
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "HttpServer", Version = "v1" }); });
+            
+            services.AddHostedService<DbInspectorLoader>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -94,7 +104,6 @@ namespace HttpServer
             // app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-            
         }
 
         private void HandleException(IApplicationBuilder errorApp)
