@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Dapper;
 using DatabaseSchemaReader.DataSchema;
@@ -214,8 +215,13 @@ namespace HttpServer.Controllers
             var rs2 = rs
                 .Cast<IDictionary<string, object>>()
                 .Select(d => AddSelfLink(table, d))
-                .Cast<object>()
+                // .Cast<IDictionary<string, object>>()
                 .ToArray();
+            foreach (var o in rs2)
+            {
+                o["type"] = table;
+            }
+
             return new SearchResult { Items = rs2, Links = LinksForTable(table) };
         }
 
@@ -298,13 +304,41 @@ namespace HttpServer.Controllers
         [HttpGet("reload-db")]
         public object RefreshDatabaseInformation()
         {
-            (_dbInspector as DbInspector).ReloadSchema();;
-            return "Done. "; 
+            (_dbInspector as DbInspector).ReloadSchema();
+            ;
+            return "Done. ";
         }
+
         private IEnumerable<IHtmlElement> SystemLinks() =>
             new IHtmlElement[]
             {
                 new A("/reload-db", "Refresh database information"),
             };
+
+
+        [HttpGet("login")]
+        public IHtmlElement GetLoginForm([FromQuery] string user)
+        {
+            return new Form()
+            {
+                Action = "/login",
+                Method = HttpMethod.Post,
+                Subs = new Fieldset()
+                {
+                    Subs = new IHtmlElement[]
+                    {
+                        Input.ForString("user"),
+                        Form.Submit("Login"),
+                    }
+                }.ToArray()
+            };
+        }
+
+        [HttpPost("login")]
+        public object Login([FromForm] string user)
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Append("username", user);
+            return "Logged in as " + user;
+        }
     }
 }

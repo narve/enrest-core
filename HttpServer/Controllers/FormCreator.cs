@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
@@ -139,7 +140,25 @@ namespace HttpServer.Controllers
 
         private async Task<IFormElement> GetSelector(DatabaseColumn col)
         {
-            var otherTable = col.ForeignKeyTable;
+            var otherTable = col.ForeignKeyTableName;
+            if (otherTable == null)
+            {
+                var otherTables = col.ForeignKeyTableNames;
+                if (otherTables.Count == 1)
+                    otherTable = otherTables.Single();
+                else
+                {
+                    throw new NotSupportedException("Composite fks: " + otherTables.JoinToString());
+                }
+            }
+
+            var tab = _dbInspector.GetSchema().FindTableByName(otherTable);
+            if (tab == null  )
+                return Input.ForString(otherTable);
+            if (tab.SchemaOwner == "auth")
+            {
+                otherTable = "auth." + otherTable;
+            }
             var rows = await GetSelectorRows(otherTable);
             return new Select
             {
@@ -149,12 +168,12 @@ namespace HttpServer.Controllers
             };
         }
 
-        private async Task<ImmutableSortedDictionary<string, string>> GetSelectorRows(DatabaseTable otherTable)
+        private async Task<ImmutableSortedDictionary<string, string>> GetSelectorRows(string otherTable)
         {
             var select = $"select * from {otherTable}";
             var rows = await _connectionProvider.Get().QueryAsync(select);
             var items = rows.Cast<IDictionary<string, object>>().ToList()
-                .Select(x => KeyValuePair.Create(_dbInspector.GetId(otherTable.Name, x), _dbInspector.GetTitle(otherTable.Name, x)))
+                .Select(x => KeyValuePair.Create(_dbInspector.GetId(otherTable, x), _dbInspector.GetTitle(otherTable, x)))
                 .ToImmutableSortedDictionary();
             return items;
         }

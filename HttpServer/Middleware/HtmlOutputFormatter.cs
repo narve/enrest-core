@@ -37,11 +37,11 @@ namespace HttpServer.Middleware
             HtmlSerializerRegistry.AddDefaults(ser);
             var htmlElements = ser.Serialize(context.Object, 2, ser);
 
-            var res = MakeCompleteDocument(htmlElements);
+            var res = MakeCompleteDocument(context, htmlElements);
             await context.HttpContext.Response.WriteAsync(res.ToHtml());
         }
 
-        private IHtmlElement MakeCompleteDocument(IEnumerable<IHtmlElement> body) =>
+        private IHtmlElement MakeCompleteDocument(OutputFormatterWriteContext context, IEnumerable<IHtmlElement> body) =>
             new Html
             {
                 Subs = new IHtmlElement[]
@@ -59,9 +59,54 @@ namespace HttpServer.Middleware
                     },
                     new Body
                     {
-                        Subs = body.ToArray()
+                        Subs = BodyHeader(context).Concat(body.ToArray()).Concat(BodyFooter(context)).ToArray()
                     }
                 }
             };
+
+        private IHtmlElement[] BodyHeader(OutputFormatterWriteContext ctx)
+        {
+            return new IHtmlElement[]
+            {
+                new Div
+                {
+                    Subs = NavBar(ctx),
+                },
+                new H1(ctx.HttpContext.Request.Path),
+            };
+        }
+
+        private IHtmlElement[] NavBar(OutputFormatterWriteContext ctx)
+        {
+            var p = ctx.HttpContext.Request.Path.Value;
+            var l = new List<A> { new A("/", "home") };
+            for (var index = 1; index < p.Length; index++)
+            {
+                if (p[index] == '/')
+                {
+                    l.Add(new A(p.Substring(0, index)));
+                }
+            }
+
+            return l.Cast<IHtmlElement>().ToArray();
+        }
+
+        private IHtmlElement[] BodyFooter(OutputFormatterWriteContext ctx)
+        {
+            return new IHtmlElement[]
+            {
+                new Div()
+                {
+                    Subs = CookieInformation(ctx),
+                }
+            };
+        }
+
+        private IHtmlElement[] CookieInformation(OutputFormatterWriteContext ctx)
+        {
+            return ctx.HttpContext.Request.Cookies
+                .Select(c => new Span($"{c.Key}={c.Value}"))
+                .Cast<IHtmlElement>().ToArray();
+        }
     }
 }

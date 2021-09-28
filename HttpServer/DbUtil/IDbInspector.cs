@@ -22,17 +22,18 @@ namespace HttpServer.DbUtil
             GetFk(table, key).RefersToTable;
 
         DatabaseColumn GetPkColumn(string table) =>
-            GetSchema().FindTableByName(table).PrimaryKeyColumn;
+            GetSchema().FindTableByName(table)?.PrimaryKeyColumn;
 
 
         string GetId(string table, IDictionary<string, object> item) =>
-            item[GetPkColumn(table).Name].ToString();
+            item[GetPkColumn(table)?.Name ?? "id"].ToString();
 
 
         string GetTitle(string tab, IDictionary<string, object> dictionary) =>
             dictionary["title"]?.ToString() ??
             dictionary["name"]?.ToString() ??
             dictionary["handle"]?.ToString() ??
+            dictionary["email"]?.ToString() ??
             GetTitle(tab, GetId(tab, dictionary));
 
         string GetTitle(string tab, string id) => tab + "#" + id;

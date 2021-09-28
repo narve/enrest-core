@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using DV8.Html.Elements;
 using DV8.Html.Support;
@@ -26,7 +27,16 @@ namespace HttpServer.Middleware
         public IEnumerable<IHtmlElement> Serialize(object x, int lvl, IHtmlSerializer fac)
         {
             var d = (IDictionary<string, object>)x;
-            var itemtype = HtmlSupport.Itemtype(x);
+            if (!d.Keys.Any())
+            {
+                return new Dl().ToArray();
+            }
+            if (!d.ContainsKey("type"))
+            {
+                throw new NotSupportedException();
+            }
+            var itemRef = (string)d["type"]; 
+            var itemtype = HtmlSupport.Itemtype(d);
             var subs = d.Keys.ToRawList().Cast<string>()
                 .Select(name => KeyValuePair.Create(name, d[name]))
 //                    .Where(a => a.Val != null)
@@ -37,7 +47,7 @@ namespace HttpServer.Middleware
                     {
                         // Itemprop = a.Key,
                         // Subs = fac.Serialize(a.Val, lvl - 1, fac).ToArray()
-                        Subs = DbValueToElement("item", d, a).ToArray()
+                        Subs = DbValueToElement(itemRef, d, a).ToArray()
                     }
                 })
                 .ToArray();

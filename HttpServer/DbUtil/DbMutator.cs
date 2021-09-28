@@ -82,6 +82,10 @@ namespace HttpServer.DbUtil
         {
             if (value == null) return null;
             if (value is string nullString && string.IsNullOrEmpty(nullString)) return null;
+            if (columnInfo.DataType == null)
+            {
+                return Guid.Parse(value.ToString());
+            }
             if (columnInfo.DataType.IsInt && value is string intString) return int.Parse(intString);
             return value;
         }
@@ -91,10 +95,11 @@ namespace HttpServer.DbUtil
             var t = _dbInspector.GetSchema().FindTableByName(table);
             var idColName = t.PrimaryKey.Columns.Single();
             var idCol = t.FindColumn(idColName);
-            var idExp = idCol.DataType.IsString ? idColName : $"cast ({idCol.Name} as varchar)";
+            var idExp = idCol.DataType?.IsString ?? false ? idColName : $"cast ({idCol.Name} as varchar)";
             var sql = $"select * from {table} where {idExp} = @id";
             var dyn = await _connectionProvider.Get().QuerySingleAsync(sql, new { id });
             var dict = (IDictionary<string, object>)dyn;
+            dict["type"] = table; 
             return dict;
         }
 
