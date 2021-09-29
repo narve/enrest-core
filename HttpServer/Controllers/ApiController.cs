@@ -145,7 +145,11 @@ namespace HttpServer.Controllers
                 },
             };
 
-            var links = editLinks.Concat(outgoingFkLinks).Concat(incomingFkLinks)
+            var actions = table == "users"
+                ? new A("/forms/login?user=" + o["email"]).ToArray()
+                : Array.Empty<IHtmlElement>(); 
+
+            var links = editLinks.Concat(outgoingFkLinks).Concat(incomingFkLinks).Concat(actions)
                 .Select(l => new Li(l))
                 .Cast<IHtmlElement>()
                 .ToArray();
@@ -161,7 +165,7 @@ namespace HttpServer.Controllers
             var filters = fk.Columns
                 .Select(c => KeyValuePair.Create(c, (object)_dbInspector.GetId(sourceTable, o)))
                 .ToList();
-            var name = $"Search '{fk.TableName}' where {filters.Select(kvp => kvp.Key + $"=" + kvp.Value).JoinToString()}";
+            var name = $"Search '{fk.TableName}' where {filters.Select(kvp => kvp.Key + "=" + kvp.Value).JoinToString()}";
             var rel = fk.TableName;
             var url = _linkManager.LinkToQuery(fk.TableName, filters);
             return new A(url, name, rel)
@@ -210,8 +214,11 @@ namespace HttpServer.Controllers
             }
 
 
-            var sql = $"select * from {table}{where}";
-            var rs = await _dbConnectionProvider.Get().QueryAsync(sql, parameters);
+            var tabInfo = _dbInspector.GetSchema().FindTableByName(table);
+            var tab = tabInfo.SchemaOwner.Equals("auth") ? "auth."+table : table;
+            var sql = $"select * from {tab}{where}";
+            var conn = await _dbConnectionProvider.Get();
+            var rs = await conn.QueryAsync(sql, parameters);
             var rs2 = rs
                 .Cast<IDictionary<string, object>>()
                 .Select(d => AddSelfLink(table, d))
@@ -313,32 +320,69 @@ namespace HttpServer.Controllers
             new IHtmlElement[]
             {
                 new A("/reload-db", "Refresh database information"),
+                new A(ILinkManager.GetLogoutForm, "Logout"),
             };
 
 
-        [HttpGet("login")]
+        [HttpGet(ILinkManager.GetLoginForm)]
         public IHtmlElement GetLoginForm([FromQuery] string user)
         {
-            return new Form()
+            return new Form
             {
-                Action = "/login",
+                Action = ILinkManager.LoginAction,
                 Method = HttpMethod.Post,
-                Subs = new Fieldset()
+                Subs = new Fieldset
                 {
                     Subs = new IHtmlElement[]
                     {
-                        Input.ForString("user"),
+                        Input.ForString("user", user),
                         Form.Submit("Login"),
                     }
                 }.ToArray()
             };
         }
 
-        [HttpPost("login")]
-        public object Login([FromForm] string user)
+        [HttpGet(ILinkManager.GetLogoutForm)]
+        public IHtmlElement GetLogoutForm([FromQuery] string user)
         {
-            _httpContextAccessor.HttpContext.Response.Cookies.Append("username", user);
-            return "Logged in as " + user;
+            return new Form
+            {
+                Action = ILinkManager.LogoutAction,
+                Method = HttpMethod.Post,
+                Subs = new Fieldset
+                {
+                    Subs = new IHtmlElement[]
+                    {
+                        Form.Submit("Logout"),
+                    }
+                }.ToArray()
+            };
+        }
+
+        [HttpPost(ILinkManager.LoginAction)]
+        public async Task<object> DoLogin([FromForm] string user)
+        {
+            var conn = await _dbConnectionProvider.Get();
+            var rows = await conn.QueryAsync(
+                "select id from auth.users where email = @email", 
+                // "select id from auth.users  ", 
+                new { email = user });
+            dynamic uid = rows.First();
+            var dict = (IDictionary<string, object>)uid;
+            var uidString = dict["id"]?.ToString();
+            if (string.IsNullOrEmpty(uidString))
+                throw new ArgumentException($"Login failed for '{user}'");
+            _httpContextAccessor.HttpContext.Response.Cookies.Append("username", user + "::" + uidString);
+            // _httpContextAccessor.HttpContext.Response.Cookies.Append("username", user);
+            return $"Logged in as {user} / {uid}";
+        }
+        
+        [HttpPost(ILinkManager.LogoutAction)]
+        public async Task<object> DoLogout()
+        {
+            var user = _httpContextAccessor.HttpContext.Request.Cookies["username"];
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete("username");
+            return $"Logged out out {user}";
         }
     }
 }

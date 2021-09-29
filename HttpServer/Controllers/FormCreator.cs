@@ -171,7 +171,8 @@ namespace HttpServer.Controllers
         private async Task<ImmutableSortedDictionary<string, string>> GetSelectorRows(string otherTable)
         {
             var select = $"select * from {otherTable}";
-            var rows = await _connectionProvider.Get().QueryAsync(select);
+            var conn = await _connectionProvider.Get();
+            var rows = await conn.QueryAsync(select);
             var items = rows.Cast<IDictionary<string, object>>().ToList()
                 .Select(x => KeyValuePair.Create(_dbInspector.GetId(otherTable, x), _dbInspector.GetTitle(otherTable, x)))
                 .ToImmutableSortedDictionary();

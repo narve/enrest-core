@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Threading.Tasks;
 using Dapper;
 using DatabaseSchemaReader.DataSchema;
 
@@ -17,15 +18,15 @@ namespace HttpServer.DbUtil
 
         public DatabaseSchema GetSchema()
         {
-            _schema ??= LoadSchema();
+            _schema ??= LoadSchema().GetAwaiter().GetResult();
             return _schema;
         }
 
-        public void ReloadSchema() => _schema = LoadSchema();
+        public async Task ReloadSchema() => _schema = await LoadSchema();
 
-        public DatabaseSchema LoadSchema()
+        public async Task<DatabaseSchema> LoadSchema()
         {
-            var conn = _connectionProvider.Get();
+            var conn = await _connectionProvider.Get();
             using var dbReader = new DatabaseSchemaReader.DatabaseReader((DbConnection)conn);
             var schema = dbReader.ReadAll();
 

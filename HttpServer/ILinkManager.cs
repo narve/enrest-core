@@ -6,9 +6,13 @@ namespace HttpServer
 {
     public interface ILinkManager
     {
-        public const string GetCreateForm = "forms/create/{table}";
-        public const string GetEditForm = "forms/edit/{table}/{id}";
-        public const string GetDeleteForm = "forms/delete/{table}/{id}";
+        public const string GetCreateForm = "/forms/create/{table}";
+        public const string GetEditForm = "/forms/edit/{table}/{id}";
+        public const string GetDeleteForm = "/forms/delete/{table}/{id}";
+        public const string GetLoginForm = "/forms/login";
+        public const string GetLogoutForm = "/forms/logout";
+        public const string LoginAction = "/actions/login";
+        public const string LogoutAction = "/actions/logout";
         public const string DeleteAction = "/actions/delete/{table}/{id}";
         public const string PostNewItem = "{table}";
         public const string PostExistingItem = "{table}/{id}";

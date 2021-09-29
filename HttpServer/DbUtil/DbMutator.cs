@@ -22,7 +22,8 @@ namespace HttpServer.DbUtil
         public async Task<IDictionary<string, object>> InsertRow(string table, List<KeyValuePair<string, object>> formValues)
         {
             CheckColumnNames(table, formValues);
-            var conn = _connectionProvider.Get();
+            var conn = await _connectionProvider.Get();
+
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
             var parameters = ToDbParameters(formValues, tableInfo);
             var colNames = parameters.Keys.Where(x => Regex.IsMatch(x, "^[\\w]+$")).ToList();
@@ -41,7 +42,8 @@ namespace HttpServer.DbUtil
         {
             CheckColumnNames(table, formValues);
             var colNames = formValues.Select(kvp => kvp.Key).ToList();
-            var conn = _connectionProvider.Get();
+            var conn = await _connectionProvider.Get();
+
             var tableInfo = _dbInspector.GetSchema().FindTableByName(table);
             var parameters = ToDbParameters(formValues, tableInfo);
             var pk = _dbInspector.GetPkColumn(table);
@@ -86,6 +88,7 @@ namespace HttpServer.DbUtil
             {
                 return Guid.Parse(value.ToString());
             }
+
             if (columnInfo.DataType.IsInt && value is string intString) return int.Parse(intString);
             return value;
         }
@@ -96,10 +99,14 @@ namespace HttpServer.DbUtil
             var idColName = t.PrimaryKey.Columns.Single();
             var idCol = t.FindColumn(idColName);
             var idExp = idCol.DataType?.IsString ?? false ? idColName : $"cast ({idCol.Name} as varchar)";
-            var sql = $"select * from {table} where {idExp} = @id";
-            var dyn = await _connectionProvider.Get().QuerySingleAsync(sql, new { id });
+
+            var tabInfo = _dbInspector.GetSchema().FindTableByName(table);
+            var tab = tabInfo.SchemaOwner.Equals("auth") ? "auth." + table : table;
+            var sql = $"select * from {tab} where {idExp} = @id";
+            var conn = await _connectionProvider.Get();
+            var dyn = await conn.QuerySingleAsync(sql, new { id });
             var dict = (IDictionary<string, object>)dyn;
-            dict["type"] = table; 
+            dict["type"] = table;
             return dict;
         }
 
@@ -107,7 +114,8 @@ namespace HttpServer.DbUtil
         {
             var pk = _dbInspector.GetPkColumn(table);
             var sql = $"SELECT {column} FROM {table} WHERE {pk.Name} = @id";
-            var rs = await _connectionProvider.Get().QuerySingleAsync<byte[]>(sql, new { id = Coerce(pk, id) });
+            var conn = await _connectionProvider.Get();
+            var rs = await conn.QuerySingleAsync<byte[]>(sql, new { id = Coerce(pk, id) });
             return rs;
         }
 
@@ -115,9 +123,10 @@ namespace HttpServer.DbUtil
         {
             if (string.IsNullOrEmpty(id))
                 throw new ArgumentException();
-            var col = _dbInspector.GetPkColumn(table); 
+            var col = _dbInspector.GetPkColumn(table);
             var sql = $"DELETE FROM {table} WHERE {col.Name} = @id";
-            var rs = await _connectionProvider.Get().ExecuteAsync(sql, new {id = Coerce(col, id)});
+            var conn = await _connectionProvider.Get();
+            var rs = await conn.ExecuteAsync(sql, new { id = Coerce(col, id) });
             return rs;
         }
     }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using DV8.Html.Elements;
 using DV8.Html.Serialization;
 using DV8.Html.Utils;
@@ -21,6 +22,8 @@ namespace HttpServer.Middleware
             MediaTypeHeaderValue.Parse("application/html"),
         };
 
+        private IDbConnectionProvider _connectionProvider;
+
         public HtmlOutputFormatter()
         {
             HtmlMediaTypes.ForEach(t => SupportedMediaTypes.Add(t));
@@ -32,6 +35,7 @@ namespace HttpServer.Middleware
         {
             var ser = new HtmlSerializerRegistry();
             var sp = context.HttpContext.RequestServices;
+            this._connectionProvider = sp.GetRequiredService<IDbConnectionProvider>();
             var creator = new ItemSerializer(sp.GetRequiredService<IDbInspector>(), sp.GetRequiredService<ILinkManager>());
             ser.Add(o => o is IDictionary<string, object>, o => creator.Serialize((IDictionary<string, object>)o, 3, ser));
             HtmlSerializerRegistry.AddDefaults(ser);
@@ -97,9 +101,29 @@ namespace HttpServer.Middleware
             {
                 new Div()
                 {
-                    Subs = CookieInformation(ctx),
+                    Subs = CookieInformation(ctx)
+                        .Concat(ServerInformation().GetAwaiter().GetResult())
+                        .ToArray()
                 }
             };
+        }
+
+        private async Task<IHtmlElement[]> ServerInformation()
+        {
+            var strings = new[]
+            {
+                "SELECT concat( SESSION_USER, ', ', CURRENT_USER)",
+                "select auth.uid()",
+            };
+            var conn = await _connectionProvider.Get();
+            var elements = strings.Select(s => conn.QuerySingle<object>(s))
+                .Select(r => new Li(r.ToString()))
+                .ToArray();
+            return elements;
+            // var x = await conn.QuerySingleAsync("select set_config('request.jwt.claim.sub', 'f65eaad3-2041-4f01-a5db-133c57ebdb05', false)");
+            // return new Span("Authid=" + x).ToArray();
+
+
         }
 
         private IHtmlElement[] CookieInformation(OutputFormatterWriteContext ctx)

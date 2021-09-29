@@ -64,12 +64,19 @@ namespace HttpServer
             
 
             services.AddHttpContextAccessor();
-            // services.AddSingleton<IDbInspector>(new DbInspector(new DbConnectionProvider(Configuration)));
-            services.AddSingleton<IDbInspector, DbInspector>();
-            services.AddSingleton<FormCreator>();
-            services.AddSingleton<DbMutator>();
-            services.AddSingleton<ILinkManager, LinkManager>();
-            services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>();
+            services.AddSingleton<IDbInspector>(new DbInspector(new DbConnectionProvider(Configuration, null)));
+            // services.AddSingleton<IDbInspector, DbInspector>();
+            services.AddScoped<IDbConnectionProvider, DbConnectionProvider>();
+            services.AddScoped<FormCreator>();
+            services.AddScoped<DbMutator>();
+            services.AddScoped<ILinkManager, LinkManager>();
+            // services.AddScoped<IDbConnectionProvider>( x =>
+            // {
+            //     var config = x.GetRequiredService<IConfiguration>();
+            //     var p = new DbConnectionProvider(config);
+            //     p.
+            //     return p; 
+            // });
 
             services.AddControllers();
             services.AddTransient<ProblemDetailsFactory, CustomProblemDetailsFactory>();            
