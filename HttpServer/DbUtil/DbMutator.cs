@@ -82,11 +82,11 @@ namespace HttpServer.DbUtil
 
         public object Coerce(DatabaseColumn columnInfo, object value)
         {
-            if (value == null) return null;
-            if (value is string nullString && string.IsNullOrEmpty(nullString)) return null;
+            if (value == null||value is string nullString && string.IsNullOrEmpty(nullString)) 
+                return null;
             if (columnInfo.DataType == null)
             {
-                return Guid.Parse(value.ToString());
+                return Guid.Parse(value.ToString()!);
             }
 
             if (columnInfo.DataType.IsInt && value is string intString) return int.Parse(intString);

@@ -32,12 +32,18 @@ namespace HttpServer.DbUtil
 
             var colSql =
                 "SELECT table_name, column_name, is_identity, identity_generation, is_generated, is_updatable " +
-                "from information_schema.columns where table_schema = 'public'";
+                "from information_schema.columns where table_schema in ( 'public', 'auth')";
             IEnumerable<dynamic> cols = conn.Query(colSql).ToList();
             var tabs = cols.Select(x => x.table_name).ToHashSet();
 
+            tabs.Add("users");
+
             foreach (var table in schema.Tables)
             {
+                if (table.Name.Equals("users"))
+                {
+                    // continue;
+                }
                 // var tabs = new[] { "item", "location" };
                 if (!tabs.Contains(table.Name))
                     continue;

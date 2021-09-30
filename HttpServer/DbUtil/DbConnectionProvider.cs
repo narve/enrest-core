@@ -47,7 +47,7 @@ namespace HttpServer.DbUtil
             }
             else
             {
-                await conn.ExecuteAsync("SET ROLE anon");
+                // await conn.ExecuteAsync("SET ROLE anon");
             }
 
             return conn;

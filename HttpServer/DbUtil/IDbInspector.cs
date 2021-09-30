@@ -18,8 +18,17 @@ namespace HttpServer.DbUtil
                 .ForeignKeys
                 .SingleOrDefault(fk => fk.Columns.Single().Equals(key, OrdinalIgnoreCase));
 
-        string GetFkTarget(string table, string key) =>
-            GetFk(table, key).RefersToTable;
+        string GetFkTarget(string table, string key)
+        {
+            var fk = GetFk(table, key);
+            if (fk.RefersToTable == null)
+            {
+                var constraint = fk.RefersToConstraint;
+                if (constraint == "users_pkey")
+                    return "users";
+            } 
+            return fk.RefersToTable;
+        }
 
         DatabaseColumn GetPkColumn(string table) =>
             GetSchema().FindTableByName(table)?.PrimaryKeyColumn;
